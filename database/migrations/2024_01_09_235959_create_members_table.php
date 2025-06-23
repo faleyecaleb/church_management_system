@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('baptism_date')->nullable();
             $table->string('membership_status')->default('active');
             $table->string('profile_photo')->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->json('emergency_contacts')->nullable();
             $table->json('custom_fields')->nullable();
             $table->enum('department', ['Media', 'Choir', 'Ushers', 'Dance', 'Prayer', 'Lost but Found', 'Drama', 'Sanctuary'])->nullable();

@@ -4,29 +4,55 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 use Carbon\Carbon;
 
 class Attendance extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'member_id',
-        'service_type',
+        'service_id',
         'check_in_time',
+        'check_out_time',
         'check_in_method',
+        'check_in_location',
+        'checked_in_by',
+        'checked_out_by',
         'qr_code',
-        'notes'
+        'notes',
+        'is_present',
+        'is_absent'
     ];
 
     protected $casts = [
-        'check_in_time' => 'datetime'
+        'check_in_time' => 'datetime',
+        'check_out_time' => 'datetime',
+        'is_present' => 'boolean',
+        'is_absent' => 'boolean'
     ];
 
     // Relationships
     public function member()
     {
         return $this->belongsTo(Member::class);
+    }
+    
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
+    
+    public function checkedInBy()
+    {
+        return $this->belongsTo(User::class, 'checked_in_by');
+    }
+    
+    public function checkedOutBy()
+    {
+        return $this->belongsTo(User::class, 'checked_out_by');
     }
 
     // Scopes
@@ -49,9 +75,9 @@ class Attendance extends Model
                      ->whereYear('check_in_time', Carbon::now()->year);
     }
 
-    public function scopeByService($query, $serviceType)
+    public function scopeByService($query, $serviceId)
     {
-        return $query->where('service_type', $serviceType);
+        return $query->where('service_id', $serviceId);
     }
 
     public function scopeByCheckInMethod($query, $method)

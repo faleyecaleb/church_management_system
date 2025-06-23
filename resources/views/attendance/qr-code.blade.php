@@ -26,7 +26,7 @@
             </div>
 
             <div class="mt-6">
-                <a href="{{ route('attendance.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors">
+                <a href="{{ route('attendance.service') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors">
                     Back to Attendance
                 </a>
             </div>

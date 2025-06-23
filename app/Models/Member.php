@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class Member extends Authenticatable
@@ -25,6 +26,7 @@ class Member extends Authenticatable
         'profile_photo',
         'custom_fields',
         'department',
+        'gender',
     ];
 
     protected $casts = [
@@ -47,6 +49,14 @@ class Member extends Authenticatable
     public function donations()
     {
         return $this->hasMany(Donation::class);
+    }
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo && Storage::disk('public')->exists($this->profile_photo)) {
+            return Storage::disk('public')->url($this->profile_photo);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name);
     }
 
     public function pledges()

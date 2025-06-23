@@ -51,7 +51,7 @@ class SmsTemplate extends Model
         return [
             [
                 'name' => 'Welcome Message',
-                'content' => 'Welcome {name} to our church family! We're blessed to have you with us.',
+                'content' => 'Welcome {name} to our church family! We\'re blessed to have you with us.',
                 'category' => 'general',
                 'is_active' => true
             ],

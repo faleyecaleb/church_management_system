@@ -12,7 +12,7 @@
         <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
             <div class="flex items-center">
                 <img class="h-16 w-16 rounded-full" 
-                     src="{{ $member->profile_photo ? Storage::url($member->profile_photo) : 'https://ui-avatars.com/api/?name=' . urlencode($member->full_name) }}" 
+                     src="{{ $member->profile_photo_url }}" 
                      alt="{{ $member->full_name }}">
                 <div class="ml-4">
                     <h3 class="text-lg leading-6 font-medium text-gray-900">{{ $member->full_name }}</h3>

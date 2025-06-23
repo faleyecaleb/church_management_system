@@ -30,7 +30,7 @@
                         <div class="flex items-center space-x-6">
                             <div class="h-32 w-32 rounded-full ring-4 ring-indigo-50 overflow-hidden bg-gray-100">
                                 <img class="h-32 w-32 rounded-full object-cover" 
-                                     src="{{ $member->profile_photo ? Storage::url($member->profile_photo) : 'https://ui-avatars.com/api/?name=' . urlencode($member->full_name) }}" 
+                                     src="{{ $member->profile_photo_url }}" 
                                      alt="{{ $member->full_name }}">
                             </div>
                             <div class="flex-1">

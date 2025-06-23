@@ -5,7 +5,7 @@
     <div class="bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">Edit Attendance Record</h2>
-            <a href="{{ route('attendance.index') }}" class="text-gray-600 hover:text-gray-800">
+            <a href="{{ route('attendance.service') }}" class="text-gray-600 hover:text-gray-800">
                 Back to Attendance
             </a>
         </div>

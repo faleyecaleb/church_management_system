@@ -31,7 +31,6 @@
     </div>
 
     @if(isset($selectedService))
-    @dd($selectedService)
 
     <!-- Attendance Management -->
     <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 hover:bg-white/90 transition-all duration-300">

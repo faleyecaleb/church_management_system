@@ -26,6 +26,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceSettingsController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\ServiceAttendanceController;
+use App\Http\Controllers\AttendanceMarkingController;
 use App\Http\Controllers\NotificationController;
 
 // Authentication Routes
@@ -166,6 +167,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
         // Service Attendance Management
         Route::get('/', [ServiceAttendanceController::class, 'index'])->name('service');
+        Route::get('/create', [AttendanceController::class, 'create'])->name('create');
+        Route::post('/', [AttendanceController::class, 'store'])->name('store');
         Route::post('/{service}/check-in-multiple', [ServiceAttendanceController::class, 'checkInMultiple'])->name('check-in-multiple');
         Route::post('/{attendance}/check-out', [ServiceAttendanceController::class, 'checkOut'])->name('check-out');
         Route::post('/{service}/check-out-all', [ServiceAttendanceController::class, 'checkOutAll'])->name('check-out-all');
@@ -182,6 +185,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
         // Statistics and Reports
         Route::get('/stats', [AttendanceController::class, 'getStats'])->name('stats');
         Route::get('/report', [AttendanceController::class, 'report'])->name('report');
+        Route::get('/dashboard', [AttendanceController::class, 'dashboard'])->name('dashboard');
+        
+        // Attendance Marking (Two-Step Process)
+        Route::get('/marking', [AttendanceMarkingController::class, 'index'])->name('marking');
+        Route::post('/marking/step1', [AttendanceMarkingController::class, 'processStep1'])->name('marking.step1.process');
+        Route::post('/marking/step2', [AttendanceMarkingController::class, 'processStep2'])->name('marking.step2.process');
     });
 
     // Member Document Routes

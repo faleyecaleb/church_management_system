@@ -83,9 +83,7 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex-shrink-0">
-                                        @if($attendance->member->profile_photo_path)
-                                            <img class="h-8 w-8 rounded-full" src="{{ Storage::url($attendance->member->profile_photo_path) }}" alt="">
-                                        @else
+                                        <img class="h-8 w-8 rounded-full" src="{{ $attendance->member->profile_photo_url }}" alt="{{ $attendance->member->full_name }}">
                                             <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                                                 <span class="text-sm font-medium text-gray-500">{{ substr($attendance->member->name, 0, 1) }}</span>
                                             </div>
@@ -104,7 +102,7 @@
                         </div>
                         @if($service->attendances->count() > 5)
                             <div class="mt-4 text-center">
-                                <a href="{{ route('attendance.index', ['service_id' => $service->id]) }}" class="text-sm text-blue-600 hover:text-blue-800">
+                                <a href="{{ route('attendance.service', ['service_id' => $service->id]) }}" class="text-sm text-blue-600 hover:text-blue-800">
                                     View all attendance records
                                 </a>
                             </div>

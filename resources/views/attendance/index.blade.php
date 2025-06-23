@@ -10,7 +10,7 @@
             <h2 class="text-2xl font-bold">Attendance Records</h2>
             <div class="space-x-2">
                 @can('attendance.create')
-                <a href="{{ route('attendance.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+                <a href="{{ route('attendance.service') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
                     Record Attendance
                 </a>
                 @endcan
@@ -40,7 +40,7 @@
         @endcan
 
         <!-- Filter Form -->
-        <form action="{{ route('attendance.index') }}" method="GET" class="mb-6">
+        <form action="{{ route('attendance.service') }}" method="GET" class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
@@ -71,7 +71,7 @@
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
                     Apply Filters
                 </button>
-                <a href="{{ route('attendance.index') }}" class="ml-2 text-gray-600 hover:text-gray-800">
+                <a href="{{ route('attendance.service') }}" class="ml-2 text-gray-600 hover:text-gray-800">
                     Clear Filters
                 </a>
             </div>
@@ -116,9 +116,7 @@
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    @if($attendance->member->profile_photo)
-                                        <img src="{{ asset('storage/' . $attendance->member->profile_photo) }}" alt="Profile Photo" class="h-8 w-8 rounded-full mr-2">
-                                    @endif
+                                    <img src="{{ $attendance->member->profile_photo_url }}" alt="{{ $attendance->member->full_name }}" class="h-8 w-8 rounded-full mr-2">
                                     <div>
                                         <div class="text-sm font-medium text-gray-900">
                                             {{ $attendance->member->first_name }} {{ $attendance->member->last_name }}

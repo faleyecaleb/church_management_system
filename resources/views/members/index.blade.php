@@ -110,7 +110,7 @@
                     <div class="min-w-0 flex-1 flex items-center">
                         <div class="flex-shrink-0">
                             <img class="h-12 w-12 rounded-full" 
-                                 src="{{ $member->profile_photo ? Storage::url($member->profile_photo) : 'https://ui-avatars.com/api/?name=' . urlencode($member->full_name) }}" 
+                                 src="{{ $member->profile_photo_url }}" 
                                  alt="{{ $member->full_name }}">
                         </div>
                         <div class="min-w-0 flex-1 px-4">

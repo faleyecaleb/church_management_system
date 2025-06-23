@@ -60,6 +60,7 @@ class MemberController extends Controller
                 'address' => 'nullable|string|max:500',
                 'date_of_birth' => 'nullable|date',
                 'baptism_date' => 'nullable|date',
+                'department' => 'required|string|max:255',
                 'membership_status' => 'required|string',
                 'profile_photo' => 'nullable|image|max:2048',
                 'emergency_contacts' => 'nullable|array',
@@ -69,6 +70,8 @@ class MemberController extends Controller
             ]);
 
             if ($request->hasFile('profile_photo')) {
+                // Ensure profile-photos directory exists
+                Storage::disk('public')->makeDirectory('profile-photos');
                 $path = $request->file('profile_photo')->store('profile-photos', 'public');
                 $validated['profile_photo'] = $path;
             }
@@ -120,13 +123,15 @@ class MemberController extends Controller
         ]);
 
         if ($request->hasFile('profile_photo')) {
-            // Delete old photo if exists
-            if ($member->profile_photo) {
-                Storage::disk('public')->delete($member->profile_photo);
+                // Delete old photo if exists
+                if ($member->profile_photo) {
+                    Storage::disk('public')->delete($member->profile_photo);
+                }
+                // Ensure profile-photos directory exists
+                Storage::disk('public')->makeDirectory('profile-photos');
+                $path = $request->file('profile_photo')->store('profile-photos', 'public');
+                $validated['profile_photo'] = $path;
             }
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
-            $validated['profile_photo'] = $path;
-        }
 
         $member->update($validated);
 
