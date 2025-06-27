@@ -186,6 +186,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/stats', [AttendanceController::class, 'getStats'])->name('stats');
         Route::get('/report', [AttendanceController::class, 'report'])->name('report');
         Route::get('/dashboard', [AttendanceController::class, 'dashboard'])->name('dashboard');
+        Route::put('/{attendance}', [AttendanceController::class, 'update'])->name('update');
+        Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
         
         // Attendance Marking (Two-Step Process)
         Route::get('/marking', [AttendanceMarkingController::class, 'index'])->name('marking');

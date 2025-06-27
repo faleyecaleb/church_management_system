@@ -40,18 +40,7 @@
                 <p class="text-sm text-gray-500">{{ $selectedDate->format('l, F j, Y') }}</p>
             </div>
             <div class="flex gap-3">
-                <button onclick="showBulkCheckIn()" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Bulk Check-in
-                </button>
-                <button onclick="checkOutAll()" class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    Check Out All
-                </button>
+                <h3 class="text-sm text-gray-600">Select a member below to mark their attendance</h3>
             </div>
         </div>
 
@@ -60,16 +49,16 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($attendances as $attendance)
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50" id="attendance-row-{{ $attendance->id }}">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
@@ -77,36 +66,38 @@
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">{{ $attendance->member->full_name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $attendance->member->email }}</div>
-                                    @if($attendance->member->department)
-                                        <div class="text-xs text-primary-600 font-medium">{{ $attendance->member->department }}</div>
-                                    @endif
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $attendance->check_in_time->format('g:i A') }}
+                            {{ $attendance->member->email }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $attendance->check_out_time ? $attendance->check_out_time->format('g:i A') : '-' }}
+                            {{ $attendance->member->department ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($attendance->check_out_time)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                    Checked Out
-                                </span>
-                            @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Present
-                                </span>
-                            @endif
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $attendance->is_present ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                {{ $attendance->is_present ? 'Present' : 'Absent' }}
+                            </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            @if(!$attendance->check_out_time)
-                                <button onclick="checkOutMember({{ $attendance->id }})" class="text-red-600 hover:text-red-900">
-                                    Check Out
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div class="flex justify-center space-x-2" id="action-buttons-{{ $attendance->id }}">
+                                <button onclick="markAttendance({{ $attendance->id }}, true)" class="px-3 py-1 bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors">
+                                    Present
                                 </button>
-                            @endif
+                                <button onclick="markAttendance({{ $attendance->id }}, false)" class="px-3 py-1 bg-red-100 text-red-800 rounded-full hover:bg-red-200 transition-colors">
+                                    Absent
+                                </button>
+                                <button onclick="deleteAttendance({{ $attendance->id }})" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200 transition-colors">
+                                    Delete
+                                </button>
+                            </div>
+                            <div id="loading-{{ $attendance->id }}" class="hidden">
+                                <svg class="animate-spin h-5 w-5 mx-auto text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -123,56 +114,13 @@
     @endif
 </div>
 
-<!-- Bulk Check-in Modal -->
-<div id="bulk-checkin-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden" aria-hidden="true">
-    <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <div class="absolute right-0 top-0 pr-4 pt-4">
-                    <button type="button" onclick="hideBulkCheckIn()" class="rounded-md bg-white text-gray-400 hover:text-gray-500">
-                        <span class="sr-only">Close</span>
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="sm:flex sm:items-start">
-                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                        <h3 class="text-base font-semibold leading-6 text-gray-900">Bulk Check-in Members</h3>
-                        <div class="mt-4">
-                            <input type="text" id="member-search" placeholder="Search members..." 
-                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 mb-4">
-                            <div class="max-h-96 overflow-y-auto border rounded-md p-4" id="members-list">
-                                @foreach($members as $member)
-                                <div class="flex items-center py-2 hover:bg-gray-50">
-                                    <input type="checkbox" name="member_ids[]" value="{{ $member->id }}"
-                                           class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
-                                    <label class="ml-3 block text-sm text-gray-700">{{ $member->full_name }}</label>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="button" onclick="bulkCheckIn()"
-                            class="inline-flex w-full justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 sm:ml-3 sm:w-auto">
-                        Check In Selected
-                    </button>
-                    <button type="button" onclick="hideBulkCheckIn()"
-                            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 @push('scripts')
 <script>
 const serviceId = {{ $selectedService->id ?? 'null' }};
 const selectedDate = '{{ $selectedDate->format('Y-m-d') ?? '' }}';
+const csrfToken = '{{ csrf_token() }}';
 
 // Handle form submission
 document.getElementById('attendanceForm').addEventListener('submit', function(e) {
@@ -187,19 +135,130 @@ document.getElementById('attendanceForm').addEventListener('submit', function(e)
 // Search functionality
 document.getElementById('member-search')?.addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase();
-    const membersList = document.getElementById('members-list');
-    const members = membersList.getElementsByTagName('div');
+    const rows = document.querySelectorAll('tbody tr');
 
-    for (let member of members) {
-        const label = member.getElementsByTagName('label')[0];
-        const text = label.textContent.toLowerCase();
-        member.style.display = text.includes(searchTerm) ? '' : 'none';
-    }
+    rows.forEach(row => {
+        const nameCell = row.querySelector('td:first-child');
+        if (nameCell) {
+            const name = nameCell.textContent.toLowerCase();
+            row.style.display = name.includes(searchTerm) ? '' : 'none';
+        }
+    });
 });
 
-// Modal management
-function showBulkCheckIn() {
-    document.getElementById('bulk-checkin-modal').classList.remove('hidden');
+// Show loading state
+function showLoading(attendanceId) {
+    const actionButtons = document.getElementById(`action-buttons-${attendanceId}`);
+    const loading = document.getElementById(`loading-${attendanceId}`);
+    actionButtons.classList.add('hidden');
+    loading.classList.remove('hidden');
+}
+
+// Hide loading state
+function hideLoading(attendanceId) {
+    const actionButtons = document.getElementById(`action-buttons-${attendanceId}`);
+    const loading = document.getElementById(`loading-${attendanceId}`);
+    actionButtons.classList.remove('hidden');
+    loading.classList.add('hidden');
+}
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} transition-opacity duration-300`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Mark attendance
+async function markAttendance(attendanceId, isPresent) {
+    showLoading(attendanceId);
+    
+    try {
+        const response = await fetch(`/attendance/${attendanceId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                is_present: isPresent,
+                is_absent: !isPresent
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to update attendance');
+        }
+
+        // Update the UI
+        const statusBadge = document.querySelector(`#attendance-row-${attendanceId} td:nth-child(4) span`);
+        statusBadge.textContent = isPresent ? 'Present' : 'Absent';
+        statusBadge.className = `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            isPresent ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`;
+        
+        showToast('Attendance updated successfully');
+    } catch (error) {
+        showToast(error.message, 'error');
+    } finally {
+        hideLoading(attendanceId);
+    }
+}
+
+// Delete attendance
+async function deleteAttendance(attendanceId) {
+    if (!confirm('Are you sure you want to delete this attendance record?')) {
+        return;
+    }
+    
+    showLoading(attendanceId);
+    
+    try {
+        const response = await fetch(`/attendance/${attendanceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to delete attendance record');
+        }
+
+        // Remove the row from the table
+        const row = document.querySelector(`#attendance-row-${attendanceId}`);
+        row.remove();
+        
+        // Check if there are any remaining rows
+        const tbody = row.parentElement;
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        No attendance records for this service.
+                    </td>
+                </tr>
+            `;
+        }
+        
+        showToast('Attendance record deleted successfully');
+    } catch (error) {
+        showToast(error.message, 'error');
+    } finally {
+        hideLoading(attendanceId);
+    }
 }
 
 function hideBulkCheckIn() {
@@ -287,6 +346,88 @@ async function checkOutAll() {
             location.reload();
         } else {
             throw new Error(data.error || 'Failed to check out all members');
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+// Edit attendance
+async function editAttendance(attendanceId) {
+    const status = prompt('Update attendance status (present/absent):', '');
+    if (!status || !['present', 'absent'].includes(status.toLowerCase())) {
+        alert('Invalid status. Please enter either "present" or "absent".');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/attendance/${attendanceId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                is_present: status.toLowerCase() === 'present' ? 1 : 0,
+                is_absent: status.toLowerCase() === 'absent' ? 1 : 0
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update the UI
+            const row = document.getElementById(`attendance-row-${attendanceId}`);
+            const statusCell = row.querySelector('td:nth-child(4) span');
+            
+            statusCell.className = `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                status.toLowerCase() === 'present' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`;
+            statusCell.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            alert('Attendance updated successfully');
+        } else {
+            throw new Error(data.error || 'Failed to update attendance');
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+// Delete attendance
+async function deleteAttendance(attendanceId) {
+    if (!confirm('Are you sure you want to delete this attendance record?')) return;
+
+    try {
+        const response = await fetch(`/attendance/${attendanceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Remove the row from the table
+            const row = document.getElementById(`attendance-row-${attendanceId}`);
+            row.remove();
+            
+            // Check if there are any remaining rows
+            const tbody = document.querySelector('tbody');
+            if (tbody.children.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No attendance records for this service.
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            alert('Attendance record deleted successfully');
+        } else {
+            throw new Error(data.error || 'Failed to delete attendance');
         }
     } catch (error) {
         alert(error.message);

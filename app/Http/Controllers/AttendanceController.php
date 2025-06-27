@@ -167,36 +167,46 @@ class AttendanceController extends Controller
     public function update(Request $request, Attendance $attendance)
     {
         $validated = $request->validate([
-            'member_id' => 'required|exists:members,id',
-            'service_id' => 'required|exists:services,id',
-            'check_in_time' => 'required|date',
-            'notes' => 'nullable|string|max:1000'
+            'is_present' => 'required|boolean',
+            'is_absent' => 'required|boolean'
         ]);
 
-        // Check for duplicate attendance excluding current record
-        $existingAttendance = Attendance::where('member_id', $validated['member_id'])
-            ->where('service_id', $validated['service_id'])
-            ->whereDate('check_in_time', $validated['check_in_time'])
-            ->where('id', '!=', $attendance->id)
-            ->exists();
+        try {
+            DB::beginTransaction();
 
-        if ($existingAttendance) {
-            return back()->with('error', 'Attendance already recorded for this member and service.');
+            $attendance->update([
+                'is_present' => $validated['is_present'],
+                'is_absent' => $validated['is_absent']
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Attendance updated successfully',
+                'attendance' => $attendance->fresh()
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to update attendance'], 500);
         }
-
-        $attendance->update($validated);
-
-        return redirect()->route('attendance.show', $attendance)
-            ->with('success', 'Attendance updated successfully.');
     }
 
     public function destroy(Attendance $attendance)
     {
-        $attendance->delete();
+        try {
+            DB::beginTransaction();
+            $attendance->delete();
+            DB::commit();
 
-        return redirect()
-            ->route('attendance.service')
-            ->with('success', 'Attendance record deleted successfully.');
+            return response()->json([
+                'message' => 'Attendance record deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to delete attendance record'], 500);
+        }
     }
 
     /**
