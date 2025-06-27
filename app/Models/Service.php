@@ -29,6 +29,23 @@ class Service extends Model
         'is_recurring' => 'boolean',
     ];
 
+    protected $appends = ['day_of_week_name'];
+
+    public function getDayOfWeekNameAttribute()
+    {
+        $days = [
+            0 => 'Sunday',
+            1 => 'Monday',
+            2 => 'Tuesday',
+            3 => 'Wednesday',
+            4 => 'Thursday',
+            5 => 'Friday',
+            6 => 'Saturday',
+        ];
+
+        return $days[$this->day_of_week] ?? null;
+    }
+
     /**
      * Get the attendances for this service.
      */
