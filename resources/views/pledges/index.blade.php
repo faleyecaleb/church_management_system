@@ -43,16 +43,15 @@
                                 <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <input type="search" name="search" id="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search by member name or campaign...">
+                        <input type="search" name="campaign_name" id="search" value="{{ request('campaign_name') }}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search by campaign name...">
                     </div>
                 </div>
                 <div>
                     <select name="status" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                         <option value="">All Statuses</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <option value="defaulted" {{ request('status') == 'defaulted' ? 'selected' : '' }}>Defaulted</option>
                     </select>
                 </div>
                 <div>
@@ -72,14 +71,13 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-xl font-bold text-gray-800">{{ $pledge->member->full_name }}</h3>
-                        <p class="text-sm font-medium text-indigo-600">{{ $pledge->campaign }}</p>
+                        <p class="text-sm font-medium text-indigo-600">{{ $pledge->campaign_name }}</p>
                     </div>
                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                         @switch($pledge->status)
-                            @case('pending') bg-yellow-100 text-yellow-800 @break
-                            @case('in_progress') bg-blue-100 text-blue-800 @break
+                            @case('active') bg-blue-100 text-blue-800 @break
                             @case('completed') bg-green-100 text-green-800 @break
-                            @case('cancelled') bg-red-100 text-red-800 @break
+                            @case('defaulted') bg-red-100 text-red-800 @break
                         @endswitch
                     ">
                         {{ ucfirst(str_replace('_', ' ', $pledge->status)) }}
@@ -88,20 +86,19 @@
                 <div class="mt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 text-sm">Amount:</span>
-                        <span class="font-semibold text-gray-800">${{ number_format($pledge->amount, 2) }}</span>
+                        <span class="font-semibold text-gray-800">${{ number_format($pledge->total_amount, 2) }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                        <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ $pledge->amount > 0 ? ($pledge->paid_amount / $pledge->amount) * 100 : 0 }}%"></div>
+                        <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ $pledge->total_amount > 0 ? ($pledge->amount_paid / $pledge->total_amount) * 100 : 0 }}%"></div>
                     </div>
                     <div class="flex justify-between items-center mt-1 text-xs text-gray-500">
-                        <span>Paid: ${{ number_format($pledge->paid_amount, 2) }}</span>
-                        <span>Due: ${{ number_format($pledge->amount - $pledge->paid_amount, 2) }}</span>
+                        <span>Paid: ${{ number_format($pledge->amount_paid, 2) }}</span>
+                        <span>Due: ${{ number_format($pledge->total_amount - $pledge->amount_paid, 2) }}</span>
                     </div>
                 </div>
                 <div class="mt-4 space-y-2 text-sm text-gray-600">
-                    <p><strong>Pledge Date:</strong> {{ $pledge->pledge_date->format('M d, Y') }}</p>
-                    <p><strong>Target Date:</strong> {{ $pledge->target_date->format('M d, Y') }}</p>
-                    <p><strong>Frequency:</strong> {{ ucfirst($pledge->payment_frequency) }}</p>
+                    <p><strong>Start Date:</strong> {{ $pledge->start_date->format('M d, Y') }}</p>
+                    <p><strong>End Date:</strong> {{ $pledge->end_date->format('M d, Y') }}</p>
                 </div>
             </div>
             <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-2">
