@@ -86,13 +86,15 @@
                 <div class="mt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 text-sm">Amount:</span>
-                        <span class="font-semibold text-gray-800">${{ number_format($expense->amount, 2) }}</span>
+                        <span class="font-semibold text-gray-800">₦{{ number_format($expense->amount, 2) }}</span>
                     </div>
                 </div>
                 <div class="mt-4 space-y-2 text-sm text-gray-600">
                     <p><strong>Date:</strong> {{ $expense->expense_date->format('M d, Y') }}</p>
                     <p><strong>Payment Method:</strong> {{ $expense->payment_method }}</p>
-                    <p><strong>Budget:</strong> {{ $expense->budget->name }}</p>
+                    @if($expense->budget)
+                        <p><strong>Budget:</strong> {{ $expense->budget->name }}</p>
+                    @endif
                 </div>
             </div>
             <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-2">

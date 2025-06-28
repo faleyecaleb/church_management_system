@@ -27,7 +27,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                     <div>
                         <p class="text-gray-500">Amount</p>
-                        <p class="font-semibold text-gray-800">${{ number_format($expense->amount, 2) }}</p>
+                        <p class="font-semibold text-gray-800">₦{{ number_format($expense->amount, 2) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Expense Date</p>
@@ -37,24 +37,26 @@
                         <p class="text-gray-500">Payment Method</p>
                         <p class="font-semibold text-gray-800">{{ $expense->payment_method }}</p>
                     </div>
+                    @if($expense->budget)
                     <div>
                         <p class="text-gray-500">Budget</p>
                         <p class="font-semibold text-gray-800">{{ $expense->budget->name }}</p>
                     </div>
+                    @endif
                 </div>
             </div>
 
-            @if($expense->notes)
+            @if($expense->description)
             <div class="mt-6">
-                <h3 class="text-lg font-medium text-gray-900">Notes</h3>
-                <p class="mt-2 text-sm text-gray-600">{{ $expense->notes }}</p>
+                <h3 class="text-lg font-medium text-gray-900">Description</h3>
+                <p class="mt-2 text-sm text-gray-600">{{ $expense->description }}</p>
             </div>
             @endif
 
-            @if($expense->receipt)
+            @if($expense->receipt_file)
             <div class="mt-6">
                 <h3 class="text-lg font-medium text-gray-900">Receipt</h3>
-                <a href="{{ Storage::url($expense->receipt) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800">View Receipt</a>
+                <a href="{{ Storage::url($expense->receipt_file) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800">View Receipt</a>
             </div>
             @endif
         </div>
@@ -68,7 +70,7 @@
             </form>
             <form action="{{ route('expenses.reject', $expense) }}" method="POST" class="inline-block">
                 @csrf
-                <input type="hidden" name="rejection_reason" value="Rejected by user."> {{-- Add a modal for this in a real app --}}
+                <input type="hidden" name="rejection_reason" value="Rejected by user.">
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                     Reject
                 </button>

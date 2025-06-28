@@ -21,11 +21,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                     <div>
                         <p class="text-gray-500">Allocated Amount</p>
-                        <p class="font-semibold text-gray-800">${{ number_format($budget->amount, 2) }}</p>
+                        <p class="font-semibold text-gray-800">₦{{ number_format($budget->amount, 2) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Used Amount</p>
-                        <p class="font-semibold text-gray-800">${{ number_format($budget->used_amount, 2) }}</p>
+                        <p class="font-semibold text-gray-800">₦{{ number_format($budget->used_amount, 2) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Fiscal Year</p>
@@ -48,10 +48,10 @@
                 </div>
             </div>
 
-            @if($budget->description)
+            @if($budget->notes)
             <div class="mt-6">
-                <h3 class="text-lg font-medium text-gray-900">Description</h3>
-                <p class="mt-2 text-sm text-gray-600">{{ $budget->description }}</p>
+                <h3 class="text-lg font-medium text-gray-900">Notes</h3>
+                <p class="mt-2 text-sm text-gray-600">{{ $budget->notes }}</p>
             </div>
             @endif
         </div>

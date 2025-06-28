@@ -86,14 +86,14 @@
                 <div class="mt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 text-sm">Amount:</span>
-                        <span class="font-semibold text-gray-800">${{ number_format($pledge->total_amount, 2) }}</span>
+                        <span class="font-semibold text-gray-800">₦{{ number_format($pledge->total_amount, 2) }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                         <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ $pledge->total_amount > 0 ? ($pledge->amount_paid / $pledge->total_amount) * 100 : 0 }}%"></div>
                     </div>
                     <div class="flex justify-between items-center mt-1 text-xs text-gray-500">
-                        <span>Paid: ${{ number_format($pledge->amount_paid, 2) }}</span>
-                        <span>Due: ${{ number_format($pledge->total_amount - $pledge->amount_paid, 2) }}</span>
+                        <span>Paid: ₦{{ number_format($pledge->amount_paid, 2) }}</span>
+                        <span>Due: ₦{{ number_format($pledge->total_amount - $pledge->amount_paid, 2) }}</span>
                     </div>
                 </div>
                 <div class="mt-4 space-y-2 text-sm text-gray-600">

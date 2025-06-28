@@ -27,11 +27,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                     <div>
                         <p class="text-gray-500">Pledge Amount</p>
-                        <p class="font-semibold text-gray-800">${{ number_format($pledge->total_amount, 2) }}</p>
+                        <p class="font-semibold text-gray-800">₦{{ number_format($pledge->total_amount, 2) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Paid Amount</p>
-                        <p class="font-semibold text-gray-800">${{ number_format($pledge->amount_paid, 2) }}</p>
+                        <p class="font-semibold text-gray-800">₦{{ number_format($pledge->amount_paid, 2) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Start Date</p>

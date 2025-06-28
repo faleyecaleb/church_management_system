@@ -32,5 +32,6 @@ class AppServiceProvider extends ServiceProvider
         if (!Storage::disk('public')->exists('profile-photos')) {
             Storage::disk('public')->makeDirectory('profile-photos');
         }
+
     }
 }

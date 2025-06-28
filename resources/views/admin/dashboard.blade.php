@@ -21,7 +21,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Members</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $totalMembers }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $totalMembers ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pledges</p>
-                    <p class="text-2xl font-bold text-gray-900">${{ number_format($totalPledges, 2) }}</p>
+                    <p class="text-2xl font-bold text-gray-900">₦{{ number_format($totalPledges ?? 0, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -71,7 +71,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Expenses</p>
-                    <p class="text-2xl font-bold text-gray-900">${{ number_format($totalExpenses, 2) }}</p>
+                    <p class="text-2xl font-bold text-gray-900">₦{{ number_format($totalExpenses ?? 0, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -96,7 +96,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Prayer Requests</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $totalPrayerRequests }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $totalPrayerRequests ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@
                                     @case('fa-user-plus')
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                                         @break
-                                    @case('fa-dollar-sign')
+                                    @case('fa-naira-sign')
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         @break
                                     @default
@@ -200,72 +200,71 @@
 </div>
 
 <!-- Quick Actions Panel -->
-<div class="mt-8">
-    <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 lg:p-8 hover:bg-white/90 transition-all duration-300">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <h3 class="text-xl font-bold text-gray-900">Quick Actions</h3>
-                <p class="text-sm text-gray-500 mt-1">Frequently used actions for church management</p>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <a href="{{ route('members.create') }}" class="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200">
-                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors mb-3">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-700 text-center">Add Member</span>
-            </a>
-            
-            <a href="{{ route('pledges.create') }}" class="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200">
-                <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition-colors mb-3">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-700 text-center">New Pledge</span>
-            </a>
-            
-            <a href="{{ route('expenses.create') }}" class="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:shadow-lg hover:shadow-red-500/10 transition-all duration-200">
-                <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center group-hover:bg-red-100 transition-colors mb-3">
-                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-700 text-center">Add Expense</span>
-            </a>
-            
-            <a href="{{ route('messages.create') }}" class="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200">
-                <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center group-hover:bg-purple-100 transition-colors mb-3">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-700 text-center">Send Message</span>
-            </a>
-            
-            <a href="{{ route('services.create') }}" class="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-200">
-                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center group-hover:bg-indigo-100 transition-colors mb-3">
-                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-700 text-center">Schedule Service</span>
-            </a>
-            
-            <a href="{{ route('budgets.create') }}" class="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-yellow-300 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-200">
-                <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center group-hover:bg-yellow-100 transition-colors mb-3">
-                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-700 text-center">Create Budget</span>
-            </a>
+<div class="mt-8 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 lg:p-8 hover:bg-white/90 transition-all duration-300">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="text-xl font-bold text-gray-900">Quick Actions</h3>
+            <p class="text-sm text-gray-500 mt-1">Frequently used actions</p>
         </div>
     </div>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <a href="{{ route('members.create') }}" class="group flex flex-col items-center p-4 rounded-xl hover:bg-blue-50 transition-colors">
+            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 mt-2 text-center">Add Member</span>
+        </a>
+        
+        <a href="{{ route('pledges.create') }}" class="group flex flex-col items-center p-4 rounded-xl hover:bg-green-50 transition-colors">
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 mt-2 text-center">New Pledge</span>
+        </a>
+        
+        <a href="{{ route('expenses.create') }}" class="group flex flex-col items-center p-4 rounded-xl hover:bg-red-50 transition-colors">
+            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 mt-2 text-center">Add Expense</span>
+        </a>
+        
+        <a href="{{ route('budgets.create') }}" class="group flex flex-col items-center p-4 rounded-xl hover:bg-purple-50 transition-colors">
+            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 mt-2 text-center">New Budget</span>
+        </a>
+        
+        <a href="{{ route('services.create') }}" class="group flex flex-col items-center p-4 rounded-xl hover:bg-indigo-50 transition-colors">
+            <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 mt-2 text-center">Add Service</span>
+        </a>
+        
+        <a href="{{ route('prayer-requests.create') }}" class="group flex flex-col items-center p-4 rounded-xl hover:bg-pink-50 transition-colors">
+            <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center group-hover:bg-pink-200 transition-colors">
+                <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 mt-2 text-center">Prayer Request</span>
+        </a>
+    </div>
 </div>
+@endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
@@ -330,7 +329,7 @@
                             displayColors: true,
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                    return context.dataset.label + ': ₦' + context.parsed.y.toLocaleString();
                                 }
                             }
                         }
@@ -367,7 +366,7 @@
                                     family: 'Inter'
                                 },
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString();
+                                    return '₦' + value.toLocaleString();
                                 }
                             }
                         }
@@ -378,4 +377,3 @@
     });
 </script>
 @endpush
-@endsection

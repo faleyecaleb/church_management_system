@@ -5,9 +5,14 @@
                class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
     </div>
     <div>
-        <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
-        <input type="number" name="amount" id="amount" value="{{ old('amount', $budget->amount ?? '') }}" required
-               class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        <label for="amount" class="block text-sm font-medium text-gray-700">Amount (Naira)</label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">₦</span>
+            </div>
+            <input type="number" name="amount" id="amount" value="{{ old('amount', $budget->amount ?? '') }}" required
+                   class="pl-8 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="0.00" step="0.01">
+        </div>
     </div>
     <div>
         <label for="fiscal_year" class="block text-sm font-medium text-gray-700">Fiscal Year</label>
@@ -41,9 +46,9 @@
                class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
     </div>
     <div class="md:col-span-2">
-        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-        <textarea name="description" id="description" rows="3"
-                  class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ old('description', $budget->description ?? '') }}</textarea>
+        <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+        <textarea name="notes" id="notes" rows="3"
+                  class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ old('notes', $budget->notes ?? '') }}</textarea>
     </div>
     <div class="md:col-span-2">
         <label for="is_active" class="flex items-center">

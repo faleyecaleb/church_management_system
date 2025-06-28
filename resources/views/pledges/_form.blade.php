@@ -16,14 +16,24 @@
                class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
     </div>
     <div>
-        <label for="total_amount" class="block text-sm font-medium text-gray-700">Total Amount</label>
-        <input type="number" name="total_amount" id="total_amount" value="{{ old('total_amount', $pledge->total_amount ?? '') }}" required
-               class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        <label for="total_amount" class="block text-sm font-medium text-gray-700">Total Amount (Naira)</label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">₦</span>
+            </div>
+            <input type="number" name="total_amount" id="total_amount" value="{{ old('total_amount', $pledge->total_amount ?? '') }}" required
+                   class="pl-8 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="0.00" step="0.01">
+        </div>
     </div>
     <div>
-        <label for="amount_paid" class="block text-sm font-medium text-gray-700">Amount Paid</label>
-        <input type="number" name="amount_paid" id="amount_paid" value="{{ old('amount_paid', $pledge->amount_paid ?? '0') }}" required
-               class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        <label for="amount_paid" class="block text-sm font-medium text-gray-700">Amount Paid (Naira)</label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">₦</span>
+            </div>
+            <input type="number" name="amount_paid" id="amount_paid" value="{{ old('amount_paid', $pledge->amount_paid ?? '0') }}" required
+                   class="pl-8 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="0.00" step="0.01">
+        </div>
     </div>
     <div>
         <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>

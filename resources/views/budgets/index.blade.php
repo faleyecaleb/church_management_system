@@ -80,14 +80,14 @@
                 <div class="mt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 text-sm">Allocated:</span>
-                        <span class="font-semibold text-gray-800">${{ number_format($budget->amount, 2) }}</span>
+                        <span class="font-semibold text-gray-800">₦{{ number_format($budget->amount, 2) }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                         <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ $budget->amount > 0 ? ($budget->used_amount / $budget->amount) * 100 : 0 }}%"></div>
                     </div>
                     <div class="flex justify-between items-center mt-1 text-xs text-gray-500">
-                        <span>Used: ${{ number_format($budget->used_amount, 2) }}</span>
-                        <span>Remaining: ${{ number_format($budget->amount - $budget->used_amount, 2) }}</span>
+                        <span>Used: ₦{{ number_format($budget->used_amount, 2) }}</span>
+                        <span>Remaining: ₦{{ number_format($budget->amount - $budget->used_amount, 2) }}</span>
                     </div>
                 </div>
                 <div class="mt-4 space-y-2 text-sm text-gray-600">
