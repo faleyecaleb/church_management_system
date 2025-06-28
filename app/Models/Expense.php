@@ -11,6 +11,7 @@ class Expense extends Model
     use HasFactory;
 
     protected $fillable = [
+        'budget_id',
         'category',
         'department',
         'amount',
@@ -27,6 +28,12 @@ class Expense extends Model
         'amount' => 'decimal:2',
         'expense_date' => 'date'
     ];
+
+    // Relationships
+    public function budget()
+    {
+        return $this->belongsTo(Budget::class);
+    }
 
     // Scopes
     public function scopePending($query)
@@ -157,6 +164,6 @@ class Expense extends Model
             return false;
         }
 
-        return ($budget->used_amount + $this->amount) > $budget->allocated_amount;
+        return ($budget->used_amount + $this->amount) > $budget->amount;
     }
 }

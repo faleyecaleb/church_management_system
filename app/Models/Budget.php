@@ -11,21 +11,33 @@ class Budget extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'category',
         'department',
-        'allocated_amount',
+        'amount',
         'used_amount',
         'start_date',
         'end_date',
-        'notes'
+        'notes',
+        'fiscal_year',
+        'is_active'
     ];
 
     protected $casts = [
-        'allocated_amount' => 'decimal:2',
+        'amount' => 'decimal:2',
         'used_amount' => 'decimal:2',
         'start_date' => 'date',
-        'end_date' => 'date'
+        'end_date' => 'date',
+        'is_active' => 'boolean'
     ];
+
+    /**
+     * Get the expenses for the budget.
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'budget_id');
+    }
 
     // Scopes
     public function scopeActive($query)
@@ -52,19 +64,19 @@ class Budget extends Model
     // Accessors
     public function getRemainingAmountAttribute()
     {
-        return $this->allocated_amount - $this->used_amount;
+        return $this->amount - $this->used_amount;
     }
 
     public function getUtilizationPercentageAttribute()
     {
-        return $this->allocated_amount > 0
-            ? ($this->used_amount / $this->allocated_amount) * 100
+        return $this->amount > 0
+            ? ($this->used_amount / $this->amount) * 100
             : 0;
     }
 
     public function getIsOverspentAttribute()
     {
-        return $this->used_amount > $this->allocated_amount;
+        return $this->used_amount > $this->amount;
     }
 
     public function getDaysRemainingAttribute()
@@ -98,14 +110,14 @@ class Budget extends Model
         $budgets = $query->get();
 
         return [
-            'total_allocated' => $budgets->sum('allocated_amount'),
+            'total_allocated' => $budgets->sum('amount'),
             'total_used' => $budgets->sum('used_amount'),
             'total_remaining' => $budgets->sum('remaining_amount'),
             'average_utilization' => $budgets->avg('utilization_percentage'),
             'overspent_categories' => $budgets->where('is_overspent', true)->count(),
             'by_category' => $budgets->groupBy('category')->map(function ($items) {
                 return [
-                    'allocated' => $items->sum('allocated_amount'),
+                    'allocated' => $items->sum('amount'),
                     'used' => $items->sum('used_amount'),
                     'remaining' => $items->sum('remaining_amount'),
                     'utilization' => $items->avg('utilization_percentage')
@@ -113,7 +125,7 @@ class Budget extends Model
             }),
             'by_department' => $budgets->groupBy('department')->map(function ($items) {
                 return [
-                    'allocated' => $items->sum('allocated_amount'),
+                    'allocated' => $items->sum('amount'),
                     'used' => $items->sum('used_amount'),
                     'remaining' => $items->sum('remaining_amount'),
                     'utilization' => $items->avg('utilization_percentage')
@@ -139,11 +151,13 @@ class Budget extends Model
         return self::create([
             'category' => $category,
             'department' => $department,
-            'allocated_amount' => $amount,
+            'amount' => $amount,
             'used_amount' => 0,
             'start_date' => Carbon::create($year, 1, 1)->startOfYear(),
             'end_date' => Carbon::create($year, 12, 31)->endOfYear(),
-            'notes' => "Annual budget for {$year}"
+            'notes' => "Annual budget for {$year}",
+            'fiscal_year' => $year,
+            'is_active' => true
         ]);
     }
 
@@ -163,7 +177,7 @@ class Budget extends Model
 
         return [
             'month' => $startDate->format('F Y'),
-            'allocated' => $this->allocated_amount,
+            'allocated' => $this->amount,
             'used' => $expenses->sum('amount'),
             'remaining' => $this->remaining_amount,
             'utilization' => $this->utilization_percentage,

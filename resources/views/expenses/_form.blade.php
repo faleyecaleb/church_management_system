@@ -21,8 +21,14 @@
     </div>
     <div>
         <label for="department" class="block text-sm font-medium text-gray-700">Department</label>
-        <input type="text" name="department" id="department" value="{{ old('department', $expense->department ?? '') }}" required
-               class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        <select name="department" id="department" required
+                class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+            @foreach (['Media', 'Choir', 'Ushers', 'Dance', 'Prayer', 'Lost but Found', 'Drama', 'Sanctuary'] as $department)
+                <option value="{{ $department }}" {{ old('department', $expense->department ?? '') == $department ? 'selected' : '' }}>
+                    {{ $department }}
+                </option>
+            @endforeach
+        </select>
     </div>
     <div>
         <label for="budget_id" class="block text-sm font-medium text-gray-700">Budget</label>
@@ -30,7 +36,7 @@
                 class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
             @foreach ($budgets as $budget)
                 <option value="{{ $budget->id }}" {{ old('budget_id', $expense->budget_id ?? '') == $budget->id ? 'selected' : '' }}>
-                    {{ $budget->name }}
+                    {{ $budget->name }} ({{ $budget->fiscal_year }})
                 </option>
             @endforeach
         </select>

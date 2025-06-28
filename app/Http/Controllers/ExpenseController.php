@@ -13,10 +13,10 @@ class ExpenseController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:finance.view')->only(['index', 'show', 'report']);
-        $this->middleware('permission:finance.create')->only(['create', 'store']);
-        $this->middleware('permission:finance.update')->only(['edit', 'update', 'approve', 'reject']);
-        $this->middleware('permission:finance.delete')->only('destroy');
+        // $this->middleware('permission:finance.view')->only(['index', 'show', 'report']);
+        // $this->middleware('permission:finance.create')->only(['create', 'store']);
+        // $this->middleware('permission:finance.update')->only(['edit', 'update', 'approve', 'reject']);
+        // $this->middleware('permission:finance.delete')->only('destroy');
     }
 
     public function index(Request $request)
@@ -206,7 +206,6 @@ class ExpenseController extends Controller
         $monthlyExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])
             ->select(
                 DB::raw('DATE_FORMAT(expense_date, "%Y-%m") as month'),
-                DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(amount) as total')
             )
             ->groupBy('month')
