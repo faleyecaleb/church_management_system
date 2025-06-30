@@ -12,6 +12,7 @@ class Prayer extends Model
     protected $fillable = [
         'prayer_request_id',
         'member_id',
+        'user_id',
         'notes',
         'prayed_at'
     ];
@@ -29,6 +30,16 @@ class Prayer extends Model
     public function member()
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function getPrayedByAttribute()
+    {
+        return $this->user ?: $this->member;
     }
 
     // Scopes
@@ -50,11 +61,15 @@ class Prayer extends Model
     // Helper methods
     public function getPrayerBy()
     {
-        if (!$this->member_id) {
-            return 'Anonymous';
+        if ($this->user_id && $this->user) {
+            return $this->user->name;
+        }
+        
+        if ($this->member_id && $this->member) {
+            return $this->member->full_name;
         }
 
-        return $this->member->full_name;
+        return 'Anonymous';
     }
 
     public static function getPrayerStats($memberId = null, $startDate = null, $endDate = null)

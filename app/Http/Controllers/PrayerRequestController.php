@@ -105,7 +105,7 @@ class PrayerRequestController extends Controller
             abort(403, 'You do not have permission to view this prayer request.');
         }
 
-        $prayerRequest->load(['requestor', 'prayers.prayedBy']);
+        $prayerRequest->load(['requestor', 'prayers.user', 'prayers.member']);
         $stats = $prayerRequest->getPrayerStats();
 
         return view('prayer-requests.show', compact('prayerRequest', 'stats'));
@@ -151,6 +151,23 @@ class PrayerRequestController extends Controller
 
         return redirect()->route('prayer-requests.index')
             ->with('success', 'Prayer request deleted successfully.');
+    }
+
+    public function pray(Request $request, PrayerRequest $prayerRequest)
+    {
+        if (!$prayerRequest->canBeViewedBy(Auth::user())) {
+            abort(403, 'You do not have permission to record prayer for this request.');
+        }
+
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        // Record the prayer using the model method
+        $prayerRequest->recordPrayer(Auth::id(), $validated['notes'] ?? null);
+
+        return redirect()->route('prayer-requests.show', $prayerRequest)
+            ->with('success', 'Thank you for your prayer! It has been recorded.');
     }
 
     public function recordPrayer(PrayerRequest $prayerRequest)
@@ -222,13 +239,24 @@ class PrayerRequestController extends Controller
             ->orderBy('date')
             ->get();
 
-        // Top prayer warriors
-        $topPrayerWarriors = Prayer::whereBetween('created_at', [$startDate, $endDate])
-            ->with('prayedBy')
-            ->select('prayed_by_id', DB::raw('COUNT(*) as count'))
-            ->groupBy('prayed_by_id')
+        // Top prayer warriors (users)
+        $topUserPrayerWarriors = Prayer::whereBetween('created_at', [$startDate, $endDate])
+            ->whereNotNull('user_id')
+            ->with('user')
+            ->select('user_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('user_id')
             ->orderByDesc('count')
-            ->limit(10)
+            ->limit(5)
+            ->get();
+
+        // Top prayer warriors (members)
+        $topMemberPrayerWarriors = Prayer::whereBetween('created_at', [$startDate, $endDate])
+            ->whereNotNull('member_id')
+            ->with('member')
+            ->select('member_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('member_id')
+            ->orderByDesc('count')
+            ->limit(5)
             ->get();
 
         // Most prayed for requests
@@ -243,7 +271,8 @@ class PrayerRequestController extends Controller
         return view('prayer-requests.report', compact(
             'byStatus',
             'dailyPrayers',
-            'topPrayerWarriors',
+            'topUserPrayerWarriors',
+            'topMemberPrayerWarriors',
             'mostPrayedRequests',
             'startDate',
             'endDate'

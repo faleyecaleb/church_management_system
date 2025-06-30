@@ -12,19 +12,28 @@ class PrayerRequest extends Model
 
     protected $fillable = [
         'member_id',
+        'requestor_id',
         'title',
         'description',
         'is_anonymous',
         'is_private',
+        'is_public',
         'status',
         'prayer_count',
+        'prayer_target',
+        'prayer_frequency',
+        'end_date',
         'last_prayed_at'
     ];
 
     protected $casts = [
         'is_anonymous' => 'boolean',
         'is_private' => 'boolean',
+        'is_public' => 'boolean',
         'prayer_count' => 'integer',
+        'prayer_target' => 'integer',
+        'prayer_frequency' => 'integer',
+        'end_date' => 'date',
         'last_prayed_at' => 'datetime'
     ];
 
@@ -32,6 +41,11 @@ class PrayerRequest extends Model
     public function member()
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function requestor()
+    {
+        return $this->belongsTo(User::class, 'requestor_id');
     }
 
     public function prayers()
@@ -79,12 +93,13 @@ class PrayerRequest extends Model
     }
 
     // Helper methods
-    public function recordPrayer($memberId = null, $notes = null)
+    public function recordPrayer($userId = null, $notes = null, $memberId = null)
     {
         $this->increment('prayer_count');
         $this->update(['last_prayed_at' => Carbon::now()]);
 
         return $this->prayers()->create([
+            'user_id' => $userId,
             'member_id' => $memberId,
             'notes' => $notes,
             'prayed_at' => Carbon::now()
@@ -123,7 +138,7 @@ class PrayerRequest extends Model
         return $this->member ? $this->member->full_name : 'Guest';
     }
 
-    public static function getPrayerStats($startDate = null, $endDate = null)
+    public static function getOverallStats($startDate = null, $endDate = null)
     {
         $query = self::query();
 
@@ -150,26 +165,47 @@ class PrayerRequest extends Model
         ];
     }
 
-    public function canBeViewedBy($member)
+    public function canBeViewedBy($user)
     {
-        if (!$this->is_private) {
+        // Public requests are visible to everyone
+        if (!$this->is_private && $this->is_public) {
             return true;
         }
 
-        if (!$member) {
+        // If no user is provided, only public requests can be viewed
+        if (!$user) {
             return false;
         }
 
-        return $member->id === $this->member_id || $member->hasRole('admin');
+        // Private requests can only be viewed by the creator, member, or admin
+        return $user->id === $this->requestor_id || 
+               $user->id === $this->member_id || 
+               $user->role === 'admin' ||
+               ($user instanceof \App\Models\Member && $user->hasRole('admin'));
     }
 
-    public function canBeEditedBy($member)
+    public function canBeEditedBy($user)
     {
-        if (!$member) {
+        if (!$user) {
             return false;
         }
 
-        return $member->id === $this->member_id || $member->hasRole('admin');
+        return $user->id === $this->requestor_id || 
+               $user->id === $this->member_id || 
+               $user->role === 'admin' ||
+               ($user instanceof \App\Models\Member && $user->hasRole('admin'));
+    }
+
+    public function getPrayerStats()
+    {
+        return [
+            'total_prayers' => $this->prayer_count ?? 0,
+            'days_in_prayer' => $this->created_at->diffInDays(now()),
+            'last_prayed' => $this->last_prayed_at,
+            'needs_prayer' => !$this->last_prayed_at || $this->last_prayed_at->diffInDays(now()) >= 7,
+            'prayer_target' => $this->prayer_target,
+            'target_progress' => $this->prayer_target ? round((($this->prayer_count ?? 0) / $this->prayer_target) * 100) : null,
+        ];
     }
 
     public function getDaysInPrayer()
@@ -192,4 +228,5 @@ class PrayerRequest extends Model
         return !$this->last_prayed_at || 
                $this->last_prayed_at->diffInDays(Carbon::now()) >= 7;
     }
-    }
+
+}

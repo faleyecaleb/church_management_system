@@ -28,6 +28,7 @@ use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\ServiceAttendanceController;
 use App\Http\Controllers\AttendanceMarkingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderOfServiceController;
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -43,6 +44,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Financial Reports (must be before resource routes to avoid conflicts)
+    Route::get('pledges/report', [PledgeController::class, 'report'])->name('pledges.report');
+    Route::get('expenses/report', [ExpenseController::class, 'report'])->name('expenses.report');
+    Route::get('budgets/report', [BudgetController::class, 'report'])->name('budgets.report');
+    
     // Financial Management
     Route::resource('pledges', PledgeController::class);
     Route::resource('expenses', ExpenseController::class);
@@ -58,6 +64,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Prayer Requests
     Route::resource('prayer-requests', PrayerRequestController::class);
+    
+    // Additional Prayer Request routes
+    Route::post('prayer-requests/{prayerRequest}/pray', [PrayerRequestController::class, 'pray'])->name('prayer-requests.pray');
+    Route::post('prayer-requests/{prayerRequest}/complete', [PrayerRequestController::class, 'markAsCompleted'])->name('prayer-requests.complete');
+    Route::post('prayer-requests/{prayerRequest}/archive', [PrayerRequestController::class, 'archive'])->name('prayer-requests.archive');
+    Route::post('prayer-requests/{prayerRequest}/reactivate', [PrayerRequestController::class, 'reactivate'])->name('prayer-requests.reactivate');
 
     // Profile Management
     Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
@@ -158,6 +170,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Service Management
     Route::resource('services', ServiceController::class);
+    Route::resource('services.order-of-services', OrderOfServiceController::class)->shallow();
+    
+    // Order of Service Management
+    Route::get('order-of-services', [OrderOfServiceController::class, 'overview'])->name('order-of-services.overview');
+    
+    // Additional Order of Service routes
+    Route::post('services/{service}/order-of-services/reorder', [OrderOfServiceController::class, 'reorder'])->name('services.order-of-services.reorder');
+    Route::post('services/{service}/order-of-services/duplicate', [OrderOfServiceController::class, 'duplicate'])->name('services.order-of-services.duplicate');
+    Route::get('services/{service}/order-of-services/print', [OrderOfServiceController::class, 'print'])->name('services.order-of-services.print');
 
     // Attendance Management
     Route::prefix('attendance')->name('attendance.')->group(function () {

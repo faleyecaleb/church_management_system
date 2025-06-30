@@ -58,7 +58,7 @@ class Budget extends Model
 
     public function scopeOverspent($query)
     {
-        return $query->whereRaw('used_amount > allocated_amount');
+        return $query->whereRaw('used_amount > amount');
     }
 
     // Accessors

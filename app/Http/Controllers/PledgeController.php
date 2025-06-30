@@ -112,4 +112,83 @@ class PledgeController extends Controller
         return redirect()->route('pledges.index')
             ->with('success', 'Pledge deleted successfully.');
     }
+
+    public function report(Request $request)
+    {
+        $startDate = $request->input('start_date', now()->startOfYear()->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->endOfYear()->format('Y-m-d'));
+        $status = $request->input('status');
+
+        // Base query
+        $query = Pledge::with('member')
+            ->whereBetween('start_date', [$startDate, $endDate]);
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // Overall statistics
+        $totalPledges = $query->count();
+        $totalPledgeAmount = $query->sum('total_amount');
+        $totalPaidAmount = $query->sum('amount_paid');
+        $totalOutstanding = $totalPledgeAmount - $totalPaidAmount;
+        $fulfillmentRate = $totalPledgeAmount > 0 ? ($totalPaidAmount / $totalPledgeAmount) * 100 : 0;
+
+        // Status breakdown
+        $statusBreakdown = Pledge::whereBetween('start_date', [$startDate, $endDate])
+            ->select('status', DB::raw('COUNT(*) as count'), DB::raw('SUM(total_amount) as total_amount'), DB::raw('SUM(amount_paid) as amount_paid'))
+            ->groupBy('status')
+            ->get();
+
+        // Campaign breakdown
+        $campaignBreakdown = Pledge::whereBetween('start_date', [$startDate, $endDate])
+            ->select('campaign_name', DB::raw('COUNT(*) as count'), DB::raw('SUM(total_amount) as total_amount'), DB::raw('SUM(amount_paid) as amount_paid'))
+            ->groupBy('campaign_name')
+            ->orderByDesc('total_amount')
+            ->get();
+
+        // Monthly trends
+        $monthlyTrends = Pledge::whereBetween('start_date', [$startDate, $endDate])
+            ->select(
+                DB::raw('DATE_FORMAT(start_date, "%Y-%m") as month'),
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(total_amount) as total_amount'),
+                DB::raw('SUM(amount_paid) as amount_paid')
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        // Top pledgers
+        $topPledgers = Pledge::with('member')
+            ->whereBetween('start_date', [$startDate, $endDate])
+            ->select('member_id', DB::raw('SUM(total_amount) as total_pledged'), DB::raw('SUM(amount_paid) as total_paid'))
+            ->groupBy('member_id')
+            ->orderByDesc('total_pledged')
+            ->limit(10)
+            ->get();
+
+        // Overdue pledges
+        $overduePledges = Pledge::with('member')
+            ->where('end_date', '<', now())
+            ->where('status', 'active')
+            ->whereRaw('amount_paid < total_amount')
+            ->get();
+
+        return view('pledges.report', compact(
+            'startDate',
+            'endDate',
+            'status',
+            'totalPledges',
+            'totalPledgeAmount',
+            'totalPaidAmount',
+            'totalOutstanding',
+            'fulfillmentRate',
+            'statusBreakdown',
+            'campaignBreakdown',
+            'monthlyTrends',
+            'topPledgers',
+            'overduePledges'
+        ));
+    }
 }

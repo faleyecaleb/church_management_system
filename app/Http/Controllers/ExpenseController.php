@@ -7,6 +7,7 @@ use App\Models\Budget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class ExpenseController extends Controller
 {
@@ -187,8 +188,8 @@ class ExpenseController extends Controller
 
     public function report(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfYear());
-        $endDate = $request->input('end_date', now());
+        $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : now()->startOfYear();
+        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : now();
 
         // Expenses by category
         $byCategory = Expense::whereBetween('expense_date', [$startDate, $endDate])

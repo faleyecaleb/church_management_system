@@ -6,6 +6,8 @@ use App\Models\Notification;
 use App\Models\Member;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Models\SmsMessage;
 
 class NotificationService
 {
@@ -164,10 +166,27 @@ class NotificationService
 
         foreach ($dueNotifications as $notification) {
             try {
-                // Here you would implement the actual notification sending logic
-                // This could include sending emails, SMS, or other notification methods
-                
-                // For now, we'll just mark it as sent
+                $recipient = $notification->recipient;
+
+                if ($notification->type === Notification::TYPE_BIRTHDAY) {
+                    // Send email
+                    if ($recipient->email) {
+                        Mail::to($recipient->email)->send(new \App\Mail\BirthdayWish($recipient, $notification->data['age']));
+                    }
+
+                    // Send SMS
+                    if ($recipient->phone) {
+                        $smsMessage = new \App\Models\SmsMessage([
+                            'title' => 'Birthday Wish',
+                            'content' => 'Happy Birthday {$recipient->name}! May God bless you abundantly on your special day.',
+                            'recipient_group' => 'custom',
+                            'recipient_ids' => [$recipient->id],
+                            'status' => 'queued',
+                        ]);
+                        $smsMessage->send();
+                    }
+                }
+
                 $notification->markAsSent();
             } catch (\Exception $e) {
                 $notification->markAsFailed();

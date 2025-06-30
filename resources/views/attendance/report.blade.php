@@ -3,6 +3,23 @@
 @section('title', 'Attendance Reports')
 @section('header', 'Attendance Reports & Analytics')
 
+@push('styles')
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        max-height: 400px;
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    .chart-container canvas {
+        max-height: 400px !important;
+        max-width: 100% !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-7xl mx-auto py-6">
     <!-- Date Range Filter -->
@@ -102,9 +119,11 @@
     </div>
 
     <!-- Attendance Chart -->
-    <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 hover:bg-white/90 transition-all duration-300">
+    <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 mb-6 hover:bg-white/90 transition-all duration-300">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Attendance Trends</h3>
-        <canvas id="attendanceChart" class="w-full" height="300"></canvas>
+        <div class="chart-container">
+            <canvas id="attendanceChart"></canvas>
+        </div>
     </div>
 
     <!-- Attendance Table -->
@@ -146,28 +165,132 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
-    const ctx = document.getElementById('attendanceChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: @json($chartData['labels']),
-            datasets: [{
-                label: 'Attendance',
-                data: @json($chartData['data']),
-                borderColor: 'rgb(59, 130, 246)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartElement = document.getElementById('attendanceChart');
+        
+        if (!chartElement) {
+            console.error('Chart element not found');
+            return;
+        }
+
+        const ctx = chartElement.getContext('2d');
+        
+        // Chart data with fallback
+        const chartLabels = @json($chartData['labels'] ?? []);
+        const chartData = @json($chartData['data'] ?? []);
+        
+        if (chartLabels.length === 0 || chartData.length === 0) {
+            // Show no data message
+            const container = chartElement.parentElement;
+            container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500"><p>No attendance data available for the selected period.</p></div>';
+            return;
+        }
+
+        try {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Attendance',
+                        data: chartData,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 12,
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1F2937',
+                            bodyColor: '#1F2937',
+                            borderColor: '#E5E7EB',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' people';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#6B7280',
+                                font: {
+                                    size: 11,
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F3F4F6',
+                                drawBorder: false
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#6B7280',
+                                font: {
+                                    size: 11,
+                                    family: 'Inter'
+                                },
+                                callback: function(value) {
+                                    return value + ' people';
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: 'rgb(59, 130, 246)'
+                        }
+                    }
                 }
-            }
+            });
+        } catch (error) {
+            console.error('Error creating chart:', error);
+            const container = chartElement.parentElement;
+            container.innerHTML = '<div class="flex items-center justify-center h-full text-red-500"><p>Error loading chart. Please try again.</p></div>';
         }
     });
 </script>

@@ -55,6 +55,14 @@ class Service extends Model
     }
 
     /**
+     * Get the order of service items for this service.
+     */
+    public function orderOfServices()
+    {
+        return $this->hasMany(OrderOfService::class);
+    }
+
+    /**
      * Get the attendance count for this service.
      */
     public function getAttendanceCountAttribute()

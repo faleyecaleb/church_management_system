@@ -111,12 +111,10 @@ class SmsMessage extends Model
 
     protected function sendToRecipient($recipient)
     {
-        // TODO: Implement actual SMS sending logic
-        // This is a placeholder for the actual implementation
         $message = $this->parseMessageTemplate($recipient);
         
-        // Example implementation using a hypothetical SMS service
-        // $smsService->send($recipient->phone, $message);
+        // Log the SMS message for now
+        \Illuminate\Support\Facades\Log::info("Sending SMS to {$recipient->phone}: {$message}");
     }
 
     protected function parseMessageTemplate($recipient)

@@ -74,28 +74,96 @@ class AttendanceController extends Controller
             ->value('count') ?? 0;
 
         // Calculate growth rate
-        $previousPeriodCount = $query->where('check_in_time', '<', now()->subMonth())->count();
-        $currentPeriodCount = $query->where('check_in_time', '>=', now()->subMonth())->count();
+        $previousPeriodQuery = Attendance::query();
+        $currentPeriodQuery = Attendance::query();
+        
+        if ($request->filled(['start_date', 'end_date'])) {
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+            
+            // Calculate the same period length for comparison
+            $periodLength = \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate));
+            $previousStartDate = \Carbon\Carbon::parse($startDate)->subDays($periodLength + 1);
+            $previousEndDate = \Carbon\Carbon::parse($startDate)->subDay();
+            
+            $previousPeriodQuery->whereBetween('check_in_time', [
+                $previousStartDate->format('Y-m-d') . ' 00:00:00',
+                $previousEndDate->format('Y-m-d') . ' 23:59:59'
+            ]);
+            
+            $currentPeriodQuery->whereBetween('check_in_time', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ]);
+        } else {
+            $previousPeriodQuery->where('check_in_time', '<', now()->subMonth());
+            $currentPeriodQuery->where('check_in_time', '>=', now()->subMonth());
+        }
+        
+        if ($request->filled('service_id')) {
+            $previousPeriodQuery->where('service_id', $request->input('service_id'));
+            $currentPeriodQuery->where('service_id', $request->input('service_id'));
+        }
+        
+        $previousPeriodCount = $previousPeriodQuery->count();
+        $currentPeriodCount = $currentPeriodQuery->count();
         $growthRate = $previousPeriodCount > 0 
             ? (($currentPeriodCount - $previousPeriodCount) / $previousPeriodCount) * 100
             : 0;
 
         // Get attendance records for the table
-        $attendanceRecords = $query->select(
+        $attendanceRecordsQuery = Attendance::query();
+        
+        if ($request->filled(['start_date', 'end_date'])) {
+            $attendanceRecordsQuery->whereBetween('check_in_time', [
+                $request->input('start_date') . ' 00:00:00',
+                $request->input('end_date') . ' 23:59:59'
+            ]);
+        }
+
+        if ($request->filled('service_id')) {
+            $attendanceRecordsQuery->where('service_id', $request->input('service_id'));
+        }
+        
+        $attendanceRecords = $attendanceRecordsQuery->select(
                 DB::raw('DATE(check_in_time) as date'),
                 'services.name as service_name',
                 DB::raw('COUNT(*) as count'),
                 'check_in_method'
             )
             ->join('services', 'services.id', '=', 'attendances.service_id')
-            ->groupBy('date', 'services.name', 'check_in_method')
-            ->orderByDesc('date')
+            ->groupBy(DB::raw('DATE(check_in_time)'), 'services.name', 'check_in_method')
+            ->orderByDesc(DB::raw('DATE(check_in_time)'))
             ->paginate(10);
 
-        // Prepare chart data
+        // Prepare chart data (separate query for chart to avoid pagination issues)
+        $chartQuery = Attendance::query();
+        
+        if ($request->filled(['start_date', 'end_date'])) {
+            $chartQuery->whereBetween('check_in_time', [
+                $request->input('start_date') . ' 00:00:00',
+                $request->input('end_date') . ' 23:59:59'
+            ]);
+        } else {
+            // Default to last 30 days if no date range specified
+            $chartQuery->where('check_in_time', '>=', now()->subDays(30));
+        }
+
+        if ($request->filled('service_id')) {
+            $chartQuery->where('service_id', $request->input('service_id'));
+        }
+        
+        $chartDataRaw = $chartQuery->select(
+                DB::raw('DATE(check_in_time) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->groupBy(DB::raw('DATE(check_in_time)'))
+            ->orderBy(DB::raw('DATE(check_in_time)'))
+            ->get();
+
         $chartData = [
-            'labels' => $attendanceRecords->map(fn($record) => $record->date)->toArray(),
-            'data' => $attendanceRecords->map(fn($record) => $record->count)->toArray()
+            'labels' => $chartDataRaw->pluck('date')->toArray(),
+            'data' => $chartDataRaw->pluck('count')->toArray()
         ];
 
         return view('attendance.report', compact(

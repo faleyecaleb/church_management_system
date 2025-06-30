@@ -22,3 +22,11 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Development and setup scripts
+*.bat
+fix_*.php
+check_*.php
+setup_admin.php
+create_admin_*.php
+quick_admin_setup.sql
