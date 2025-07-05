@@ -51,6 +51,17 @@ class AttendanceSettingsController extends Controller
     }
 
     /**
+     * Manually clear config cache files when exec() is not available
+     */
+    private function clearConfigCacheManually(): void
+    {
+        $configCachePath = base_path('bootstrap/cache/config.php');
+        if (file_exists($configCachePath)) {
+            unlink($configCachePath);
+        }
+    }
+
+    /**
      * Update the environment file with new values.
      *
      * @param  array  $values
@@ -85,6 +96,14 @@ class AttendanceSettingsController extends Controller
         // Clear the config cache
         if (function_exists('exec')) {
             exec('php artisan config:clear');
+        } else {
+            // On shared hosting, try alternative cache clearing methods
+            try {
+                \Artisan::call('config:clear');
+            } catch (\Exception $e) {
+                // If artisan call fails, manually clear cache files
+                $this->clearConfigCacheManually();
+            }
         }
     }
 }

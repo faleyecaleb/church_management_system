@@ -24,6 +24,7 @@ Homestead.yaml
 Thumbs.db
 
 # Development and setup scripts
+batfile
 *.bat
 fix_*.php
 check_*.php
