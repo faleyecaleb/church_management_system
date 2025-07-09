@@ -128,12 +128,39 @@
                                 </div>
                             </div>
 
+                            <div class="sm:col-span-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-3">Departments *</label>
+                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                    @php
+                                        $departments = ['Media', 'Choir', 'Ushers', 'Dance', 'Prayer', 'Lost but Found', 'Drama', 'Sanctuary'];
+                                        $selectedDepartments = old('departments', []);
+                                    @endphp
+                                    @foreach($departments as $department)
+                                    <div class="relative flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="dept_{{ $loop->index }}" name="departments[]" type="checkbox" value="{{ $department }}"
+                                                   {{ in_array($department, $selectedDepartments) ? 'checked' : '' }}
+                                                   class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="dept_{{ $loop->index }}" class="font-medium text-gray-700">{{ $department }}</label>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <p class="mt-2 text-xs text-gray-500">Select one or more departments for this member.</p>
+                            </div>
+
                             <div class="sm:col-span-3">
-                                <label for="department" class="block text-sm font-medium text-gray-700">Department *</label>
+                                <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
                                 <div class="mt-1">
-                                    <input type="text" name="department" id="department" value="{{ old('department') }}" required
-                                           placeholder="e.g., Youth, Choir, Ushers"
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
+                                    <select name="gender" id="gender"
+                                            class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
+                                        <option value="">Select gender</option>
+                                        <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="other" {{ old('gender') === 'other' ? 'selected' : '' }}>Other</option>
+                                    </select>
                                 </div>
                             </div>
 

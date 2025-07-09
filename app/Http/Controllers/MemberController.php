@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Member;
+use App\Models\MemberDepartment;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -38,7 +39,35 @@ class MemberController extends Controller
             $query->where('membership_status', $request->input('status'));
         }
 
-        $members = $query->paginate(20);
+        if ($request->filled('department')) {
+            $query->whereHas('departments', function ($q) use ($request) {
+                $q->where('department', $request->input('department'));
+            });
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->input('gender'));
+        }
+
+        // Apply sorting
+        $sort = $request->input('sort', 'name_asc');
+        switch ($sort) {
+            case 'name_desc':
+                $query->orderBy('first_name', 'desc')->orderBy('last_name', 'desc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'created_asc':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'name_asc':
+            default:
+                $query->orderBy('first_name', 'asc')->orderBy('last_name', 'asc');
+                break;
+        }
+
+        $members = $query->with('departments')->paginate(20);
 
         return view('members.index', compact('members'));
     }
@@ -60,7 +89,8 @@ class MemberController extends Controller
                 'address' => 'nullable|string|max:500',
                 'date_of_birth' => 'nullable|date',
                 'baptism_date' => 'nullable|date',
-                'department' => 'required|string|max:255',
+                'departments' => 'required|array|min:1',
+                'departments.*' => 'string|in:Media,Choir,Ushers,Dance,Prayer,Lost but Found,Drama,Sanctuary',
                 'membership_status' => 'required|string',
                 'profile_photo' => 'nullable|image|max:2048',
                 'emergency_contacts' => 'nullable|array',
@@ -76,7 +106,16 @@ class MemberController extends Controller
                 $validated['profile_photo'] = $path;
             }
 
+            // Remove departments from validated data before creating member
+            $departments = $validated['departments'];
+            unset($validated['departments']);
+            
             $member = Member::create($validated);
+
+            // Create department associations
+            foreach ($departments as $department) {
+                $member->departments()->create(['department' => $department]);
+            }
 
             if ($request->filled('roles')) {
                 $member->roles()->sync($request->input('roles'));
@@ -94,12 +133,13 @@ class MemberController extends Controller
 
     public function show(Member $member)
     {
-        $member->load(['roles', 'attendances', 'donations', 'pledges', 'emergencyContacts', 'documents']);
+        $member->load(['roles', 'attendances', 'donations', 'pledges', 'emergencyContacts', 'documents', 'departments']);
         return view('members.show', compact('member'));
     }
 
     public function edit(Member $member)
     {
+        $member->load('departments');
         $roles = Role::active()->get();
         return view('members.edit', compact('member', 'roles'));
     }
@@ -114,6 +154,9 @@ class MemberController extends Controller
             'address' => 'nullable|string|max:500',
             'date_of_birth' => 'nullable|date',
             'baptism_date' => 'nullable|date',
+            'gender' => 'nullable|string|in:male,female,other',
+            'departments' => 'required|array|min:1',
+            'departments.*' => 'string|in:Media,Choir,Ushers,Dance,Prayer,Lost but Found,Drama,Sanctuary',
             'membership_status' => 'required|string',
             'profile_photo' => 'nullable|image|max:2048',
             'emergency_contacts' => 'nullable|array',
@@ -133,7 +176,20 @@ class MemberController extends Controller
                 $validated['profile_photo'] = $path;
             }
 
+        // Remove departments from validated data before updating member
+        $departments = $validated['departments'];
+        unset($validated['departments']);
+
         $member->update($validated);
+
+        // Update department associations
+        // First, delete existing departments
+        $member->departments()->delete();
+        
+        // Then create new department associations
+        foreach ($departments as $department) {
+            $member->departments()->create(['department' => $department]);
+        }
 
         if ($request->filled('roles')) {
             $member->roles()->sync($request->input('roles'));

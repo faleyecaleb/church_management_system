@@ -25,7 +25,6 @@ class Member extends Authenticatable
         'membership_status',
         'profile_photo',
         'custom_fields',
-        'department',
         'gender',
     ];
 
@@ -92,6 +91,23 @@ class Member extends Authenticatable
     public function documents()
     {
         return $this->hasMany(MemberDocument::class);
+    }
+
+    public function departments()
+    {
+        return $this->hasMany(MemberDepartment::class);
+    }
+
+    // Helper method to get department names as array
+    public function getDepartmentNamesAttribute()
+    {
+        return $this->departments->pluck('department')->toArray();
+    }
+
+    // Helper method to get departments as comma-separated string
+    public function getDepartmentListAttribute()
+    {
+        return $this->departments->pluck('department')->join(', ');
     }
 
     // Accessors
