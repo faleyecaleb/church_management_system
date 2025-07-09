@@ -181,7 +181,7 @@
     </div>
 
     <div class="mt-4">
-        {{ $members->links() }}
+        {{ $members->appends(request()->query())->links() }}
     </div>
 </div>
 @endsection

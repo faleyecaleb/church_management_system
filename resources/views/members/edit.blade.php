@@ -14,10 +14,10 @@
         <div class="p-6">
             <x-success-message />
 
-            <form action="{{ route('members.update', $member) }}" method="POST" enctype="multipart/form-data" class="space-y-8"
-        @csrf
-        @method('PUT')
-        <x-validation-errors />
+            <form action="{{ route('members.update', $member) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                @csrf
+                @method('PUT')
+                <x-validation-errors />
 
         <div class="space-y-8">
                 <!-- Profile Photo -->
@@ -71,7 +71,7 @@
                         <label for="last_name" class="block text-sm font-medium text-gray-700">Last name</label>
                         <div class="mt-1">
                             <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $member->last_name) }}"
-                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                   class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
                         </div>
                     </div>
 
@@ -79,7 +79,7 @@
                         <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
                         <div class="mt-1">
                             <input type="email" name="email" id="email" value="{{ old('email', $member->email) }}"
-                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                   class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
                         </div>
                     </div>
 
@@ -87,7 +87,7 @@
                         <label for="phone" class="block text-sm font-medium text-gray-700">Phone number</label>
                         <div class="mt-1">
                             <input type="tel" name="phone" id="phone" value="{{ old('phone', $member->phone) }}"
-                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                   class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
                         </div>
                     </div>
 
@@ -95,7 +95,7 @@
                         <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of birth</label>
                         <div class="mt-1">
                             <input type="date" name="date_of_birth" id="date_of_birth" value="{{ old('date_of_birth', $member->date_of_birth?->format('Y-m-d')) }}"
-                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                   class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
                         </div>
                     </div>
 
@@ -103,7 +103,7 @@
                         <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
                         <div class="mt-1">
                             <textarea name="address" id="address" rows="3"
-                                      class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">{{ old('address', $member->address) }}</textarea>
+                                      class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">{{ old('address', $member->address) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                         <label for="baptism_date" class="block text-sm font-medium text-gray-700">Baptism date</label>
                         <div class="mt-1">
                             <input type="date" name="baptism_date" id="baptism_date" value="{{ old('baptism_date', $member->baptism_date?->format('Y-m-d')) }}"
-                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                   class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
                         </div>
                     </div>
 
@@ -131,7 +131,7 @@
                         <label for="membership_status" class="block text-sm font-medium text-gray-700">Membership status</label>
                         <div class="mt-1">
                             <select name="membership_status" id="membership_status"
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
                                 <option value="active" {{ old('membership_status', $member->membership_status) === 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('membership_status', $member->membership_status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 <option value="transferred" {{ old('membership_status', $member->membership_status) === 'transferred' ? 'selected' : '' }}>Transferred</option>

@@ -266,7 +266,7 @@
         <!-- Footer -->
         <div class="text-center pt-6 border-t border-gray-200">
             <p class="text-xs text-gray-500">
-                Â© 2024 Church Management System. All rights reserved.
+                © {{ date('Y') }} Church Management System. All rights reserved.
             </p>
         </div>
     </div>

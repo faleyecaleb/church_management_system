@@ -38,7 +38,7 @@ class MemberController extends Controller
             $query->where('membership_status', $request->input('status'));
         }
 
-        $members = $query->paginate(15);
+        $members = $query->paginate(20);
 
         return view('members.index', compact('members'));
     }
