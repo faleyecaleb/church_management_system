@@ -214,6 +214,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/marking', [AttendanceMarkingController::class, 'index'])->name('marking');
         Route::post('/marking/step1', [AttendanceMarkingController::class, 'processStep1'])->name('marking.step1.process');
         Route::post('/marking/step2', [AttendanceMarkingController::class, 'processStep2'])->name('marking.step2.process');
+        
+        // Bulk attendance marking routes
+        Route::get('/bulk-marking', [AttendanceMarkingController::class, 'bulkMarking'])->name('bulk-marking');
+        Route::post('/bulk-marking/members', [AttendanceMarkingController::class, 'getBulkMembers'])->name('bulk-marking.members');
+        Route::post('/bulk-marking/mark', [AttendanceMarkingController::class, 'bulkMark'])->name('bulk-marking.mark');
     });
 
     // Member Document Routes

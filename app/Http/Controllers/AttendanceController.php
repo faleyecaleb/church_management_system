@@ -740,14 +740,16 @@ class AttendanceController extends Controller
         }
         
         // Department attendance
-        $departmentStats = Member::select('department', DB::raw('COUNT(*) as total_members'))
-            ->where('membership_status', 'active')
-            ->whereNotNull('department')
-            ->groupBy('department')
+        $departmentStats = DB::table('member_departments')
+            ->join('members', 'member_departments.member_id', '=', 'members.id')
+            ->select('member_departments.department', DB::raw('COUNT(DISTINCT member_departments.member_id) as total_members'))
+            ->where('members.membership_status', 'active')
+            ->whereNull('members.deleted_at')
+            ->groupBy('member_departments.department')
             ->get()
             ->map(function($dept) use ($attendances) {
                 $deptAttendance = $attendances->filter(function($attendance) use ($dept) {
-                    return $attendance->member->department === $dept->department;
+                    return $attendance->member->departments->pluck('department')->contains($dept->department);
                 })->count();
                 
                 return [

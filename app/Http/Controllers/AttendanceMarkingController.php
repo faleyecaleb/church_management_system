@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use App\Models\Member;
+use App\Models\MemberDepartment;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -195,6 +196,136 @@ class AttendanceMarkingController extends Controller
             }
             
             return back()->with('error', $errorMessage);
+        }
+    }
+
+    /**
+     * Show bulk attendance marking page
+     */
+    public function bulkMarking()
+    {
+        $services = Service::orderBy('name')->get();
+        return view('attendance.bulk-marking', compact('services'));
+    }
+
+    /**
+     * Get members for bulk marking with optimized loading
+     */
+    public function getBulkMembers(Request $request)
+    {
+        $request->validate([
+            'service_id' => 'required|exists:services,id',
+            'attendance_date' => 'required|date'
+        ]);
+
+        try {
+            $serviceId = $request->service_id;
+            $attendanceDate = $request->attendance_date;
+
+            // Get members with their departments and existing attendance
+            $members = Member::with(['departments'])
+                ->select('id', 'first_name', 'last_name', 'email', 'gender')
+                ->where('membership_status', 'active')
+                ->get()
+                ->map(function ($member) use ($serviceId, $attendanceDate) {
+                    // Get existing attendance for this date/service
+                    $attendance = Attendance::where([
+                        'member_id' => $member->id,
+                        'service_id' => $serviceId
+                    ])->whereDate('check_in_time', $attendanceDate)->first();
+
+                    return [
+                        'id' => $member->id,
+                        'full_name' => $member->full_name,
+                        'email' => $member->email,
+                        'gender' => $member->gender,
+                        'departments' => $member->departments->pluck('department')->toArray(),
+                        'status' => $attendance ? $attendance->status : null
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'members' => $members
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load members: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark attendance for multiple members in bulk
+     */
+    public function bulkMark(Request $request)
+    {
+        $request->validate([
+            'service_id' => 'required|exists:services,id',
+            'attendance_date' => 'required|date',
+            'member_ids' => 'required|array',
+            'member_ids.*' => 'exists:members,id',
+            'status' => 'required|in:present,absent,late'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $serviceId = $request->service_id;
+            $attendanceDate = $request->attendance_date;
+            $memberIds = $request->member_ids;
+            $status = $request->status;
+            $markedBy = Auth::id();
+
+            $count = 0;
+
+            foreach ($memberIds as $memberId) {
+                // Check if attendance already exists
+                $attendance = Attendance::where([
+                    'member_id' => $memberId,
+                    'service_id' => $serviceId
+                ])->whereDate('check_in_time', $attendanceDate)->first();
+
+                if ($attendance) {
+                    // Update existing record
+                    $attendance->update([
+                        'check_in_time' => $status === 'present' ? Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s')) : $attendance->check_in_time,
+                        'check_in_method' => 'bulk_manual',
+                        'checked_in_by' => $markedBy,
+                        'is_present' => $status === 'present',
+                        'is_absent' => $status === 'absent'
+                    ]);
+                } else {
+                    // Create new record
+                    Attendance::create([
+                        'member_id' => $memberId,
+                        'service_id' => $serviceId,
+                        'check_in_time' => $status === 'present' ? Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s')) : Carbon::parse($attendanceDate . ' 09:00:00'),
+                        'check_in_method' => 'bulk_manual',
+                        'checked_in_by' => $markedBy,
+                        'is_present' => $status === 'present',
+                        'is_absent' => $status === 'absent'
+                    ]);
+                }
+                $count++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully marked {$count} members as {$status}",
+                'count' => $count
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to mark attendance: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

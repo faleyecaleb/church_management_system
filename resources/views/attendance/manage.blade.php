@@ -60,8 +60,8 @@
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900">{{ $attendance->member->full_name }}</div>
                                             <div class="text-sm text-gray-500">{{ $attendance->member->email }}</div>
-                                            @if($attendance->member->department)
-                                                <div class="text-xs text-primary-600 font-medium">{{ $attendance->member->department }}</div>
+                                            @if($attendance->member->departments->count() > 0)
+                                                <div class="text-xs text-primary-600 font-medium">{{ $attendance->member->departments->pluck('department')->join(', ') }}</div>
                                             @endif
                                         </div>
                                     </div>

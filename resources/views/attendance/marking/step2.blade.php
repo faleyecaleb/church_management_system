@@ -75,7 +75,9 @@
                         <select id="department-filter" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                             <option value="">All Departments</option>
                             @php
-                                $departments = $members->pluck('department')->filter()->unique()->sort();
+                                $departments = $members->flatMap(function($member) {
+                                    return $member->departments->pluck('department');
+                                })->filter()->unique()->sort();
                             @endphp
                             @foreach($departments as $department)
                                 <option value="{{ $department }}">{{ $department }}</option>
@@ -143,7 +145,7 @@
                                         }
                                         $status = $existingStatus ?? $defaultStatus;
                                     @endphp
-                                    <tr class="hover:bg-gray-50 member-row" data-department="{{ $member->department }}" data-status="{{ $status }}">
+                                    <tr class="hover:bg-gray-50 member-row" data-department="{{ $member->departments->pluck('department')->join(',') }}" data-status="{{ $status }}">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">
@@ -156,7 +158,7 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ $member->department ?: 'N/A' }}</div>
+                                            <div class="text-sm text-gray-900">{{ $member->departments->pluck('department')->join(', ') ?: 'N/A' }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex space-x-2">
