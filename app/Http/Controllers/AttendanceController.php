@@ -740,87 +740,99 @@ class AttendanceController extends Controller
         }
         
         // Department attendance
-        $departmentStats = DB::table('member_departments')
-            ->join('members', 'member_departments.member_id', '=', 'members.id')
-            ->select('member_departments.department', DB::raw('COUNT(DISTINCT member_departments.member_id) as total_members'))
-            ->where('members.membership_status', 'active')
-            ->whereNull('members.deleted_at')
-            ->groupBy('member_departments.department')
-            ->get()
-            ->map(function($dept) use ($attendances) {
-                $deptAttendance = $attendances->filter(function($attendance) use ($dept) {
-                    return $attendance->member->departments->pluck('department')->contains($dept->department);
-                })->count();
-                
-                return [
-                    'name' => $dept->department,
-                    'total_members' => $dept->total_members,
-                    'present' => $deptAttendance,
-                    'percentage' => $dept->total_members > 0 ? round(($deptAttendance / $dept->total_members) * 100, 1) : 0
-                ];
-            });
-            
-        // Recent attendance activity (last 7 services)
-        if (Schema::hasColumn('attendances', 'check_out_time')) {
-            $recentActivity = Attendance::select(
-                    DB::raw('DATE(check_in_time) as date'),
-                    'service_id',
-                    DB::raw('COUNT(*) as total'),
-                    DB::raw('SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, service.start_time, check_in_time) <= 15 AND check_out_time IS NULL THEN 1 ELSE 0 END) as present'),
-                    DB::raw('SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, service.start_time, check_in_time) > 15 THEN 1 ELSE 0 END) as late'),
-                    DB::raw('COUNT(CASE WHEN check_out_time IS NOT NULL THEN 1 END) as left_early')
-                )
-                ->join('services as service', 'attendances.service_id', '=', 'service.id')
-                ->with('service')
-                ->groupBy('date', 'service_id')
-                ->orderByDesc('date')
-                ->limit(7)
+        $departmentStats = collect();
+        
+        try {
+            $departmentStats = DB::table('member_departments')
+                ->join('members', 'member_departments.member_id', '=', 'members.id')
+                ->select('member_departments.department', DB::raw('COUNT(DISTINCT member_departments.member_id) as total_members'))
+                ->where('members.membership_status', 'active')
+                ->whereNull('members.deleted_at')
+                ->groupBy('member_departments.department')
                 ->get()
-                ->map(function($activity) {
-                    $service = Service::find($activity->service_id);
-                    $totalMembers = Member::where('membership_status', 'active')->count();
-                    $absent = $totalMembers - $activity->total;
+                ->map(function($dept) use ($attendances) {
+                    $deptAttendance = $attendances->filter(function($attendance) use ($dept) {
+                        return $attendance->member && 
+                               $attendance->member->departments && 
+                               $attendance->member->departments->pluck('department')->contains($dept->department);
+                    })->count();
                     
                     return [
-                    'date' => $activity->date,
-                    'service_name' => $service ? $service->name : 'Unknown Service',
-                    'total' => $activity->total,
-                    'present' => $activity->present,
-                    'late' => $activity->late,
-                    'absent' => $absent,
-                    'left_early' => $activity->left_early,
-                    'percentage' => $totalMembers > 0 ? round(($activity->total / $totalMembers) * 100, 1) : 0
-                ];
-            });
-        } else {
-            // Fallback if check_out_time column doesn't exist yet
-            $recentActivity = Attendance::select(
+                        'name' => $dept->department,
+                        'total_members' => $dept->total_members,
+                        'present' => $deptAttendance,
+                        'percentage' => $dept->total_members > 0 ? round(($deptAttendance / $dept->total_members) * 100, 1) : 0
+                    ];
+                });
+        } catch (\Exception $e) {
+            // Fallback if member_departments table doesn't exist or has issues
+            $departmentStats = collect([
+                [
+                    'name' => 'All Members',
+                    'total_members' => Member::where('membership_status', 'active')->count(),
+                    'present' => $attendances->count(),
+                    'percentage' => 0
+                ]
+            ]);
+        }
+            
+        // Recent attendance activity (last 7 days)
+        $recentActivity = collect();
+        
+        try {
+            $recentActivity = Attendance::with(['member', 'service'])
+                ->select(
                     DB::raw('DATE(check_in_time) as date'),
                     'service_id',
                     DB::raw('COUNT(*) as total'),
-                    DB::raw('SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, service.start_time, check_in_time) <= 15 THEN 1 ELSE 0 END) as present'),
-                    DB::raw('SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, service.start_time, check_in_time) > 15 THEN 1 ELSE 0 END) as late'),
-                    DB::raw('0 as left_early')
+                    DB::raw('SUM(CASE WHEN is_present = 1 THEN 1 ELSE 0 END) as present'),
+                    DB::raw('SUM(CASE WHEN is_absent = 1 THEN 1 ELSE 0 END) as absent'),
+                    DB::raw('SUM(CASE WHEN check_in_time > (SELECT ADDTIME(start_time, "00:15:00") FROM services WHERE id = attendances.service_id) AND is_present = 1 THEN 1 ELSE 0 END) as late')
                 )
-                ->join('services as service', 'attendances.service_id', '=', 'service.id')
-                ->with('service')
+                ->join('services', 'attendances.service_id', '=', 'services.id')
+                ->where('check_in_time', '>=', now()->subDays(7))
                 ->groupBy('date', 'service_id')
                 ->orderByDesc('date')
-                ->limit(7)
                 ->get()
                 ->map(function($activity) {
                     $service = Service::find($activity->service_id);
                     $totalMembers = Member::where('membership_status', 'active')->count();
-                    $absent = $totalMembers - $activity->total;
                     
                     return [
                         'date' => $activity->date,
+                        'service_id' => $activity->service_id,
                         'service_name' => $service ? $service->name : 'Unknown Service',
                         'total' => $activity->total,
                         'present' => $activity->present,
+                        'absent' => $activity->absent,
                         'late' => $activity->late,
-                        'absent' => $absent,
-                        'left_early' => $activity->left_early,
+                        'percentage' => $totalMembers > 0 ? round(($activity->total / $totalMembers) * 100, 1) : 0
+                    ];
+                });
+        } catch (\Exception $e) {
+            // Fallback with simpler query
+            $recentActivity = Attendance::with(['member', 'service'])
+                ->select(
+                    DB::raw('DATE(check_in_time) as date'),
+                    'service_id',
+                    DB::raw('COUNT(*) as total')
+                )
+                ->where('check_in_time', '>=', now()->subDays(7))
+                ->groupBy('date', 'service_id')
+                ->orderByDesc('date')
+                ->get()
+                ->map(function($activity) {
+                    $service = Service::find($activity->service_id);
+                    $totalMembers = Member::where('membership_status', 'active')->count();
+                    
+                    return [
+                        'date' => $activity->date,
+                        'service_id' => $activity->service_id,
+                        'service_name' => $service ? $service->name : 'Unknown Service',
+                        'total' => $activity->total,
+                        'present' => $activity->total,
+                        'absent' => 0,
+                        'late' => 0,
                         'percentage' => $totalMembers > 0 ? round(($activity->total / $totalMembers) * 100, 1) : 0
                     ];
                 });
