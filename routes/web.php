@@ -27,6 +27,7 @@ use App\Http\Controllers\AttendanceSettingsController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\ServiceAttendanceController;
 use App\Http\Controllers\AttendanceMarkingController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderOfServiceController;
 
@@ -227,4 +228,20 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('members.documents.download');
     Route::post('members/{member}/documents/{document}/verify', [MemberDocumentController::class, 'verify'])
         ->name('members.documents.verify');
+});
+
+
+// 🔐 Password Reset Routes
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetController::class, 'create'])
+        ->name('password.request');
+
+    Route::post('/forgot-password', [PasswordResetController::class, 'store'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])
+        ->name('password.update');
 });

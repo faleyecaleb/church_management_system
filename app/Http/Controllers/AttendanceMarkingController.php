@@ -231,8 +231,9 @@ class AttendanceMarkingController extends Controller
                     // Get existing attendance for this date/service
                     $attendance = Attendance::where([
                         'member_id' => $member->id,
-                        'service_id' => $serviceId
-                    ])->whereDate('check_in_time', $attendanceDate)->first();
+                        'service_id' => $serviceId,
+                        'attendance_date' => $attendanceDate
+                    ])->first();
 
                     return [
                         'id' => $member->id,
@@ -285,8 +286,9 @@ class AttendanceMarkingController extends Controller
                 // Check if attendance already exists
                 $attendance = Attendance::where([
                     'member_id' => $memberId,
-                    'service_id' => $serviceId
-                ])->whereDate('check_in_time', $attendanceDate)->first();
+                    'service_id' => $serviceId,
+                    'attendance_date' => $attendanceDate
+                ])->first();
 
                 if ($attendance) {
                     // Update existing record
@@ -295,18 +297,21 @@ class AttendanceMarkingController extends Controller
                         'check_in_method' => 'bulk_manual',
                         'checked_in_by' => $markedBy,
                         'is_present' => $status === 'present',
-                        'is_absent' => $status === 'absent'
+                        'is_absent' => $status === 'absent',
+                        'status' => $status
                     ]);
                 } else {
                     // Create new record
                     Attendance::create([
                         'member_id' => $memberId,
                         'service_id' => $serviceId,
-                        'check_in_time' => $status === 'present' ? Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s')) : Carbon::parse($attendanceDate . ' 09:00:00'),
+                        'attendance_date' => $attendanceDate,
+                        'check_in_time' => $status === 'present' ? Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s')) : null,
                         'check_in_method' => 'bulk_manual',
                         'checked_in_by' => $markedBy,
                         'is_present' => $status === 'present',
-                        'is_absent' => $status === 'absent'
+                        'is_absent' => $status === 'absent',
+                        'status' => $status
                     ]);
                 }
                 $count++;

@@ -15,6 +15,7 @@ class Attendance extends Model
     protected $fillable = [
         'member_id',
         'service_id',
+        'attendance_date',
         'check_in_time',
         'check_out_time',
         'check_in_method',
@@ -24,14 +25,16 @@ class Attendance extends Model
         'qr_code',
         'notes',
         'is_present',
-        'is_absent'
+        'is_absent',
+        'status'
     ];
 
     protected $casts = [
+        'attendance_date' => 'date',
         'check_in_time' => 'datetime',
         'check_out_time' => 'datetime',
         'is_present' => 'boolean',
-        'is_absent' => 'boolean'
+        'is_absent' => 'boolean',
     ];
 
     // Relationships
