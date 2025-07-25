@@ -292,27 +292,41 @@ class AttendanceMarkingController extends Controller
 
                 if ($attendance) {
                     // Update existing record
-                    $attendance->update([
-                        'check_in_time' => $status === 'present' ? Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s')) : $attendance->check_in_time,
+                    $updateData = [
                         'check_in_method' => 'bulk_manual',
                         'checked_in_by' => $markedBy,
                         'is_present' => $status === 'present',
                         'is_absent' => $status === 'absent',
                         'status' => $status
-                    ]);
+                    ];
+                    
+                    // Only update check_in_time for present members
+                    if ($status === 'present') {
+                        $updateData['check_in_time'] = Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s'));
+                    } elseif ($status === 'absent') {
+                        $updateData['check_in_time'] = null;
+                    }
+                    
+                    $attendance->update($updateData);
                 } else {
                     // Create new record
-                    Attendance::create([
+                    $attendanceData = [
                         'member_id' => $memberId,
                         'service_id' => $serviceId,
                         'attendance_date' => $attendanceDate,
-                        'check_in_time' => $status === 'present' ? Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s')) : null,
                         'check_in_method' => 'bulk_manual',
                         'checked_in_by' => $markedBy,
                         'is_present' => $status === 'present',
                         'is_absent' => $status === 'absent',
                         'status' => $status
-                    ]);
+                    ];
+                    
+                    // Only set check_in_time for present members
+                    if ($status === 'present') {
+                        $attendanceData['check_in_time'] = Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s'));
+                    }
+                    
+                    Attendance::create($attendanceData);
                 }
                 $count++;
             }
