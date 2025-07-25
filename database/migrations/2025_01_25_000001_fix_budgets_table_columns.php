@@ -47,6 +47,17 @@ return new class extends Migration
                 ->orWhere('name', '')
                 ->update(['name' => DB::raw("CONCAT(category, ' - ', department)")]);
         }
+        
+        // Also ensure expenses table has budget_id column
+        if (Schema::hasTable('expenses')) {
+            $expenseColumns = Schema::getColumnListing('expenses');
+            
+            if (!in_array('budget_id', $expenseColumns)) {
+                Schema::table('expenses', function (Blueprint $table) {
+                    $table->foreignId('budget_id')->nullable()->after('id')->constrained()->nullOnDelete();
+                });
+            }
+        }
     }
 
     /**
@@ -54,6 +65,18 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Remove budget_id from expenses table if we added it
+        if (Schema::hasTable('expenses')) {
+            $expenseColumns = Schema::getColumnListing('expenses');
+            
+            if (in_array('budget_id', $expenseColumns)) {
+                Schema::table('expenses', function (Blueprint $table) {
+                    $table->dropForeign(['budget_id']);
+                    $table->dropColumn('budget_id');
+                });
+            }
+        }
+        
         if (Schema::hasTable('budgets')) {
             Schema::table('budgets', function (Blueprint $table) {
                 // Only drop columns if they exist

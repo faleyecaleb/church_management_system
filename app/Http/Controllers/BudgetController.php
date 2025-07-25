@@ -166,9 +166,13 @@ class BudgetController extends Controller
             ->get();
 
         // Monthly budget vs actual
+        // Use left join to handle expenses that might not have budget_id
         $monthlyComparison = DB::table('expenses')
-            ->join('budgets', 'expenses.budget_id', '=', 'budgets.id')
-            ->where('budgets.fiscal_year', $fiscalYear)
+            ->leftJoin('budgets', function($join) use ($fiscalYear) {
+                $join->on('expenses.budget_id', '=', 'budgets.id')
+                     ->where('budgets.fiscal_year', '=', $fiscalYear);
+            })
+            ->whereYear('expenses.expense_date', $fiscalYear)
             ->select(
                 DB::raw('DATE_FORMAT(expense_date, "%Y-%m") as month'),
                 DB::raw('SUM(expenses.amount) as actual_amount')
