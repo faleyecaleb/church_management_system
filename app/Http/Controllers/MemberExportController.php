@@ -99,73 +99,71 @@ class MemberExportController extends Controller
     }
 
     /**
-     * Export members to Excel format (CSV fallback)
+     * Export members to Excel format
      */
     public function exportExcel(Request $request)
     {
         try {
-            // Try to use Excel package if available
-            if (class_exists('\Maatwebsite\Excel\Facades\Excel')) {
-                $timestamp = now()->format('Y-m-d_H-i-s');
-                $filename = "members_export_{$timestamp}.xlsx";
-                $export = new MembersExport([], 'xlsx');
-                return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::XLSX);
-            }
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "members_export_{$timestamp}.xlsx";
+            
+            $export = new MembersExport([], 'xlsx');
+            
+            return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::XLSX);
+            
         } catch (\Exception $e) {
-            // Fall back to CSV export
-        }
-
-        // Fallback: Generate CSV manually
-        $timestamp = now()->format('Y-m-d_H-i-s');
-        $filename = "members_export_{$timestamp}.csv";
-        
-        $members = Member::with(['departments'])->get();
-        
-        $csvData = [];
-        $csvData[] = [
-            'ID',
-            'First Name',
-            'Last Name',
-            'Email',
-            'Phone',
-            'Gender',
-            'Date of Birth',
-            'Address',
-            'Membership Status',
-            'Departments',
-            'Member Since'
-        ];
-        
-        foreach ($members as $member) {
+            // Fallback: Generate CSV manually if Excel fails
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "members_export_{$timestamp}.csv";
+            
+            $members = Member::with(['departments'])->get();
+            
+            $csvData = [];
             $csvData[] = [
-                $member->id,
-                $member->first_name,
-                $member->last_name,
-                $member->email,
-                $member->phone,
-                $member->gender,
-                $member->date_of_birth,
-                $member->address,
-                $member->membership_status,
-                $member->departments->pluck('department')->join(', '),
-                $member->created_at->format('Y-m-d')
+                'ID',
+                'First Name',
+                'Last Name',
+                'Email',
+                'Phone',
+                'Gender',
+                'Date of Birth',
+                'Address',
+                'Membership Status',
+                'Departments',
+                'Member Since'
             ];
-        }
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-        
-        $callback = function() use ($csvData) {
-            $file = fopen('php://output', 'w');
-            foreach ($csvData as $row) {
-                fputcsv($file, $row);
+            
+            foreach ($members as $member) {
+                $csvData[] = [
+                    $member->id,
+                    $member->first_name,
+                    $member->last_name,
+                    $member->email,
+                    $member->phone,
+                    $member->gender,
+                    $member->date_of_birth,
+                    $member->address,
+                    $member->membership_status,
+                    $member->departments->pluck('department')->join(', '),
+                    $member->created_at->format('Y-m-d')
+                ];
             }
-            fclose($file);
-        };
-        
-        return response()->stream($callback, 200, $headers);
+            
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+            
+            $callback = function() use ($csvData) {
+                $file = fopen('php://output', 'w');
+                foreach ($csvData as $row) {
+                    fputcsv($file, $row);
+                }
+                fclose($file);
+            };
+            
+            return response()->stream($callback, 200, $headers);
+        }
     }
 
     /**
