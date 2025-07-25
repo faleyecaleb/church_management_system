@@ -60,6 +60,56 @@
         </div> --}}
     </div>
 
+    <!-- Header with Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Church Members</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage your church member database</p>
+        </div>
+        <div class="mt-4 sm:mt-0 flex space-x-3">
+            <!-- Export button - shows if route exists -->
+            @if(Route::has('members.export.form'))
+                <a href="{{ route('members.export.form') }}" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Export
+                </a>
+            @else
+                <span class="inline-flex items-center px-4 py-2 bg-gray-400 text-white rounded-xl cursor-not-allowed font-medium" title="Export feature - routes need to be added">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Export (Coming Soon)
+                </span>
+            @endif
+            
+            <!-- Import button - shows if route exists -->
+            @if(Route::has('members.import.form'))
+                <a href="{{ route('members.import.form') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    Bulk Import
+                </a>
+            @else
+                <span class="inline-flex items-center px-4 py-2 bg-gray-400 text-white rounded-xl cursor-not-allowed font-medium" title="Import feature - routes need to be added">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    Bulk Import (Coming Soon)
+                </span>
+            @endif
+            
+            <a href="{{ route('members.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Add Member
+            </a>
+        </div>
+    </div>
+
     <div class="flex justify-between items-center mb-6">
         <div class="flex-1 pr-4">
             <form class="space-y-4">

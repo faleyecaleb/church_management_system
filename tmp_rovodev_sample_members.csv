@@ -1,0 +1,11 @@
+first_name,last_name,email,phone,address,date_of_birth,baptism_date,membership_status,gender,departments
+John,Doe,john.doe@example.com,+1234567890,123 Main St City,1990-01-15,2010-05-20,active,male,choir,youth
+Jane,Smith,jane.smith@example.com,+1234567891,456 Oak Ave City,1985-03-22,2008-12-10,active,female,women_ministry
+Michael,Johnson,michael.j@example.com,+1234567892,789 Pine St City,1975-07-08,2005-09-15,active,male,men_ministry,ushering
+Sarah,Williams,sarah.w@example.com,+1234567893,321 Elm Dr City,1992-11-30,2015-03-25,active,female,choir,children_ministry
+David,Brown,david.brown@example.com,+1234567894,654 Maple Ave City,1980-06-12,2003-08-18,active,male,finance_committee
+Lisa,Davis,lisa.davis@example.com,+1234567895,987 Cedar St City,1988-09-05,2012-11-22,active,female,worship_team
+Robert,Miller,robert.m@example.com,+1234567896,147 Birch Ln City,1970-04-18,2000-07-10,active,male,men_ministry,security
+Emily,Wilson,emily.wilson@example.com,+1234567897,258 Spruce Rd City,1995-12-03,2018-04-15,active,female,youth,media_team
+James,Moore,james.moore@example.com,+1234567898,369 Willow Way City,1983-08-27,2007-01-30,active,male,ushering
+Amanda,Taylor,amanda.t@example.com,+1234567899,741 Poplar Pl City,1991-02-14,2014-09-08,active,female,children_ministry

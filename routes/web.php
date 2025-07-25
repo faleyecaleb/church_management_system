@@ -163,6 +163,35 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('prayer-requests/{request}/archive', [PrayerRequestController::class, 'archive'])->name('prayer-requests.archive');
     Route::post('prayer-requests/{request}/reactivate', [PrayerRequestController::class, 'reactivate'])->name('prayer-requests.reactivate');
 
+     // Member import/export routes (must be before resource routes) 
+    Route::get('members/import/form', [App\Http\Controllers\MemberImportController::class,
+     'showImportForm'])->name('members.import.form');                                                              
+Route::post('members/import', [App\Http\Controllers\MemberImportController::class, 'import'])
+    ->name('members.import');
+
+Route::get('members/import/template', [App\Http\Controllers\MemberImportController::class, 'downloadTemplate'])
+    ->name('members.import.template');
+
+Route::get('members/import/template-excel', [App\Http\Controllers\MemberImportController::class, 'downloadExcelTemplate'])
+    ->name('members.import.template.excel');
+
+Route::post('members/import/preview', [App\Http\Controllers\MemberImportController::class, 'preview'])
+    ->name('members.import.preview');
+
+Route::get('members/export/form', [App\Http\Controllers\MemberExportController::class, 'showExportForm'])
+    ->name('members.export.form');
+
+Route::get('members/export/excel', [App\Http\Controllers\MemberExportController::class, 'exportExcel'])
+    ->name('members.export.excel');
+
+Route::get('members/export/csv', [App\Http\Controllers\MemberExportController::class, 'exportCsv'])
+    ->name('members.export.csv');
+
+Route::post('members/export/stats', [App\Http\Controllers\MemberExportController::class, 'getExportStats'])
+    ->name('members.export.stats');
+
+// Member Management Routes
+Route::resource('members', MemberController::class);
     // Member Management Routes
     Route::resource('members', MemberController::class);
 
