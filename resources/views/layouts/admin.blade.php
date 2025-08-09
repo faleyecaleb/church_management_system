@@ -409,6 +409,78 @@
                     </div>
                     <span class="font-medium">Prayer Requests</span>
                 </a>
+
+                <div x-data="{ complaintsOpen: false }" class="relative" @click.away="complaintsOpen = false">
+                    <button @click="complaintsOpen = !complaintsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('complaints.*') ? 'active' : '' }}">
+                        <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="font-medium">Complaints</span>
+                        <svg class="w-4 h-4 ml-auto transition-transform" :class="{'rotate-180': complaintsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="complaintsOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute left-0 right-0 mt-1 ml-12 glass-effect rounded-lg overflow-hidden z-50">
+                        <a href="{{ route('complaints.index') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('complaints.index') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                                View Complaints
+                            </div>
+                        </a>
+                        <a href="{{ route('complaints.create') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('complaints.create') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Add Complaint
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div x-data="{ donationsOpen: false }" class="relative" @click.away="donationsOpen = false">
+                    <button @click="donationsOpen = !donationsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('donations.*') ? 'active' : '' }}">
+                        <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="font-medium">Donations</span>
+                        <svg class="w-4 h-4 ml-auto transition-transform" :class="{'rotate-180': donationsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="donationsOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute left-0 right-0 mt-1 ml-12 glass-effect rounded-lg overflow-hidden z-50">
+                        <a href="{{ route('donations.index') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('donations.index') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                                View Donations
+                            </div>
+                        </a>
+                        <a href="{{ route('donations.create') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('donations.create') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Add Donation
+                            </div>
+                        </a>
+                        <a href="{{ route('donations.report') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('donations.report') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Reports
+                            </div>
+                        </a>
+                    </div>
+                </div>
                 
                 <div class="pt-4 mt-4 border-t border-white/10">
                     <a href="{{ route('settings.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('settings.*') ? 'active' : '' }}">

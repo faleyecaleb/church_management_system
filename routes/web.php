@@ -30,6 +30,10 @@ use App\Http\Controllers\AttendanceMarkingController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderOfServiceController;
+use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\PublicComplaintController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\MembershipStatusController;
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -86,6 +90,28 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Notifications Management
     Route::resource('notifications', NotificationController::class);
     Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+
+    // Complaints Management
+    Route::resource('complaints', ComplaintController::class);
+    Route::post('complaints/{complaint}/assign', [ComplaintController::class, 'assign'])->name('complaints.assign');
+    Route::post('complaints/{complaint}/escalate', [ComplaintController::class, 'escalate'])->name('complaints.escalate');
+    Route::post('complaints/{complaint}/resolve', [ComplaintController::class, 'resolve'])->name('complaints.resolve');
+    Route::post('complaints/{complaint}/update-status', [ComplaintController::class, 'updateStatus'])->name('complaints.update-status');
+    Route::post('complaints/{complaint}/add-response', [ComplaintController::class, 'addResponse'])->name('complaints.add-response');
+    Route::post('complaints/{complaint}/set-follow-up', [ComplaintController::class, 'setFollowUp'])->name('complaints.set-follow-up');
+    Route::post('complaints/{complaint}/satisfaction-rating', [ComplaintController::class, 'addSatisfactionRating'])->name('complaints.satisfaction-rating');
+    Route::get('complaints/{complaint}/download-evidence/{fileIndex}', [ComplaintController::class, 'downloadEvidence'])->name('complaints.download-evidence');
+    Route::get('complaints/export', [ComplaintController::class, 'export'])->name('complaints.export');
+    Route::get('complaints/dashboard-stats', [ComplaintController::class, 'dashboardStats'])->name('complaints.dashboard-stats');
+
+    // Donations Management
+    Route::resource('donations', DonationController::class);
+    Route::get('donations/report', [DonationController::class, 'report'])->name('donations.report');
+    Route::get('donations/{donation}/receipt', [DonationController::class, 'generateReceipt'])->name('donations.receipt');
+
+    // Membership Status Management
+    Route::resource('members.membership-status', MembershipStatusController::class)->except(['index']);
+    Route::get('members/{member}/membership-status', [MembershipStatusController::class, 'index'])->name('membership.status.index');
 
     // Additional Financial Routes
     Route::post('pledges/{pledge}/record-payment', [PledgeController::class, 'recordPayment'])->name('pledges.record-payment');
@@ -259,6 +285,14 @@ Route::resource('members', MemberController::class);
         ->name('members.documents.verify');
 });
 
+// Public Complaint Routes (outside admin middleware)
+Route::prefix('public')->name('public.')->group(function () {
+    Route::get('complaints/create', [PublicComplaintController::class, 'create'])->name('complaints.create');
+    Route::post('complaints', [PublicComplaintController::class, 'store'])->name('complaints.store');
+    Route::get('complaints/status', [PublicComplaintController::class, 'status'])->name('complaints.status');
+    Route::post('complaints/status', [PublicComplaintController::class, 'status'])->name('complaints.check-status');
+    Route::post('complaints/{complaint}/rating', [PublicComplaintController::class, 'submitRating'])->name('complaints.rating');
+});
 
 // 🔐 Password Reset Routes
 Route::middleware('guest')->group(function () {
