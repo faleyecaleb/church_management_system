@@ -106,8 +106,8 @@ class ComplaintController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'member_id' => 'nullable|exists:members,id',
-            'complainant_name' => 'required_if:member_id,null|string|max:255',
-            'complainant_email' => 'nullable|email|max:255',
+            'complainant_name' => 'exclude_if:is_anonymous,1|nullable|required_if:member_id,null|string|max:255',
+            'complainant_email' => 'exclude_if:is_anonymous,1|nullable|email|max:255',
             'complainant_phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
             'category' => 'required|in:' . implode(',', array_keys(Complaint::CATEGORIES)),
@@ -200,8 +200,8 @@ class ComplaintController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'member_id' => 'nullable|exists:members,id',
-            'complainant_name' => 'required_if:member_id,null|string|max:255',
-            'complainant_email' => 'nullable|email|max:255',
+            'complainant_name' => 'exclude_if:is_anonymous,1|nullable|required_if:member_id,null|string|max:255',
+            'complainant_email' => 'exclude_if:is_anonymous,1|nullable|email|max:255',
             'complainant_phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
             'category' => 'required|in:' . implode(',', array_keys(Complaint::CATEGORIES)),

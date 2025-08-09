@@ -27,8 +27,8 @@ class PublicComplaintController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'complainant_name' => 'required|string|max:255',
-            'complainant_email' => 'required|email|max:255',
+            'complainant_name' => 'exclude_if:is_anonymous,1|nullable|string|max:255',
+            'complainant_email' => 'exclude_if:is_anonymous,1|nullable|email|max:255',
             'complainant_phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
             'category' => 'required|in:' . implode(',', array_keys(Complaint::CATEGORIES)),
@@ -36,7 +36,7 @@ class PublicComplaintController extends Controller
             'description' => 'required|string|min:10',
             'is_anonymous' => 'boolean',
             'evidence_files.*' => 'file|max:5120|mimes:jpg,jpeg,png,pdf,doc,docx,txt',
-            'g-recaptcha-response' => 'required', // Add reCAPTCHA validation if needed
+            'g-recaptcha-response' => 'nullable', // Add reCAPTCHA validation if needed
         ]);
 
         if ($validator->fails()) {
