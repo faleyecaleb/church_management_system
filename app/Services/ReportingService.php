@@ -38,11 +38,19 @@ class ReportingService
         $members = Member::all();
         $activeMembers = $members->where('status', 'active');
 
+        $newMembersQuery = Member::query();
+        if ($filters && isset($filters['start_date'])) {
+            $newMembersQuery->where('created_at', '>=', $filters['start_date']);
+        }
+        if ($filters && isset($filters['end_date'])) {
+            $newMembersQuery->where('created_at', '<=', $filters['end_date']);
+        }
+
         return [
             'total_members' => $members->count(),
             'active_members' => $activeMembers->count(),
             'inactive_members' => $members->where('status', 'inactive')->count(),
-            'new_members_this_month' => Member::whereMonth('created_at', now()->month)->count(),
+            'new_members_this_month' => $newMembersQuery->count(),
             'demographics' => [
                 'age_groups' => $this->calculateAgeGroups($activeMembers),
                 'gender_distribution' => $this->calculateGenderDistribution($activeMembers)
@@ -94,7 +102,14 @@ class ReportingService
      */
     public function getMessageStats($filters = null)
     {
-        $messages = Message::whereMonth('created_at', now()->month)->get();
+        $query = Message::query();
+        if ($filters && isset($filters['start_date'])) {
+            $query->where('created_at', '>=', $filters['start_date']);
+        }
+        if ($filters && isset($filters['end_date'])) {
+            $query->where('created_at', '<=', $filters['end_date']);
+        }
+        $messages = $query->get();
 
         return [
             'total_messages' => $messages->count(),
@@ -117,12 +132,19 @@ class ReportingService
      */
     public function getDonationStats($filters = null)
     {
-        $donations = Donation::whereMonth('created_at', now()->month)->get();
+        $donationQuery = Donation::query();
+        if ($filters && isset($filters['start_date'])) {
+            $donationQuery->where('created_at', '>=', $filters['start_date']);
+        }
+        if ($filters && isset($filters['end_date'])) {
+            $donationQuery->where('created_at', '<=', $filters['end_date']);
+        }
+        $donations = $donationQuery->get();
 
         return [
             'total_amount' => $donations->sum('amount'),
             'average_donation' => $donations->avg('amount'),
-            'donor_count' => $donations->unique('donor_id')->count(),
+            'donor_count' => $donations->whereNotNull('member_id')->unique('member_id')->count(),
             'by_category' => $this->calculateDonationsByCategory($donations),
             'trend' => $this->calculateDonationTrend(),
             'campaign_performance' => $this->calculateCampaignPerformance()
