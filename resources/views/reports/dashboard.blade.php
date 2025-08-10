@@ -21,15 +21,21 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border">
             <h3 class="font-semibold mb-4">Attendance Trend</h3>
-            <canvas id="dashAttendanceChart" height="140"></canvas>
+            <div class="h-64">
+                <canvas id="dashAttendanceChart"></canvas>
+            </div>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-sm border">
             <h3 class="font-semibold mb-4">Donations Trend</h3>
-            <canvas id="dashDonationsChart" height="140"></canvas>
+            <div class="h-64">
+                <canvas id="dashDonationsChart"></canvas>
+            </div>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-2">
             <h3 class="font-semibold mb-4">Messages by Type</h3>
-            <canvas id="dashMessagesChart" height="120"></canvas>
+            <div class="h-64">
+                <canvas id="dashMessagesChart"></canvas>
+            </div>
         </div>
     </div>
 
