@@ -296,6 +296,29 @@
                </div>
 
                
+                <!-- Reports -->
+                <div x-data="{ reportsOpen: false }" class="relative" @click.away="reportsOpen = false">
+                    <button @click="reportsOpen = !reportsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                        <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <span class="font-medium">Reports</span>
+                        <svg class="w-4 h-4 ml-auto transition-transform" :class="{'rotate-180': reportsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="reportsOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute left-0 right-0 mt-1 ml-12 glass-effect rounded-lg overflow-hidden z-50">
+                        <a href="{{ route('reports.dashboard') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.dashboard') ? 'bg-white/10' : '' }}">Dashboard</a>
+                        <a href="{{ route('reports.membership') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.membership') ? 'bg-white/10' : '' }}">Membership</a>
+                        <a href="{{ route('reports.attendance') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.attendance') ? 'bg-white/10' : '' }}">Attendance</a>
+                        <a href="{{ route('reports.financial') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.financial') ? 'bg-white/10' : '' }}">Financial</a>
+                        <a href="{{ route('reports.communication') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.communication') ? 'bg-white/10' : '' }}">Communication</a>
+                        <a href="{{ route('reports.growth') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.growth') ? 'bg-white/10' : '' }}">Growth</a>
+                    </div>
+                </div>
+
                 <div x-data="{ pledgesOpen: false }" class="relative" @click.away="pledgesOpen = false">
                     <button @click="pledgesOpen = !pledgesOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('pledges.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -335,6 +358,15 @@
                         </a>
                     </div>
                 </div>
+
+                <a href="{{ route('prayer-requests.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('prayer-requests.*') ? 'active' : '' }}">
+                    <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="font-medium">Prayer Requests</span>
+                </a>
                 
                 <div x-data="{ expensesOpen: false }" class="relative" @click.away="expensesOpen = false">
                     <button @click="expensesOpen = !expensesOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
@@ -434,40 +466,7 @@
                     <span class="font-medium">Notifications</span>
                 </a>
                 
-                <a href="{{ route('prayer-requests.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('prayer-requests.*') ? 'active' : '' }}">
-                    <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </div>
-                    <span class="font-medium">Prayer Requests</span>
-                </a>
-
                 
-                <!-- Reports -->
-                <div x-data="{ reportsOpen: false }" class="relative" @click.away="reportsOpen = false">
-                    <button @click="reportsOpen = !reportsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                        <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <span class="font-medium">Reports</span>
-                        <svg class="w-4 h-4 ml-auto transition-transform" :class="{'rotate-180': reportsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    <div x-show="reportsOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute left-0 right-0 mt-1 ml-12 glass-effect rounded-lg overflow-hidden z-50">
-                        <a href="{{ route('reports.dashboard') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.dashboard') ? 'bg-white/10' : '' }}">Dashboard</a>
-                        <a href="{{ route('reports.membership') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.membership') ? 'bg-white/10' : '' }}">Membership</a>
-                        <a href="{{ route('reports.attendance') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.attendance') ? 'bg-white/10' : '' }}">Attendance</a>
-                        <a href="{{ route('reports.financial') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.financial') ? 'bg-white/10' : '' }}">Financial</a>
-                        <a href="{{ route('reports.communication') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.communication') ? 'bg-white/10' : '' }}">Communication</a>
-                        <a href="{{ route('reports.growth') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.growth') ? 'bg-white/10' : '' }}">Growth</a>
-                        <a href="{{ route('reports.custom') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.custom') ? 'bg-white/10' : '' }}">Custom</a>
-                        <a href="{{ route('reports.exports.index') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.exports.*') ? 'bg-white/10' : '' }}">Exports</a>
-                    </div>
-                </div>
 
                 <div class="pt-4 mt-4 border-t border-white/10">
                     <a href="{{ route('settings.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('settings.*') ? 'active' : '' }}">
