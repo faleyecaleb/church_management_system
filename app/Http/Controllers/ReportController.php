@@ -139,6 +139,15 @@ class ReportController extends Controller
      */
     public function custom(Request $request)
     {
+        if ($request->isMethod('get') && !$request->has('metrics')) {
+            return view('reports.custom');
+        }
+
+        return $this->generateCustom($request);
+    }
+
+    public function generateCustom(Request $request)
+    {
         $request->validate([
             'metrics' => 'required|array',
             'metrics.*' => 'required|string',
