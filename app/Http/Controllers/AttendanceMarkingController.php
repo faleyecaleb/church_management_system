@@ -204,8 +204,52 @@ class AttendanceMarkingController extends Controller
      */
     public function bulkMarking()
     {
-        $services = Service::orderBy('name')->get();
-        return view('attendance.bulk-marking', compact('services'));
+        // No need to load all services initially, they'll be loaded via AJAX
+        return view('attendance.bulk-marking');
+    }
+
+    /**
+     * Get services for a specific month and year
+     */
+    public function getServicesByMonth(Request $request)
+    {
+        $request->validate([
+            'month' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:2020|max:2030'
+        ]);
+
+        try {
+            $month = $request->month;
+            $year = $request->year;
+            
+            // Get all active services
+            $services = Service::active()
+                ->orderBy('day_of_week')
+                ->orderBy('start_time')
+                ->get()
+                ->map(function ($service) use ($month, $year) {
+                    return [
+                        'id' => $service->id,
+                        'name' => $service->name,
+                        'day_of_week' => $service->day_of_week,
+                        'day_of_week_name' => $service->day_of_week_name,
+                        'start_time' => $service->start_time->format('H:i'),
+                        'location' => $service->location,
+                        'description' => $service->description
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'services' => $services
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load services: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

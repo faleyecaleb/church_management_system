@@ -18,26 +18,69 @@
         </div>
 
         <div class="p-6">
-            <!-- Service Selection -->
+            <!-- Month/Year and Service Selection -->
             <div class="mb-6 bg-gray-50 rounded-xl p-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Month Selection -->
                     <div>
-                        <label for="service_id" class="block text-sm font-medium text-gray-700 mb-2">Service *</label>
-                        <select name="service_id" id="service_id" required class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="">Select service...</option>
-                            @foreach($services as $service)
-                                <option value="{{ $service->id }}">{{ $service->name }} - {{ $service->day_of_week }}</option>
-                            @endforeach
+                        <label for="month" class="block text-sm font-medium text-gray-700 mb-2">Month *</label>
+                        <select name="month" id="month" required class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="loadServices()">
+                            <option value="1" {{ now()->month == 1 ? 'selected' : '' }}>January</option>
+                            <option value="2" {{ now()->month == 2 ? 'selected' : '' }}>February</option>
+                            <option value="3" {{ now()->month == 3 ? 'selected' : '' }}>March</option>
+                            <option value="4" {{ now()->month == 4 ? 'selected' : '' }}>April</option>
+                            <option value="5" {{ now()->month == 5 ? 'selected' : '' }}>May</option>
+                            <option value="6" {{ now()->month == 6 ? 'selected' : '' }}>June</option>
+                            <option value="7" {{ now()->month == 7 ? 'selected' : '' }}>July</option>
+                            <option value="8" {{ now()->month == 8 ? 'selected' : '' }}>August</option>
+                            <option value="9" {{ now()->month == 9 ? 'selected' : '' }}>September</option>
+                            <option value="10" {{ now()->month == 10 ? 'selected' : '' }}>October</option>
+                            <option value="11" {{ now()->month == 11 ? 'selected' : '' }}>November</option>
+                            <option value="12" {{ now()->month == 12 ? 'selected' : '' }}>December</option>
                         </select>
                     </div>
+                    
+                    <!-- Year Selection -->
                     <div>
-                        <label for="attendance_date" class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                        <input type="date" name="attendance_date" id="attendance_date" value="{{ now()->format('Y-m-d') }}" required class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Year *</label>
+                        <select name="year" id="year" required class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="loadServices()">
+                            @for($year = now()->year - 2; $year <= now()->year + 2; $year++)
+                                <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>{{ $year }}</option>
+                            @endfor
+                        </select>
                     </div>
+                    
+                    <!-- Service Selection -->
+                    <div>
+                        <label for="service_id" class="block text-sm font-medium text-gray-700 mb-2">Service *</label>
+                        <select name="service_id" id="service_id" required class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" disabled>
+                            <option value="">Select month/year first...</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Load Members Button -->
                     <div class="flex items-end">
-                        <button type="button" onclick="loadMembers()" id="load-members-btn" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150">
+                        <button type="button" onclick="loadMembers()" id="load-members-btn" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150" disabled>
                             Load Members
                         </button>
+                    </div>
+                </div>
+                
+                <!-- Service Date Selection (appears after service is selected) -->
+                <div id="date-selection" class="mt-4 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="attendance_date" class="block text-sm font-medium text-gray-700 mb-2">Select Date for Service *</label>
+                            <select name="attendance_date" id="attendance_date" required class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">Select service first...</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <div class="text-sm text-gray-600">
+                                <p id="service-info" class="font-medium"></p>
+                                <p id="service-details" class="text-gray-500"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,6 +187,8 @@ let filteredMembers = [];
 let currentPage = 1;
 const itemsPerPage = 50;
 let selectedMembers = new Set();
+let availableServices = [];
+let selectedService = null;
 
 // Show alert messages
 function showAlert(message, type) {
@@ -159,6 +204,162 @@ function showAlert(message, type) {
     setTimeout(() => {
         alertContainer.innerHTML = '';
     }, 5000);
+}
+
+// Load services for selected month and year
+async function loadServices() {
+    const month = document.getElementById('month').value;
+    const year = document.getElementById('year').value;
+    
+    if (!month || !year) {
+        return;
+    }
+
+    const serviceSelect = document.getElementById('service_id');
+    const loadBtn = document.getElementById('load-members-btn');
+    
+    // Reset dependent fields
+    serviceSelect.disabled = true;
+    serviceSelect.innerHTML = '<option value="">Loading services...</option>';
+    loadBtn.disabled = true;
+    document.getElementById('date-selection').classList.add('hidden');
+    document.getElementById('members-section').classList.add('hidden');
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        const response = await fetch('/attendance/bulk-marking/services', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                month: parseInt(month),
+                year: parseInt(year)
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            availableServices = data.services || [];
+            populateServiceSelect();
+            showAlert(`Found ${availableServices.length} services for ${getMonthName(month)} ${year}`, 'success');
+        } else {
+            showAlert(data.error || 'Failed to load services', 'error');
+            serviceSelect.innerHTML = '<option value="">No services available</option>';
+        }
+    } catch (error) {
+        console.error('Error loading services:', error);
+        showAlert('Network error. Please check your connection and try again.', 'error');
+        serviceSelect.innerHTML = '<option value="">Error loading services</option>';
+    }
+}
+
+// Populate service select dropdown
+function populateServiceSelect() {
+    const serviceSelect = document.getElementById('service_id');
+    
+    if (availableServices.length === 0) {
+        serviceSelect.innerHTML = '<option value="">No services available</option>';
+        serviceSelect.disabled = true;
+        return;
+    }
+    
+    serviceSelect.innerHTML = '<option value="">Select a service...</option>';
+    availableServices.forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.id;
+        option.textContent = `${service.name} - ${service.day_of_week_name} ${service.start_time}`;
+        option.dataset.service = JSON.stringify(service);
+        serviceSelect.appendChild(option);
+    });
+    
+    serviceSelect.disabled = false;
+    serviceSelect.addEventListener('change', handleServiceSelection);
+}
+
+// Handle service selection and show date options
+function handleServiceSelection() {
+    const serviceSelect = document.getElementById('service_id');
+    const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+    
+    if (!selectedOption.value) {
+        document.getElementById('date-selection').classList.add('hidden');
+        document.getElementById('load-members-btn').disabled = true;
+        return;
+    }
+    
+    selectedService = JSON.parse(selectedOption.dataset.service);
+    populateDateOptions();
+    updateServiceInfo();
+    document.getElementById('date-selection').classList.remove('hidden');
+}
+
+// Populate date options for selected service
+function populateDateOptions() {
+    const month = parseInt(document.getElementById('month').value);
+    const year = parseInt(document.getElementById('year').value);
+    const dateSelect = document.getElementById('attendance_date');
+    
+    dateSelect.innerHTML = '<option value="">Select a date...</option>';
+    
+    // Get all dates in the month that match the service's day of week
+    const datesInMonth = getDatesForDayOfWeek(year, month, selectedService.day_of_week);
+    
+    datesInMonth.forEach(date => {
+        const option = document.createElement('option');
+        const dateStr = date.toISOString().split('T')[0];
+        option.value = dateStr;
+        option.textContent = date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        dateSelect.appendChild(option);
+    });
+    
+    dateSelect.addEventListener('change', function() {
+        document.getElementById('load-members-btn').disabled = !this.value;
+    });
+}
+
+// Get all dates in a month for a specific day of week
+function getDatesForDayOfWeek(year, month, dayOfWeek) {
+    const dates = [];
+    const date = new Date(year, month - 1, 1); // month is 0-indexed in Date constructor
+    
+    // Find the first occurrence of the day of week
+    while (date.getDay() !== dayOfWeek) {
+        date.setDate(date.getDate() + 1);
+    }
+    
+    // Add all occurrences in the month
+    while (date.getMonth() === month - 1) {
+        dates.push(new Date(date));
+        date.setDate(date.getDate() + 7);
+    }
+    
+    return dates;
+}
+
+// Update service information display
+function updateServiceInfo() {
+    document.getElementById('service-info').textContent = 
+        `${selectedService.name} - ${selectedService.day_of_week_name}s at ${selectedService.start_time}`;
+    document.getElementById('service-details').textContent = 
+        selectedService.location ? `Location: ${selectedService.location}` : '';
+}
+
+// Get month name from number
+function getMonthName(monthNumber) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[monthNumber - 1];
 }
 
 // Load members from server
@@ -476,6 +677,12 @@ function nextPage() {
         renderMembers();
     }
 }
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Load services for current month/year on page load
+    loadServices();
+});
 
 // Event listeners
 document.getElementById('search').addEventListener('input', filterMembers);

@@ -273,6 +273,7 @@ Route::resource('members', MemberController::class);
         
         // Bulk attendance marking routes
         Route::get('/bulk-marking', [AttendanceMarkingController::class, 'bulkMarking'])->name('bulk-marking');
+        Route::post('/bulk-marking/services', [AttendanceMarkingController::class, 'getServicesByMonth'])->name('bulk-marking.services');
         Route::post('/bulk-marking/members', [AttendanceMarkingController::class, 'getBulkMembers'])->name('bulk-marking.members');
         Route::post('/bulk-marking/mark', [AttendanceMarkingController::class, 'bulkMark'])->name('bulk-marking.mark');
     });
