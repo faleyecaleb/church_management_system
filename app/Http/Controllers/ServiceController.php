@@ -13,13 +13,30 @@ class ServiceController extends Controller
     {
         $query = Service::query();
 
+        // Search filter
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $services = $query->latest()->paginate(10);
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        return view('services.index', compact('services'));
+        // Day of week filter
+        if ($request->filled('day_of_week')) {
+            $query->where('day_of_week', $request->day_of_week);
+        }
+
+        // Month and year filtering (for recurring services)
+        $month = $request->filled('month') ? $request->month : now()->month;
+        $year = $request->filled('year') ? $request->year : now()->year;
+
+        $services = $query->orderBy('day_of_week')
+                         ->orderBy('start_time')
+                         ->paginate(12);
+
+        return view('services.index', compact('services', 'month', 'year'));
     }
 
     public function create()
