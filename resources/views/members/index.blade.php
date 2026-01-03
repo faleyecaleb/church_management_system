@@ -154,19 +154,23 @@
                             <option value="deceased" {{ request('status') == 'deceased' ? 'selected' : '' }}>Deceased</option>
                         </select>
                     </div>
+
+                    <div>
+                        <label for="member_type" class="block text-xs font-medium text-gray-700 mb-1">Member Type</label>
+                        <select name="member_type" id="member_type" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md">
+                            <option value="">All Types</option>
+                            <option value="new_comer" {{ request('member_type') == 'new_comer' ? 'selected' : '' }}>New Comer</option>
+                            <option value="main_member" {{ request('member_type') == 'main_member' ? 'selected' : '' }}>Main Member</option>
+                        </select>
+                    </div>
                     
                     <div>
                         <label for="department" class="block text-xs font-medium text-gray-700 mb-1">Department</label>
                         <select name="department" id="department" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md">
                             <option value="">All Departments</option>
-                            <option value="Media" {{ request('department') == 'Media' ? 'selected' : '' }}>Media</option>
-                            <option value="Choir" {{ request('department') == 'Choir' ? 'selected' : '' }}>Choir</option>
-                            <option value="Ushers" {{ request('department') == 'Ushers' ? 'selected' : '' }}>Ushers</option>
-                            <option value="Dance" {{ request('department') == 'Dance' ? 'selected' : '' }}>Dance</option>
-                            <option value="Prayer" {{ request('department') == 'Prayer' ? 'selected' : '' }}>Prayer</option>
-                            <option value="Lost but Found" {{ request('department') == 'Lost but Found' ? 'selected' : '' }}>Lost but Found</option>
-                            <option value="Drama" {{ request('department') == 'Drama' ? 'selected' : '' }}>Drama</option>
-                            <option value="Sanctuary" {{ request('department') == 'Sanctuary' ? 'selected' : '' }}>Sanctuary</option>
+                            @foreach($departments as $dept)
+                                <option value="{{ $dept->id }}" {{ request('department') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     
@@ -230,15 +234,28 @@
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $member->membership_status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                     {{ ucfirst($member->membership_status) }}
                                 </span>
-                                @if($member->departments->count() > 0)
-                                    @foreach($member->departments as $dept)
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                                        {{ $dept->department }}
+                                @forelse($member->departments as $dept)
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800 mr-1">
+                                        {{ $dept->department->name ?? 'N/A' }}
                                     </span>
-                                    @endforeach
-                                @endif
+                                @empty
+                                    <span class="text-xs text-gray-500">None</span>
+                                @endforelse
                                 @if($member->baptism_date)
                                 <span>Baptized on {{ $member->baptism_date->format('M d, Y') }}</span>
+                                @endif
+                                
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $member->isNewComer() ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800' }}">
+                                    {{ $member->isNewComer() ? 'New Comer' : 'Main Member' }}
+                                </span>
+
+                                @if($member->isNewComer())
+                                <form action="{{ route('members.promote', $member) }}" method="POST" class="inline-block ml-2">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 h-6" onclick="return confirm('Promote this member to Main Member?')">
+                                        Promote
+                                    </button>
+                                </form>
                                 @endif
                             </div>
                         </div>

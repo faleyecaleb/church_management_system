@@ -219,6 +219,7 @@ Route::post('members/export/stats', [App\Http\Controllers\MemberExportController
 // Member Management Routes
 Route::resource('members', MemberController::class);
     // Member Management Routes
+    Route::post('members/{member}/promote', [MemberController::class, 'promote'])->name('members.promote');
     Route::resource('members', MemberController::class);
 
     // Member Emergency Contact Routes

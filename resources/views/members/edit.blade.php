@@ -143,21 +143,18 @@
                     <div class="sm:col-span-6">
                         <label class="block text-sm font-medium text-gray-700 mb-3">Departments *</label>
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            @php
-                                $departments = ['Media', 'Choir', 'Ushers', 'Dance', 'Prayer', 'Lost but Found', 'Drama', 'Sanctuary'];
-                                $selectedDepartments = old('departments', $member->department_names ?? []);
-                            @endphp
-                            @foreach($departments as $department)
-                            <div class="relative flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="edit_dept_{{ $loop->index }}" name="departments[]" type="checkbox" value="{{ $department }}"
-                                           {{ in_array($department, $selectedDepartments) ? 'checked' : '' }}
-                                           class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                          <div class="mt-4 space-y-4">
+                            @foreach($departments as $dept)
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="department_{{ $dept->id }}" name="departments[]" type="checkbox" value="{{ $dept->id }}"
+                                            {{ in_array($dept->id, old('departments', $member->departments->pluck('department_id')->toArray())) ? 'checked' : '' }}
+                                            class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="department_{{ $dept->id }}" class="font-medium text-gray-700">{{ $dept->name }}</label>
+                                    </div>
                                 </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="edit_dept_{{ $loop->index }}" class="font-medium text-gray-700">{{ $department }}</label>
-                                </div>
-                            </div>
                             @endforeach
                         </div>
                         <p class="mt-2 text-xs text-gray-500">Select one or more departments for this member.</p>

@@ -26,6 +26,7 @@ class Member extends Authenticatable
         'profile_photo',
         'custom_fields',
         'gender',
+        'member_type',
     ];
 
     protected $casts = [
@@ -159,5 +160,16 @@ class Member extends Authenticatable
         }
 
         return $query->sum('amount');
+    }
+
+    // Member Type Helpers
+    public function isNewComer()
+    {
+        return $this->member_type === 'new_comer';
+    }
+
+    public function isMainMember()
+    {
+        return $this->member_type === 'main_member';
     }
 }

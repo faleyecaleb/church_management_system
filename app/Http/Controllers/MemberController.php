@@ -39,9 +39,13 @@ class MemberController extends Controller
             $query->where('membership_status', $request->input('status'));
         }
 
+        if ($request->filled('member_type')) {
+            $query->where('member_type', $request->input('member_type'));
+        }
+
         if ($request->filled('department')) {
             $query->whereHas('departments', function ($q) use ($request) {
-                $q->where('department', $request->input('department'));
+                $q->where('department_id', $request->input('department'));
             });
         }
 
@@ -67,15 +71,17 @@ class MemberController extends Controller
                 break;
         }
 
-        $members = $query->with('departments')->paginate(20);
+        $members = $query->with('departments.department')->paginate(20);
+        $departments = \App\Models\Department::where('is_active', true)->orderBy('name')->get();
 
-        return view('members.index', compact('members'));
+        return view('members.index', compact('members', 'departments'));
     }
 
     public function create()
     {
         $roles = Role::active()->get();
-        return view('members.create', compact('roles'));
+        $departments = \App\Models\Department::where('is_active', true)->get();
+        return view('members.create', compact('roles', 'departments'));
     }
 
     public function store(Request $request)
@@ -90,7 +96,7 @@ class MemberController extends Controller
                 'date_of_birth' => 'nullable|date',
                 'baptism_date' => 'nullable|date',
                 'departments' => 'required|array|min:1',
-                'departments.*' => 'string|in:Media,Choir,Ushers,Dance,Prayer,Lost but Found,Drama,Sanctuary',
+                'departments.*' => 'exists:departments,id',
                 'membership_status' => 'required|string',
                 'profile_photo' => 'nullable|image|max:2048',
                 'emergency_contacts' => 'nullable|array',
@@ -113,8 +119,8 @@ class MemberController extends Controller
             $member = Member::create($validated);
 
             // Create department associations
-            foreach ($departments as $department) {
-                $member->departments()->create(['department' => $department]);
+            foreach ($departments as $departmentId) {
+                $member->departments()->create(['department_id' => $departmentId]);
             }
 
             if ($request->filled('roles')) {
@@ -133,7 +139,7 @@ class MemberController extends Controller
 
     public function show(Member $member)
     {
-        $member->load(['roles', 'attendances', 'donations', 'pledges', 'emergencyContacts', 'documents', 'departments']);
+        $member->load(['roles', 'attendances', 'donations', 'pledges', 'emergencyContacts', 'documents', 'departments.department']);
         return view('members.show', compact('member'));
     }
 
@@ -141,7 +147,8 @@ class MemberController extends Controller
     {
         $member->load('departments');
         $roles = Role::active()->get();
-        return view('members.edit', compact('member', 'roles'));
+        $departments = \App\Models\Department::where('is_active', true)->get();
+        return view('members.edit', compact('member', 'roles', 'departments'));
     }
 
     public function update(Request $request, Member $member)
@@ -156,7 +163,7 @@ class MemberController extends Controller
             'baptism_date' => 'nullable|date',
             'gender' => 'nullable|string|in:male,female,other',
             'departments' => 'required|array|min:1',
-            'departments.*' => 'string|in:Media,Choir,Ushers,Dance,Prayer,Lost but Found,Drama,Sanctuary',
+            'departments.*' => 'exists:departments,id',
             'membership_status' => 'required|string',
             'profile_photo' => 'nullable|image|max:2048',
             'emergency_contacts' => 'nullable|array',
@@ -187,8 +194,8 @@ class MemberController extends Controller
         $member->departments()->delete();
         
         // Then create new department associations
-        foreach ($departments as $department) {
-            $member->departments()->create(['department' => $department]);
+        foreach ($departments as $departmentId) {
+            $member->departments()->create(['department_id' => $departmentId]);
         }
 
         if ($request->filled('roles')) {
@@ -238,5 +245,12 @@ class MemberController extends Controller
             ->paginate(15);
 
         return view('members.pledges', compact('member', 'pledges'));
+    }
+
+    public function promote(Member $member)
+    {
+        $member->update(['member_type' => 'main_member']);
+
+        return redirect()->back()->with('success', 'Member promoted to Main Member successfully.');
     }
 }

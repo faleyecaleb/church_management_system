@@ -11,7 +11,7 @@ class MemberDepartment extends Model
 
     protected $fillable = [
         'member_id',
-        'department',
+        'department_id',
     ];
 
     public function member()
@@ -19,17 +19,13 @@ class MemberDepartment extends Model
         return $this->belongsTo(Member::class);
     }
 
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
     public static function getDepartmentOptions()
     {
-        return [
-            'Media',
-            'Choir', 
-            'Ushers',
-            'Dance',
-            'Prayer',
-            'Lost but Found',
-            'Drama',
-            'Sanctuary'
-        ];
+        return Department::where('is_active', true)->pluck('name', 'id')->toArray();
     }
 }
