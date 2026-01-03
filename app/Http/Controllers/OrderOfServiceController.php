@@ -44,7 +44,16 @@ class OrderOfServiceController extends Controller
         $orderOfServices = $service->orderOfServices()->ordered()->get();
         $totalDuration = $orderOfServices->sum('duration');
         
-        return view('order-of-services.index', compact('service', 'orderOfServices', 'totalDuration'));
+        // Calculate year range for filter: Earliest created service year -> Next Year
+        $earliest = Service::min('created_at');
+        $startYear = $earliest ? \Illuminate\Support\Carbon::parse($earliest)->year : date('Y');
+        $endYear = date('Y') + 1;
+        // Ensure startYear is not greater than endYear (sanity check)
+        $startYear = min($startYear, $endYear);
+        
+        $years = range($startYear, $endYear);
+        
+        return view('order-of-services.index', compact('service', 'orderOfServices', 'totalDuration', 'years'));
     }
 
     /**

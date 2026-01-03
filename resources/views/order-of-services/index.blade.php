@@ -138,8 +138,8 @@
                         <div class="flex-1">
                             <label for="filter_year" class="block text-xs font-medium text-gray-500 mb-1">Year</label>
                             <select id="filter_year" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="fetchServices()">
-                                @foreach(range(date('Y'), date('Y') + 2) as $year)
-                                    <option value="{{ $year }}">{{ $year }}</option>
+                                @foreach($years as $year)
+                                    <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
                                 @endforeach
                             </select>
                         </div>
