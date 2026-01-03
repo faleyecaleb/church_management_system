@@ -32,9 +32,23 @@ class ServiceController extends Controller
         $month = $request->filled('month') ? $request->month : now()->month;
         $year = $request->filled('year') ? $request->year : now()->year;
 
-        $services = $query->orderBy('day_of_week')
-                         ->orderBy('start_time')
-                         ->paginate(12);
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'schedule':
+                $query->orderBy('day_of_week')
+                      ->orderBy('start_time');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $services = $query->paginate(12);
 
         return view('services.index', compact('services', 'month', 'year'));
     }

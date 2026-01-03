@@ -37,7 +37,9 @@
             <!-- Month/Year Selection -->
             <div class="mb-4">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Filter by Period</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Check existing filters and adjust grid as needed, or just append -->
+                    
                     <!-- Month Selection -->
                     <div>
                         <label for="month" class="block text-sm font-medium text-gray-700 mb-2">Month</label>
@@ -91,6 +93,16 @@
                             <option value="">All Status</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Order -->
+                    <div>
+                        <label for="sort" class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        <select name="sort" id="sort" class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="latest" {{ request('sort', 'latest') == 'latest' ? 'selected' : '' }}>Newest First</option>
+                            <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                            <option value="schedule" {{ request('sort') == 'schedule' ? 'selected' : '' }}>Weekly Schedule</option>
                         </select>
                     </div>
                 </div>
@@ -291,7 +303,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-submit form when filters change (optional - can be enabled for better UX)
-    const autoSubmitFilters = ['month', 'year', 'day_of_week', 'status'];
+    const autoSubmitFilters = ['month', 'year', 'day_of_week', 'status', 'sort'];
     
     autoSubmitFilters.forEach(filterId => {
         const element = document.getElementById(filterId);
@@ -338,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Highlight active filters
     function highlightActiveFilters() {
-        const filters = ['month', 'year', 'day_of_week', 'status', 'search'];
+        const filters = ['month', 'year', 'day_of_week', 'status', 'search', 'sort'];
         
         filters.forEach(filterId => {
             const element = document.getElementById(filterId);
