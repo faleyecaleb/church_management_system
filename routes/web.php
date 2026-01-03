@@ -228,6 +228,7 @@ Route::resource('members', MemberController::class);
     // Service Management
     Route::get('services/calendar', [ServiceController::class, 'calendar'])->name('services.calendar');
     Route::get('services/events', [ServiceController::class, 'events'])->name('services.events');
+    Route::get('services/ajax-filter', [ServiceController::class, 'ajaxFilter'])->name('services.ajax-filter');
     Route::resource('services', ServiceController::class);
     Route::resource('services.order-of-services', OrderOfServiceController::class)->shallow();
     

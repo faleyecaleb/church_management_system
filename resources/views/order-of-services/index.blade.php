@@ -131,20 +131,46 @@
         <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 shadow-lg">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
             <div class="flex flex-wrap gap-3">
-                <form action="{{ route('services.order-of-services.duplicate', $service->id) }}" method="POST" class="inline">
+                <form action="{{ route('services.order-of-services.duplicate', $service->id) }}" method="POST" class="w-full">
                     @csrf
-                    <select name="target_service_id" class="mr-2 px-3 py-2 border border-gray-300 rounded-lg text-sm" required>
-                        <option value="">Select service to copy to...</option>
-                        @foreach(\App\Models\Service::where('id', '!=', $service->id)->active()->get() as $targetService)
-                            <option value="{{ $targetService->id }}">{{ $targetService->name }} ({{ $targetService->day_of_week_name }})</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
-                        Duplicate to Service
-                    </button>
+                    <div class="flex flex-col md:flex-row gap-3 items-end">
+                        <!-- Year Filter -->
+                        <div class="flex-1">
+                            <label for="filter_year" class="block text-xs font-medium text-gray-500 mb-1">Year</label>
+                            <select id="filter_year" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="fetchServices()">
+                                @foreach(range(date('Y'), date('Y') + 2) as $year)
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Month Filter -->
+                        <div class="flex-1">
+                            <label for="filter_month" class="block text-xs font-medium text-gray-500 mb-1">Month</label>
+                            <select id="filter_month" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="fetchServices()">
+                                @foreach(range(1, 12) as $m)
+                                    <option value="{{ $m }}" {{ $m == date('n') ? 'selected' : '' }}>
+                                        {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Service Select -->
+                        <div class="flex-[2]">
+                            <label for="target_service_id" class="block text-xs font-medium text-gray-500 mb-1">Target Service</label>
+                            <select name="target_service_id" id="target_service_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" required>
+                                <option value="">Select service to copy to...</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="w-full md:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center h-[38px]">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            Duplicate
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -200,6 +226,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Dynamic Service Fetching
+    window.fetchServices = function() {
+        const year = document.getElementById('filter_year').value;
+        const month = document.getElementById('filter_month').value;
+        const serviceSelect = document.getElementById('target_service_id');
+        const excludeId = {{ $service->id }};
+
+        serviceSelect.innerHTML = '<option value="">Loading...</option>';
+        serviceSelect.disabled = true;
+
+        fetch(`{{ route('services.ajax-filter') }}?year=${year}&month=${month}&exclude_id=${excludeId}`)
+            .then(response => response.json())
+            .then(data => {
+                serviceSelect.innerHTML = '<option value="">Select service to copy to...</option>';
+                data.forEach(service => {
+                    const option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = `${service.name} - ${service.info}`;
+                    serviceSelect.appendChild(option);
+                });
+                serviceSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error fetching services:', error);
+                serviceSelect.innerHTML = '<option value="">Error loading services</option>';
+            });
+    }
+
+    // Initial fetch
+    fetchServices();
 });
 </script>
 @endpush
