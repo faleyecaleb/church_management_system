@@ -238,9 +238,23 @@ document.addEventListener('DOMContentLoaded', function() {
         serviceSelect.disabled = true;
 
         fetch(`{{ route('services.ajax-filter') }}?year=${year}&month=${month}&exclude_id=${excludeId}`)
-            .then(response => response.json())
+            .then(response => {
+                // If response is not ok, throw error with text
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'Server Error'); });
+                }
+                return response.json();
+            })
             .then(data => {
                 serviceSelect.innerHTML = '<option value="">Select service to copy to...</option>';
+                
+                if (data.length === 0) {
+                     const option = document.createElement('option');
+                     option.text = "No services found for this period";
+                     option.disabled = true;
+                     serviceSelect.appendChild(option);
+                }
+
                 data.forEach(service => {
                     const option = document.createElement('option');
                     option.value = service.id;
@@ -251,7 +265,9 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error fetching services:', error);
-                serviceSelect.innerHTML = '<option value="">Error loading services</option>';
+                serviceSelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
+                // Optional: alert the user for visibility
+                // alert('Failed to load services: ' + error.message);
             });
     }
 

@@ -230,44 +230,53 @@ class ServiceController extends Controller
 
     public function ajaxFilter(Request $request) 
     {
-        $year = $request->input('year');
-        $month = $request->input('month');
-        $excludeId = $request->input('exclude_id');
+        try {
+            $year = $request->input('year');
+            $month = $request->input('month');
+            $excludeId = $request->input('exclude_id');
 
-        $query = Service::query();
+            $query = Service::query();
 
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
-
-        $query->where(function($q) use ($year, $month) {
-            // Recurring services are always available (or checking creation date if needed? usually not)
-            $q->where('is_recurring', 1)
-              ->where('status', 'active');
-            
-            // One-time services match the date
-            if ($year && $month) {
-                $q->orWhere(function($subQ) use ($year, $month) {
-                    $subQ->where('is_recurring', 0)
-                         ->whereYear('date', $year)
-                         ->whereMonth('date', $month);
-                });
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
             }
-        });
 
-        $services = $query->orderBy('is_recurring', 'desc') // Recurring first
-                          ->orderBy('date', 'asc')
-                          ->get()
-                          ->map(function($service) {
-                              return [
-                                  'id' => $service->id,
-                                  'name' => $service->name,
-                                  'info' => $service->is_recurring 
-                                      ? "{$service->day_of_week_name}s (Recurring)" 
-                                      : (optional($service->date)->format('M j, Y') ?? 'Date Not Set') . " (One-time)"
-                              ];
-                          });
+            $query->where(function($q) use ($year, $month) {
+                // Recurring services are always available
+                $q->where('is_recurring', 1)
+                  ->where('status', 'active');
+                
+                // One-time services match the date
+                if ($year && $month) {
+                    $q->orWhere(function($subQ) use ($year, $month) {
+                        $subQ->where('is_recurring', 0)
+                             ->whereYear('date', $year)
+                             ->whereMonth('date', $month);
+                    });
+                }
+            });
 
-        return response()->json($services);
+            $services = $query->orderBy('is_recurring', 'desc') // Recurring first
+                              ->orderBy('date', 'asc')
+                              ->get()
+                              ->map(function($service) {
+                                  return [
+                                      'id' => $service->id,
+                                      'name' => $service->name,
+                                      'info' => $service->is_recurring 
+                                          ? "{$service->day_of_week_name}s (Recurring)" 
+                                          : (optional($service->date)->format('M j, Y') ?? 'Date Not Set') . " (One-time)"
+                                  ];
+                              });
+
+            return response()->json($services);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Service Filter Error: ' . $e->getMessage());
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage() // Return error for debugging
+            ], 500); 
+        }
     }
 }
