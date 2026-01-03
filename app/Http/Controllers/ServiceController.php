@@ -264,7 +264,7 @@ class ServiceController extends Controller
                                   'name' => $service->name,
                                   'info' => $service->is_recurring 
                                       ? "{$service->day_of_week_name}s (Recurring)" 
-                                      : $service->date->format('M j, Y') . " (One-time)"
+                                      : (optional($service->date)->format('M j, Y') ?? 'Date Not Set') . " (One-time)"
                               ];
                           });
 
