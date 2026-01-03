@@ -253,14 +253,40 @@ document.addEventListener('DOMContentLoaded', function() {
                      option.text = "No services found for this period";
                      option.disabled = true;
                      serviceSelect.appendChild(option);
+                     serviceSelect.disabled = false;
+                     return;
                 }
+
+                const recurringGroup = document.createElement('optgroup');
+                recurringGroup.label = "Recurring Services";
+                
+                const oneTimeGroup = document.createElement('optgroup');
+                oneTimeGroup.label = `One-Time Services (${document.getElementById('filter_month').options[document.getElementById('filter_month').selectedIndex].text} ${year})`; // Use selected month text
+
+                let hasRecurring = false;
+                let hasOneTime = false;
 
                 data.forEach(service => {
                     const option = document.createElement('option');
                     option.value = service.id;
                     option.textContent = `${service.name} - ${service.info}`;
-                    serviceSelect.appendChild(option);
+                    
+                    if (service.type === 'recurring') {
+                        recurringGroup.appendChild(option);
+                        hasRecurring = true;
+                    } else {
+                        oneTimeGroup.appendChild(option);
+                        hasOneTime = true;
+                    }
                 });
+
+                if (hasOneTime) {
+                    serviceSelect.appendChild(oneTimeGroup);
+                }
+                if (hasRecurring) {
+                    serviceSelect.appendChild(recurringGroup);
+                }
+                
                 serviceSelect.disabled = false;
             })
             .catch(error => {
