@@ -271,11 +271,26 @@ class ServiceController extends Controller
 
             return response()->json($services);
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Illuminate\Support\Facades\Log::error('Service Filter SQL Error: ' . $e->getMessage());
+            
+            // Check for "Unknown column" error (1054)
+            if ($e->errorInfo[1] == 1054) {
+                 return response()->json([
+                    'error' => true,
+                    'message' => "System Update Required: The 'date' column is missing from the database. Please contact the administrator to run 'php artisan migrate'."
+                ], 500);
+            }
+
+            return response()->json([
+                'error' => true,
+                'message' => 'Database Error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Service Filter Error: ' . $e->getMessage());
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage() // Return error for debugging
+                'message' => $e->getMessage()
             ], 500); 
         }
     }
