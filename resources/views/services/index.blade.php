@@ -196,6 +196,10 @@
                                 <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
                                     Recurring
                                 </span>
+                            @elseif($service->date)
+                                <span class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                    {{ $service->date->format('M j, Y') }}
+                                </span>
                             @endif
                         </div>
                     </div>
