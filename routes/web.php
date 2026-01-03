@@ -226,6 +226,8 @@ Route::resource('members', MemberController::class);
     Route::resource('members.emergency-contacts', EmergencyContactController::class)->except(['index', 'show']);
 
     // Service Management
+    Route::get('services/calendar', [ServiceController::class, 'calendar'])->name('services.calendar');
+    Route::get('services/events', [ServiceController::class, 'events'])->name('services.events');
     Route::resource('services', ServiceController::class);
     Route::resource('services.order-of-services', OrderOfServiceController::class)->shallow();
     

@@ -18,6 +18,7 @@ class Service extends Model
         'end_time',
         'location',
         'is_recurring',
+        'date',
         'capacity',
         'status', // active, cancelled, etc.
         'notes'
@@ -27,6 +28,7 @@ class Service extends Model
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'is_recurring' => 'boolean',
+        'date' => 'date',
     ];
 
     protected $appends = ['day_of_week_name'];

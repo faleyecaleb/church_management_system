@@ -71,6 +71,7 @@ class ServiceController extends Controller
             'end_time'     => 'required|date_format:H:i|after:start_time',
             'location'     => 'nullable|string|max:255',
             'is_recurring' => 'required|boolean',
+            'date'         => 'nullable|required_if:is_recurring,0|date|after_or_equal:today',
             'capacity'     => 'nullable|integer|min:1',
             'status'       => 'required|in:active,inactive',
             'notes'        => 'nullable|string|max:1000',
@@ -120,6 +121,7 @@ class ServiceController extends Controller
             'end_time'     => 'required|date_format:H:i|after:start_time',
             'location'     => 'nullable|string|max:255',
             'is_recurring' => 'required|boolean',
+            'date'         => 'nullable|required_if:is_recurring,0|date|after_or_equal:today',
             'capacity'     => 'nullable|integer|min:1',
             'status'       => 'required|in:active,inactive',
             'notes'        => 'nullable|string|max:1000',
@@ -155,5 +157,74 @@ class ServiceController extends Controller
         return redirect()
             ->route('services.index')
             ->with('success', 'Service deleted successfully.');
+    }
+
+    public function calendar()
+    {
+        return view('services.calendar');
+    }
+
+    public function events(Request $request)
+    {
+        $start = \Illuminate\Support\Carbon::parse($request->start);
+        $end = \Illuminate\Support\Carbon::parse($request->end);
+
+        $services = Service::where('status', 'active')->get();
+        $events = [];
+
+        foreach ($services as $service) {
+            if ($service->status !== 'active') continue;
+
+            if (!$service->is_recurring) {
+                if ($service->date) {
+                    $serviceDate = \Illuminate\Support\Carbon::parse($service->date);
+                    if ($serviceDate->between($start, $end)) {
+                         $startDateTime = $serviceDate->copy()->setTimeFromTimeString($service->start_time->format('H:i:s'));
+                         $endDateTime = $serviceDate->copy()->setTimeFromTimeString($service->end_time->format('H:i:s'));
+                         
+                         $events[] = [
+                            'id' => $service->id . '_single',
+                            'title' => $service->name . ' (One-time)',
+                            'start' => $startDateTime->toIso8601String(),
+                            'end' => $endDateTime->toIso8601String(),
+                            'url' => route('services.show', $service),
+                            'backgroundColor' => '#10b981', // emerald-500
+                            'borderColor' => '#059669', // emerald-600
+                            'extendedProps' => [
+                                'location' => $service->location,
+                                'description' => $service->description,
+                            ]
+                        ];
+                    }
+                }
+                continue;
+            }
+
+            $currentDate = $start->copy();
+            
+            while ($currentDate->lte($end)) {
+                if ($currentDate->dayOfWeek === $service->day_of_week) {
+                    $startDateTime = $currentDate->copy()->setTimeFromTimeString($service->start_time->format('H:i:s'));
+                    $endDateTime = $currentDate->copy()->setTimeFromTimeString($service->end_time->format('H:i:s'));
+
+                    $events[] = [
+                        'id' => $service->id . '_' . $currentDate->format('Y-m-d'),
+                        'title' => $service->name,
+                        'start' => $startDateTime->toIso8601String(),
+                        'end' => $endDateTime->toIso8601String(),
+                        'url' => route('services.show', $service),
+                        'backgroundColor' => '#4f46e5',
+                        'borderColor' => '#4338ca',
+                        'extendedProps' => [
+                            'location' => $service->location,
+                            'description' => $service->description,
+                        ]
+                    ];
+                }
+                $currentDate->addDay();
+            }
+        }
+
+        return response()->json($events);
     }
 }

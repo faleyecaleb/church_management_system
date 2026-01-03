@@ -51,7 +51,7 @@ return new class extends Migration
         }
 
         // Notifications table
-        if (Schema::hasTable('notifications')) {
+        if (Schema::hasTable('notifications') && Schema::hasColumn('notifications', 'user_id')) {
             Schema::table('notifications', function (Blueprint $table) {
                 if (!$this->foreignKeyExists('notifications', 'notifications_user_id_foreign')) {
                     $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -79,7 +79,7 @@ return new class extends Migration
         
         foreach ($tables as $table) {
             if (Schema::hasTable($table)) {
-                Schema::table($table, function (Blueprint $table) use ($table) {
+                Schema::table($table, function (Blueprint $blueprint) use ($table) {
                     $foreignKeys = [
                         'donations' => ['donations_member_id_foreign'],
                         'pledges' => ['pledges_member_id_foreign'],
@@ -92,7 +92,7 @@ return new class extends Migration
                     if (isset($foreignKeys[$table])) {
                         foreach ($foreignKeys[$table] as $foreignKey) {
                             if ($this->foreignKeyExists($table, $foreignKey)) {
-                                $table->dropForeign($foreignKey);
+                                $blueprint->dropForeign($foreignKey);
                             }
                         }
                     }

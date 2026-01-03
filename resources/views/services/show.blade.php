@@ -87,7 +87,6 @@
                                             <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                                                 <span class="text-sm font-medium text-gray-500">{{ substr($attendance->member->name, 0, 1) }}</span>
                                             </div>
-                                        @endif
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm font-medium text-gray-900">{{ $attendance->member->name }}</p>
@@ -119,7 +118,7 @@
         <div class="border-t pt-6">
             <h3 class="text-lg font-semibold text-gray-700 mb-4">QR Code Check-in</h3>
             <div class="flex items-center space-x-4">
-                <a href="{{ route('attendance.show-qr-code', $service) }}" 
+                <a href="{{ route('attendance.qr-code', $service) }}" 
                    class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2m0 0H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
