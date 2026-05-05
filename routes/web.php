@@ -49,6 +49,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Switch Branch (Super Admin)
+    Route::post('/switch-branch', [App\Http\Controllers\Admin\BranchController::class, 'switch'])->name('admin.switch-branch');
+
     // Financial Reports (must be before resource routes to avoid conflicts)
     Route::get('pledges/report', [PledgeController::class, 'report'])->name('pledges.report');
     Route::get('expenses/report', [ExpenseController::class, 'report'])->name('expenses.report');

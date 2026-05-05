@@ -163,6 +163,14 @@
                                 Add Member
                             </div>
                         </a>
+                        <a href="{{ route('members.import.form') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('members.import.*') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                Upload Members
+                            </div>
+                        </a>
                     </div>
                 </div>
                 
@@ -504,6 +512,43 @@
                         </div>
                     
                     <div class="flex items-center space-x-4">
+                        @if(Auth::user()->isSuperAdmin())
+                        <!-- Branch Switcher -->
+                        <div class="relative" x-data="{ branchOpen: false }">
+                            <button @click="branchOpen = !branchOpen" class="flex items-center space-x-2 p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="font-medium text-sm hidden md:block">
+                                    {{ Auth::user()->church ? Auth::user()->church->name : 'All Branches' }}
+                                </span>
+                                <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': branchOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div x-show="branchOpen" @click.away="branchOpen = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="p-2">
+                                    <form method="POST" action="{{ route('admin.switch-branch') }}">
+                                        @csrf
+                                        <input type="hidden" name="church_id" value="">
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 rounded-lg {{ !Auth::user()->church_id ? 'font-bold text-indigo-600' : '' }}">
+                                            All Branches (Super Admin)
+                                        </button>
+                                    </form>
+                                    @foreach(\App\Models\Church::all() as $church)
+                                    <form method="POST" action="{{ route('admin.switch-branch') }}">
+                                        @csrf
+                                        <input type="hidden" name="church_id" value="{{ $church->id }}">
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 rounded-lg {{ Auth::user()->church_id == $church->id ? 'font-bold text-indigo-600 bg-indigo-50' : '' }}">
+                                            {{ $church->name }}
+                                        </button>
+                                    </form>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Quick Actions -->
                         <div class="hidden md:flex items-center space-x-2">
                             <button class="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-100 transition-colors">

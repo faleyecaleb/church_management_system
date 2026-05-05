@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToChurch;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MessageGroup extends Model
 {
+    use BelongsToChurch;
+
     use HasFactory;
 
     protected $fillable = [

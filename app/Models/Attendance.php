@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToChurch;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,6 +12,8 @@ use Carbon\Carbon;
 
 class Attendance extends Model
 {
+    use BelongsToChurch;
+
     use HasFactory, SoftDeletes;
 
     protected $fillable = [

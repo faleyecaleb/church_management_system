@@ -20,7 +20,7 @@ class AdminUserSeeder extends Seeder
             return;
         }
 
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        // $adminRole = Role::firstOrCreate(['name' => 'admin']);
 
         $admin = User::create([
             'name' => 'Admin User',
@@ -30,7 +30,7 @@ class AdminUserSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        $admin->assignRole($adminRole);
+        // $admin->assignRole($adminRole);
 
         $this->command->info('Admin user created successfully!');
         $this->command->info('Email: admin@church.com');

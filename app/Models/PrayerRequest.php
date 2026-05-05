@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToChurch;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
 class PrayerRequest extends Model
 {
+    use BelongsToChurch;
+
     use HasFactory;
 
     protected $fillable = [

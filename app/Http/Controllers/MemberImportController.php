@@ -71,10 +71,15 @@ class MemberImportController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'import_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:10240', // 10MB max
+            'import_file' => 'required|file|max:10240', // 10MB max
             'skip_duplicates' => 'boolean',
             'update_existing' => 'boolean'
         ]);
+
+        $extension = strtolower($request->file('import_file')->getClientOriginalExtension());
+        if (!in_array($extension, ['csv', 'txt', 'xlsx', 'xls'])) {
+            return back()->with('error', 'The import file must be a file of type: csv, txt, xlsx, xls.');
+        }
 
         try {
             $file = $request->file('import_file');
@@ -293,8 +298,16 @@ class MemberImportController extends Controller
     public function preview(Request $request)
     {
         $request->validate([
-            'import_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:10240'
+            'import_file' => 'required|file|max:10240'
         ]);
+
+        $extension = strtolower($request->file('import_file')->getClientOriginalExtension());
+        if (!in_array($extension, ['csv', 'txt', 'xlsx', 'xls'])) {
+            return response()->json([
+                'success' => false,
+                'error' => 'The import file must be a file of type: csv, txt, xlsx, xls.'
+            ], 422);
+        }
 
         try {
             $file = $request->file('import_file');

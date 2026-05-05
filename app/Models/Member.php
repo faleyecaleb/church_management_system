@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToChurch;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,6 +14,8 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Member extends Authenticatable
 {
+    use BelongsToChurch;
+
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
@@ -102,13 +106,15 @@ class Member extends Authenticatable
     // Helper method to get department names as array
     public function getDepartmentNamesAttribute()
     {
-        return $this->departments->pluck('department')->toArray();
+        return $this->departments->map(function ($pivot) {
+            return $pivot->department()->value('name');
+        })->filter()->toArray();
     }
 
     // Helper method to get departments as comma-separated string
     public function getDepartmentListAttribute()
     {
-        return $this->departments->pluck('department')->join(', ');
+        return collect($this->department_names)->join(', ');
     }
 
     // Accessors

@@ -205,20 +205,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('{{ route("members.import.preview") }}', {
             method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
             body: formData
         })
-        .then(response => response.json())
+        .then(async response => {
+            const isJson = response.headers.get('content-type')?.includes('application/json');
+            const data = isJson ? await response.json() : null;
+
+            if (!response.ok) {
+                if (response.status === 422 && data && data.errors) {
+                    const errorMessages = Object.values(data.errors).flat().join('\\n');
+                    throw new Error(errorMessages);
+                }
+                throw new Error((data && data.error) || data?.message || response.statusText);
+            }
+            return data;
+        })
         .then(data => {
-            if (data.success) {
+            if (data && data.success) {
                 displayPreview(data);
                 importBtn.disabled = false;
             } else {
-                alert('Error: ' + data.error);
+                alert('Error: ' + (data ? data.error : 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while previewing the file.');
+            alert('Preview Error: ' + error.message);
         });
     });
 

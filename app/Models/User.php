@@ -23,7 +23,16 @@ class User extends Authenticatable
         'role',
         'avatar_url',
         'last_login_at',
+        'church_id',
     ];
+
+    /**
+     * Get the church the user belongs to.
+     */
+    public function church()
+    {
+        return $this->belongsTo(Church::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -47,13 +56,23 @@ class User extends Authenticatable
     ];
 
     /**
-     * Check if the user is an admin.
+     * Check if the user is a super admin.
+     *
+     * @return bool
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if the user is an admin or super admin.
      *
      * @return bool
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin']);
     }
 
     /**

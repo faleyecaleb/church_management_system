@@ -6,6 +6,7 @@ use App\Models\Member;
 use App\Models\MemberDepartment;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -116,6 +117,7 @@ class MemberController extends Controller
             $departments = $validated['departments'];
             unset($validated['departments']);
             
+            DB::beginTransaction();
             $member = Member::create($validated);
 
             // Create department associations
@@ -127,10 +129,13 @@ class MemberController extends Controller
                 $member->roles()->sync($request->input('roles'));
             }
 
+            DB::commit();
+
             return redirect()->route('members.show', $member)
                 ->with('success', 'Member created successfully.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Failed to create member: ' . $e->getMessage());
