@@ -249,6 +249,9 @@ Route::resource('members', MemberController::class);
         Route::get('/settings', [AttendanceSettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings', [AttendanceSettingsController::class, 'update'])->name('settings.update');
 
+        // Worker Allocation View (Curate Pastor)
+        Route::get('/workers', [AttendanceController::class, 'workerAttendance'])->name('workers');
+
         // Service Attendance Management
         Route::get('/', [ServiceAttendanceController::class, 'index'])->name('service');
         Route::get('/create', [AttendanceController::class, 'create'])->name('create');

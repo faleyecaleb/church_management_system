@@ -19,6 +19,7 @@ class AttendanceController extends Controller
         $this->middleware('permission:attendance.create')->only(['create', 'store', 'checkIn', 'showQrCode', 'processQrCode', 'mobileCheckIn', 'checkInMultiple', 'checkInMember']);
         $this->middleware('permission:attendance.update')->only(['edit', 'update', 'checkOutMember', 'checkOutAll']);
         $this->middleware('permission:attendance.delete')->only('destroy');
+        $this->middleware('permission:attendance.view_worker')->only('workerAttendance');
     }
 
     public function index(Request $request)
@@ -43,11 +44,32 @@ class AttendanceController extends Controller
         $attendances = $query->paginate(20);
         $services = Service::active()->get();
 
-        return view('attendance.index', compact('attendances', 'services'));
+        return view('attendance.index', compact('attendances', 'services'));    
     }
 
-    public function report(Request $request)
+    public function workerAttendance(Request $request)
     {
+        $query = Attendance::with(['member.departments.department', 'service'])
+            ->whereHas('member', function($q) {
+                $q->whereHas('departments')->orWhereHas('roles');
+            })
+            ->latest('check_in_time');
+
+        // Apply filters (Default to today to see active workers for allocation)
+        $date = $request->filled('date') ? $request->input('date') : \Carbon\Carbon::today();
+        $query->whereDate('check_in_time', $date);
+
+        if ($request->filled('service_id')) {
+            $query->where('service_id', $request->input('service_id'));
+        }
+
+        $attendances = $query->paginate(20);
+        $services = Service::active()->get();
+
+        return view('attendance.workers', compact('attendances', 'services', 'date'));
+    }
+
+    public function report(Request $request)    {
         // Get services for the filter dropdown
         $services = Service::active()->get();
 

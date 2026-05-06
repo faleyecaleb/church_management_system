@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const importBtn = document.getElementById('importBtn');
     const previewSection = document.getElementById('previewSection');
     const previewContent = document.getElementById('previewContent');
+    const importForm = document.getElementById('importForm');
 
     // Handle file selection
     fileInput.addEventListener('change', function() {
@@ -199,6 +200,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle preview
     previewBtn.addEventListener('click', function() {
+        // Set Loading State
+        const originalText = previewBtn.innerHTML;
+        previewBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
+        previewBtn.disabled = true;
+        importBtn.disabled = true;
+
         const formData = new FormData();
         formData.append('import_file', fileInput.files[0]);
         formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
@@ -218,14 +225,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!response.ok) {
                 if (response.status === 422 && data && data.errors) {
-                    const errorMessages = Object.values(data.errors).flat().join('\\n');
+                    const errorMessages = Object.values(data.errors).flat().join('\n');
                     throw new Error(errorMessages);
                 }
-                throw new Error((data && data.error) || data?.message || response.statusText);
+                throw new Error((data && data.error) || data?.message || response.statusText || 'Server Error. Please ensure the file format is correct.');
             }
             return data;
         })
         .then(data => {
+            previewBtn.innerHTML = originalText;
+            previewBtn.disabled = false;
+            
             if (data && data.success) {
                 displayPreview(data);
                 importBtn.disabled = false;
@@ -234,9 +244,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            previewBtn.innerHTML = originalText;
+            previewBtn.disabled = false;
             console.error('Error:', error);
             alert('Preview Error: ' + error.message);
         });
+    });
+
+    // Handle full form submission loading state
+    importForm.addEventListener('submit', function() {
+        const originalBtnText = importBtn.innerHTML;
+        importBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Importing...`;
+        importBtn.disabled = true;
+        previewBtn.disabled = true;
     });
 
     function displayPreview(data) {
@@ -251,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Headers
             html += '<thead class="bg-gray-100"><tr>';
             data.headers.forEach(header => {
-                html += `<th class="px-2 py-1 border border-gray-200 text-left font-medium">${header}</th>`;
+                html += `<th class="px-2 py-1 border border-gray-200 text-left font-medium capitalize">${String(header).replace(/_/g, ' ')}</th>`;
             });
             html += '</tr></thead>';
 
@@ -266,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             html += '</tbody></table></div>';
         } else {
-            html += '<p class="text-red-600">No valid data found in the CSV file.</p>';
+            html += '<p class="text-red-600">No valid data found in the file.</p>';
         }
 
         previewContent.innerHTML = html;

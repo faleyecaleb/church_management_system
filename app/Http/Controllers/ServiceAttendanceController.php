@@ -23,20 +23,21 @@ class ServiceAttendanceController extends Controller
     {
         $services = Service::orderBy('day_of_week')->orderBy('start_time')->get();
         $members = Member::orderBy('first_name')->orderBy('last_name')->get();
+
         $selectedDate = $request->date ? Carbon::parse($request->date) : now();
 
         $selectedService = null;
         $attendances = collect();
 
         if ($request->service_id) {
-            $selectedService = Service::findOrFail($request->service_id);
+            $selectedService = Service::findOrFail($request->service_id);       
+
             $attendances = Attendance::with('member')
                 ->where('service_id', $selectedService->id)
                 ->whereDate('check_in_time', $selectedDate)
                 ->orderBy('check_in_time')
                 ->get();
         }
-
         // dd($selectedService);
 
         return view('attendance.service-attendance', compact(

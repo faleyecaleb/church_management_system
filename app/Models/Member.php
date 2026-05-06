@@ -22,6 +22,7 @@ class Member extends Authenticatable
         'first_name',
         'last_name',
         'email',
+        'password',
         'phone',
         'address',
         'date_of_birth',

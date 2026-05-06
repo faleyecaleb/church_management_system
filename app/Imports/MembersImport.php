@@ -85,6 +85,11 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         // Normalize column names (handle different naming conventions)
         $normalizedRow = $this->normalizeColumnNames($row);
 
+        // Force phone to be a string (Excel often parses numeric phone numbers as floats/ints)
+        if (isset($normalizedRow['phone'])) {
+            $normalizedRow['phone'] = (string) $normalizedRow['phone'];
+        }
+
         $validator = Validator::make($normalizedRow, [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -152,6 +157,11 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
      */
     private function createMember($memberData, $row)
     {
+        // Set default password to lowercase last name
+        if (empty($memberData['password'])) {
+            $memberData['password'] = \Illuminate\Support\Facades\Hash::make(strtolower(trim($memberData['last_name'])));
+        }
+
         $member = Member::create($memberData);
         
         // Handle departments
@@ -159,6 +169,8 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         if (!empty($normalizedRow['departments'])) {
             $this->assignDepartments($member, $normalizedRow['departments']);
         }
+
+        $this->syncUserAccount($memberData);
 
         return $member;
     }
@@ -177,6 +189,8 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             $this->assignDepartments($member, $normalizedRow['departments']);
         }
 
+        $this->syncUserAccount(array_merge($memberData, ['password' => $member->password]));
+
         return $member;
     }
 
@@ -193,6 +207,35 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
                     'member_id' => $member->id,
                     'department' => $department
                 ]);
+            }
+        }
+    }
+
+    /**
+     * Sync member data with the users table for future login access
+     */
+    private function syncUserAccount($memberData)
+    {
+        $user = \App\Models\User::firstOrNew(['email' => $memberData['email']]);
+        
+        // Only update if they are a regular member or a brand new account
+        // This prevents accidentally converting an admin into a member if their email is in the CSV
+        if (!$user->exists || $user->role === 'member') {
+            $user->name = $memberData['first_name'] . ' ' . $memberData['last_name'];
+            
+            if (!$user->exists) {
+                $user->password = $memberData['password']; // Set password only on creation
+                $user->role = 'member';
+                if (auth()->check()) {
+                    $user->church_id = auth()->user()->church_id;
+                }
+            }
+            $user->save();
+
+            // Attach dynamic member role
+            $memberRole = \App\Models\Role::where('slug', 'member')->first();
+            if ($memberRole) {
+                $user->roles()->syncWithoutDetaching([$memberRole->id]);
             }
         }
     }
