@@ -16,6 +16,7 @@ class Service extends Model
 
     protected $fillable = [
         'name',
+        'service_type',
         'description',
         'day_of_week', // 0 (Sunday) through 6 (Saturday)
         'start_time',

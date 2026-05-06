@@ -19,6 +19,7 @@ class Member extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
+        'unique_id',
         'first_name',
         'last_name',
         'email',

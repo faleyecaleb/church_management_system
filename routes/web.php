@@ -252,6 +252,10 @@ Route::resource('members', MemberController::class);
         // Worker Allocation View (Curate Pastor)
         Route::get('/workers', [AttendanceController::class, 'workerAttendance'])->name('workers');
 
+        // Fast Scanner Check-In
+        Route::get('/scanner', [App\Http\Controllers\ScannerAttendanceController::class, 'index'])->name('scanner.index');
+        Route::post('/scanner/process', [App\Http\Controllers\ScannerAttendanceController::class, 'processScan'])->name('scanner.process');
+
         // Service Attendance Management
         Route::get('/', [ServiceAttendanceController::class, 'index'])->name('service');
         Route::get('/create', [AttendanceController::class, 'create'])->name('create');
