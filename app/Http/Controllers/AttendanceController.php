@@ -56,8 +56,8 @@ class AttendanceController extends Controller
             ->latest('check_in_time');
 
         // Apply filters (Default to today to see active workers for allocation)
-        $date = $request->filled('date') ? $request->input('date') : \Carbon\Carbon::today();
-        $query->whereDate('check_in_time', $date);
+        $date = $request->filled('date') ? \Carbon\Carbon::parse($request->input('date')) : \Carbon\Carbon::today();
+        $query->where('attendance_date', $date->toDateString());
 
         if ($request->filled('service_id')) {
             $query->where('service_id', $request->input('service_id'));
@@ -220,7 +220,7 @@ class AttendanceController extends Controller
         // Check for duplicate attendance
         $existingAttendance = Attendance::where('member_id', $validated['member_id'])
             ->where('service_id', $validated['service_id'])
-            ->whereDate('check_in_time', $validated['check_in_time'])
+            ->where('attendance_date', Carbon::parse($validated['check_in_time'])->toDateString())
             ->exists();
 
         if ($existingAttendance) {
@@ -230,10 +230,14 @@ class AttendanceController extends Controller
         $attendance = Attendance::create([
             'member_id' => $validated['member_id'],
             'service_id' => $validated['service_id'],
+            'attendance_date' => Carbon::parse($validated['check_in_time'])->toDateString(),
             'check_in_time' => $validated['check_in_time'],
             'check_in_method' => 'manual',
             'checked_in_by' => auth()->id(),
             'notes' => $validated['notes'],
+            'is_present' => true,
+            'is_absent' => false,
+            'status' => 'present',
         ]);
 
         return redirect()
@@ -266,7 +270,8 @@ class AttendanceController extends Controller
 
             $attendance->update([
                 'is_present' => $validated['is_present'],
-                'is_absent' => $validated['is_absent']
+                'is_absent' => $validated['is_absent'],
+                'status' => $validated['is_present'] ? 'present' : 'absent'
             ]);
 
             DB::commit();
@@ -349,7 +354,7 @@ class AttendanceController extends Controller
             // Check for duplicate attendance
             $existingAttendance = Attendance::where('member_id', $member->id)
                 ->where('service_id', $service->id)
-                ->whereDate('check_in_time', now())
+                ->where('attendance_date', now()->toDateString())
                 ->exists();
 
             if ($existingAttendance) {
@@ -365,11 +370,15 @@ class AttendanceController extends Controller
                 Attendance::create([
                     'member_id' => $member->id,
                     'service_id' => $service->id,
+                    'attendance_date' => now()->toDateString(),
                     'check_in_time' => now(),
                     'check_in_method' => 'qr',
                     'check_in_location' => $request->ip(),
                     'location_verified' => config('attendance.require_geofencing'),
                     'checked_in_by' => auth()->id(),
+                    'is_present' => true,
+                    'is_absent' => false,
+                    'status' => 'present',
                 ]);
             });
 
@@ -397,7 +406,7 @@ class AttendanceController extends Controller
             // Check if member is already checked in
             $existing = Attendance::where('service_id', $service->id)
                 ->where('member_id', $member->id)
-                ->whereDate('check_in_time', now())
+                ->where('attendance_date', now()->toDateString())
                 ->first();
 
             if ($existing) {
@@ -410,9 +419,13 @@ class AttendanceController extends Controller
             $attendance = Attendance::create([
                 'service_id' => $service->id,
                 'member_id' => $member->id,
+                'attendance_date' => now()->toDateString(),
                 'check_in_time' => now(),
                 'check_in_method' => 'manual',
                 'checked_in_by' => auth()->id(),
+                'is_present' => true,
+                'is_absent' => false,
+                'status' => 'present',
             ]);
 
             DB::commit();
@@ -449,7 +462,7 @@ class AttendanceController extends Controller
                 // Skip if already checked in
                 if (Attendance::where('service_id', $service->id)
                     ->where('member_id', $memberId)
-                    ->whereDate('check_in_time', now())
+                    ->where('attendance_date', $now->toDateString())
                     ->exists()) {
                     $alreadyCheckedIn++;
                     continue;
@@ -459,9 +472,13 @@ class AttendanceController extends Controller
                 Attendance::create([
                     'service_id' => $service->id,
                     'member_id' => $memberId,
+                    'attendance_date' => $now->toDateString(),
                     'check_in_time' => $now,
                     'check_in_method' => 'manual_bulk',
                     'checked_in_by' => auth()->id(),
+                    'is_present' => true,
+                    'is_absent' => false,
+                    'status' => 'present',
                 ]);
 
                 $checkedIn++;

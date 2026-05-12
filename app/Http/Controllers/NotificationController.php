@@ -13,10 +13,10 @@ class NotificationController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view-notifications')->only(['index', 'show']);
-        $this->middleware('permission:create-notifications')->only(['create', 'store']);
-        $this->middleware('permission:edit-notifications')->only(['edit', 'update']);
-        $this->middleware('permission:delete-notifications')->only('destroy');
+        $this->middleware('permission:communication.view')->only(['index', 'show']);
+        $this->middleware('permission:communication.create')->only(['create', 'store']);
+        $this->middleware('permission:communication.update')->only(['edit', 'update']);
+        $this->middleware('permission:communication.delete')->only('destroy');
     }
 
     /**
@@ -54,7 +54,8 @@ class NotificationController extends Controller
                 Notification::TYPE_ANNIVERSARY => 'Anniversary',
                 Notification::TYPE_MILESTONE => 'Milestone',
                 Notification::TYPE_CUSTOM => 'Custom',
-                Notification::TYPE_FOLLOWUP => 'Follow-up'
+                Notification::TYPE_FOLLOWUP => 'Follow-up',
+                Notification::TYPE_SERMON => 'Sermon Banner'
             ],
             'statuses' => [
                 Notification::STATUS_PENDING => 'Pending',
@@ -85,30 +86,37 @@ class NotificationController extends Controller
                 Notification::TYPE_ANNIVERSARY,
                 Notification::TYPE_MILESTONE,
                 Notification::TYPE_CUSTOM,
-                Notification::TYPE_FOLLOWUP
+                Notification::TYPE_FOLLOWUP,
+                Notification::TYPE_SERMON
             ]),
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'recipient_id' => 'required|exists:members,id',
             'scheduled_at' => 'nullable|date|after:now',
-            'data' => 'nullable|array'
+            'data' => 'nullable|array',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         try {
             DB::beginTransaction();
 
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('notifications/images', 'public');
+            }
+
             $notification = new Notification([
                 'type' => $validated['type'],
                 'title' => $validated['title'],
                 'message' => $validated['message'],
+                'image_url' => $imagePath,
                 'recipient_id' => $validated['recipient_id'],
                 'recipient_type' => Member::class,
                 'data' => $validated['data'] ?? null,
-                'status' => $request->has('scheduled_at') 
-                    ? Notification::STATUS_SCHEDULED 
+                'status' => $request->has('scheduled_at')
+                    ? Notification::STATUS_SCHEDULED
                     : Notification::STATUS_PENDING
             ]);
-
             if ($request->has('scheduled_at')) {
                 $notification->scheduled_at = Carbon::parse($validated['scheduled_at']);
             }

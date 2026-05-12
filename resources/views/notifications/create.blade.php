@@ -1,4 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Create Notification')
+@section('header', 'Create Notification')
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
@@ -11,7 +14,7 @@
                 </a>
             </div>
 
-            <form action="{{ route('notifications.store') }}" method="POST" class="space-y-6">
+            <form action="{{ route('notifications.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
 
                 <!-- Notification Type -->
@@ -23,27 +26,38 @@
                         <option value="anniversary" {{ old('type') == 'anniversary' ? 'selected' : '' }}>Anniversary</option>
                         <option value="milestone" {{ old('type') == 'milestone' ? 'selected' : '' }}>Milestone</option>
                         <option value="followup" {{ old('type') == 'followup' ? 'selected' : '' }}>Follow-up</option>
+                        <option value="sermon" {{ old('type') == 'sermon' ? 'selected' : '' }}>Sermon Banner</option>
                         <option value="custom" {{ old('type') == 'custom' ? 'selected' : '' }}>Custom</option>
                     </select>
                     @error('type')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
                     @enderror
                 </div>
 
                 <!-- Title -->
                 <div>
                     <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                    <input type="text" name="title" id="title" value="{{ old('title') }}" 
+                    <input type="text" name="title" id="title" value="{{ old('title') }}"
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                            required>
                     @error('title')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
+                    @enderror
+                </div>
+
+                <!-- Optional Image Upload (For Sermon Banners) -->
+                <div id="image_upload_container" class="hidden">
+                    <label for="image" class="block text-sm font-medium text-gray-700">Banner Image (Optional)</label>
+                    <input type="file" name="image" id="image" accept="image/*"
+                           class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                    <p class="mt-1 text-xs text-gray-500">Max size 2MB. Recommended for Sermon notifications.</p>
+                    @error('image')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
                     @enderror
                 </div>
 
                 <!-- Message -->
-                <div>
-                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                <div>                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
                     <textarea name="message" id="message" rows="4" 
                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                               required>{{ old('message') }}</textarea>
@@ -61,7 +75,7 @@
                         <option value="">Select Recipient</option>
                         @foreach($members as $member)
                             <option value="{{ $member->id }}" {{ old('recipient_id') == $member->id ? 'selected' : '' }}>
-                                {{ $member->name }}
+                                {{ $member->full_name }}
                             </option>
                         @endforeach
                     </select>
@@ -115,6 +129,14 @@
 
         typeSelect.addEventListener('change', function() {
             additionalFields.innerHTML = ''; // Clear existing fields
+            
+            // Toggle Image Upload for Sermon and Custom
+            const imageContainer = document.getElementById('image_upload_container');
+            if (this.value === 'sermon' || this.value === 'custom') {
+                imageContainer.classList.remove('hidden');
+            } else {
+                imageContainer.classList.add('hidden');
+            }
 
             switch(this.value) {
                 case 'followup':

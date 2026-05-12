@@ -5,7 +5,7 @@
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Notifications</h2>
         <div class="space-x-2">
-            @can('create-notifications')
+            @if(Auth::user()->hasPermission('communication.create'))
             <a href="{{ route('notifications.create') }}" 
                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -13,7 +13,7 @@
                 </svg>
                 New Notification
             </a>
-            @endcan
+            @endif
             @if($notifications->where('read_at', null)->count() > 0)
             <form action="{{ route('notifications.mark-all-read') }}" method="POST" class="inline">
                 @csrf

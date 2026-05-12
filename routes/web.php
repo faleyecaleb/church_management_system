@@ -92,6 +92,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     
     // Notifications Management
     Route::resource('notifications', NotificationController::class);
+    Route::post('notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
     // Complaints Management
@@ -106,6 +107,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('complaints/{complaint}/download-evidence/{fileIndex}', [ComplaintController::class, 'downloadEvidence'])->name('complaints.download-evidence');
     Route::get('complaints/export', [ComplaintController::class, 'export'])->name('complaints.export');
     Route::get('complaints/dashboard-stats', [ComplaintController::class, 'dashboardStats'])->name('complaints.dashboard-stats');
+
+    // Counselling Management
+    Route::get('counselling', [App\Http\Controllers\CounsellingBookingController::class, 'index'])->name('counselling.index');
+    Route::post('counselling/{booking}/status', [App\Http\Controllers\CounsellingBookingController::class, 'updateStatus'])->name('counselling.status');
 
     // Donations Management
     Route::resource('donations', DonationController::class);
@@ -255,6 +260,10 @@ Route::resource('members', MemberController::class);
         // Fast Scanner Check-In
         Route::get('/scanner', [App\Http\Controllers\ScannerAttendanceController::class, 'index'])->name('scanner.index');
         Route::post('/scanner/process', [App\Http\Controllers\ScannerAttendanceController::class, 'processScan'])->name('scanner.process');
+
+        // Attendance Analytics (Punctuality & Regularity)
+        Route::get('/analytics', [App\Http\Controllers\AttendanceAnalyticsController::class, 'index'])->name('analytics');
+        Route::get('/analytics/export', [App\Http\Controllers\AttendanceAnalyticsController::class, 'export'])->name('analytics.export');
 
         // Service Attendance Management
         Route::get('/', [ServiceAttendanceController::class, 'index'])->name('service');

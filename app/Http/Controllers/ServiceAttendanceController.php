@@ -34,7 +34,7 @@ class ServiceAttendanceController extends Controller
 
             $attendances = Attendance::with('member')
                 ->where('service_id', $selectedService->id)
-                ->whereDate('check_in_time', $selectedDate)
+                ->where('attendance_date', $selectedDate->toDateString())
                 ->orderBy('check_in_time')
                 ->get();
         }
@@ -70,15 +70,19 @@ class ServiceAttendanceController extends Controller
                 // Check if member is already checked in
                 $exists = Attendance::where('member_id', $memberId)
                     ->where('service_id', $service->id)
-                    ->whereDate('check_in_time', $date)
+                    ->where('attendance_date', $date->toDateString())
                     ->exists();
 
                 if (!$exists) {
                     Attendance::create([
                         'member_id' => $memberId,
                         'service_id' => $service->id,
+                        'attendance_date' => $date->toDateString(),
                         'check_in_time' => $checkInTime,
                         'check_in_method' => 'manual',
+                        'is_present' => true,
+                        'is_absent' => false,
+                        'status' => 'present',
                     ]);
                 }
             }
@@ -128,7 +132,7 @@ class ServiceAttendanceController extends Controller
         $date = Carbon::parse($request->date);
 
         Attendance::where('service_id', $service->id)
-            ->whereDate('check_in_time', $date)
+            ->where('attendance_date', $date->toDateString())
             ->whereNull('check_out_time')
             ->update([
                 'check_out_time' => now()

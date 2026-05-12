@@ -21,6 +21,7 @@ class Message extends Model
         'recipient_id',   // ID of recipient (user_id or group_id)
         'subject',
         'content',
+        'image_url',      // URL for visual sermon banners
         'template_id',    // Optional template reference
         'status',        // 'pending', 'sent', 'delivered', 'failed'
         'scheduled_at',   // For scheduled messages

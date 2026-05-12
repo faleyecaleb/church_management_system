@@ -1,4 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'View Notification')
+@section('header', 'Notification Details')
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
@@ -55,6 +58,13 @@
                     @endif
                 </div>
 
+                <!-- Optional Image Banner -->
+                @if($notification->image_url)
+                <div class="mb-6 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                    <img src="{{ Storage::url($notification->image_url) }}" alt="Notification Banner" class="w-full h-auto object-cover max-h-96">
+                </div>
+                @endif
+
                 <!-- Message -->
                 <div class="bg-gray-50 rounded-lg p-4 mb-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Message</h3>
@@ -68,7 +78,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Name</p>
-                                <p class="mt-1">{{ $notification->recipient->name }}</p>
+                                <p class="mt-1">{{ $notification->recipient->full_name ?? $notification->recipient->name }}</p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Type</p>

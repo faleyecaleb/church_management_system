@@ -19,6 +19,7 @@ class Notification extends Model
         'type',
         'title',
         'message',
+        'image_url',
         'recipient_id',
         'recipient_type',
         'data',
@@ -41,6 +42,7 @@ class Notification extends Model
     const TYPE_MILESTONE = 'milestone';
     const TYPE_CUSTOM = 'custom';
     const TYPE_FOLLOWUP = 'followup';
+    const TYPE_SERMON = 'sermon';
     const TYPE_ABSENCE = 'absence';
 
     // Notification statuses
