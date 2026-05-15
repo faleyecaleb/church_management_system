@@ -6,21 +6,43 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header Section -->
-    <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 shadow-lg">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 shadow-lg mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Order of Service Management</h1>
                 <p class="mt-1 text-sm text-gray-600">Manage the order of service for all your church services</p>
             </div>
-            <div class="mt-4 sm:mt-0">
-                <a href="{{ route('services.create') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Add New Service
-                </a>
-            </div>
+            
+            <form action="{{ route('order-of-services.overview') }}" method="GET" class="flex flex-wrap items-end gap-3">
+                <div>
+                    <label for="year" class="block text-xs font-medium text-gray-700 mb-1">Year</label>
+                    <select name="year" id="year" class="rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm" onchange="this.form.submit()">
+                        @php $currentYear = date('Y'); @endphp
+                        @for($y = $currentYear - 2; $y <= $currentYear + 1; $y++)
+                            <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+                <div>
+                    <label for="month" class="block text-xs font-medium text-gray-700 mb-1">Month</label>
+                    <select name="month" id="month" class="rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm" onchange="this.form.submit()">
+                        @for($m = 1; $m <= 12; $m++)
+                            <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
+                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div>
+                    <a href="{{ route('services.create') }}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors h-[38px]">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add New Service
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 

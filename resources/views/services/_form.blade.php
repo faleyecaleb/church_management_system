@@ -63,10 +63,17 @@
 
     <!-- Start Time -->
     <div class="col-span-1">
-        <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
-        <input type="time" name="start_time" id="start_time" value="{{ old('start_time', isset($service) ? $service->start_time->format('H:i') : '') }}" 
-               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-               required>
+        <label for="start_time" class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <input type="text" name="start_time" id="start_time" value="{{ old('start_time', isset($service) ? $service->start_time->format('H:i') : '') }}" 
+                   class="timepicker pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white"
+                   required placeholder="Select start time">
+        </div>
         @error('start_time')
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
@@ -74,10 +81,17 @@
 
     <!-- End Time -->
     <div class="col-span-1">
-        <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
-        <input type="time" name="end_time" id="end_time" value="{{ old('end_time', isset($service) ? $service->end_time->format('H:i') : '') }}" 
-               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-               required>
+        <label for="end_time" class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <input type="text" name="end_time" id="end_time" value="{{ old('end_time', isset($service) ? $service->end_time->format('H:i') : '') }}" 
+                   class="timepicker pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white"
+                   required placeholder="Select end time">
+        </div>
         @error('end_time')
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
@@ -139,7 +153,22 @@
     </div>
 </div>
 
+<!-- Flatpickr CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Flatpickr for time inputs
+        flatpickr(".timepicker", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: false, // Allows AM/PM selection
+            minuteIncrement: 5
+        });
+    });
+
     const existingDate = "{{ old('date', isset($service->date) ? $service->date->format('Y-m-d') : '') }}";
 
     function handleRecurringChange() {

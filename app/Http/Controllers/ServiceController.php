@@ -32,6 +32,16 @@ class ServiceController extends Controller
         $month = $request->filled('month') ? $request->month : now()->month;
         $year = $request->filled('year') ? $request->year : now()->year;
 
+        // Apply Month & Year filter
+        $query->where(function ($q) use ($year, $month) {
+            $q->where('is_recurring', 1)
+              ->orWhere(function ($subQ) use ($year, $month) {
+                  $subQ->where('is_recurring', 0)
+                       ->whereYear('date', $year)
+                       ->whereMonth('date', $month);
+              });
+        });
+
         // Sorting
         $sort = $request->input('sort', 'latest');
         switch ($sort) {

@@ -7,24 +7,43 @@
 <div class="max-w-7xl mx-auto py-6">
     <!-- Service Selection -->
     <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 mb-6 hover:bg-white/90 transition-all duration-300">
-        <form action="{{ route('attendance.service') }}" method="GET" class="flex items-end gap-4" id="attendanceForm">
-            <div class="flex-1">
+        <form action="{{ route('attendance.service') }}" method="GET" class="flex flex-wrap items-end gap-4" id="attendanceForm">
+            <div class="w-full md:w-auto">
+                <label for="filter_year" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select id="filter_year" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    @php $currentYear = date('Y'); @endphp
+                    @for($y = $currentYear - 2; $y <= $currentYear + 1; $y++)
+                        <option value="{{ $y }}" {{ $y == request('year', $currentYear) ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="w-full md:w-auto">
+                <label for="filter_month" class="block text-sm font-medium text-gray-700 mb-1">Month</label>
+                <select id="filter_month" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ $m == request('month', date('n')) ? 'selected' : '' }}>
+                            {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="flex-1 min-w-[250px]">
                 <label for="service_id" class="block text-sm font-medium text-gray-700 mb-1">Select Service</label>
                 <select name="service_id" id="service_id" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
                     <option value="">Choose a service...</option>
                     @foreach($services as $service)
                         <option value="{{ $service->id }}" {{ request('service_id') == $service->id ? 'selected' : '' }}>
-                            {{ $service->name }} ({{ $service->day_of_week }} at {{ $service->start_time->format('g:i A') }})
+                            {{ $service->name }} ({{ $service->is_recurring ? $service->day_of_week_name . 's' : (optional($service->date)->format('M j, Y') ?? 'One-time') }})
                         </option>
                     @endforeach
                 </select>
             </div>
-            <div class="flex-1">
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <div class="flex-1 min-w-[200px]">
+                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Attendance Date</label>
                 <input type="date" name="date" id="date" value="{{ request('date', now()->format('Y-m-d')) }}"
                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
             </div>
-            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
+            <button type="submit" class="px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors w-full md:w-auto">
                 Load Attendance
             </button>
         </form>
@@ -131,6 +150,48 @@ document.getElementById('attendanceForm').addEventListener('submit', function(e)
         return;
     }
 });
+
+// Dynamic Service Filtering
+async function loadFilteredServices() {
+    const year = document.getElementById('filter_year').value;
+    const month = document.getElementById('filter_month').value;
+    const serviceSelect = document.getElementById('service_id');
+    const currentSelected = serviceSelect.value;
+    
+    try {
+        const response = await fetch(`/attendance/bulk-marking/services`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ month, year })
+        });
+        
+        const data = await response.json();
+        if(data.success) {
+            serviceSelect.innerHTML = '<option value="">Choose a service...</option>';
+            data.services.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = service.name;
+                if(service.id == currentSelected) option.selected = true;
+                serviceSelect.appendChild(option);
+            });
+        }
+    } catch(err) {
+        console.error("Error loading services:", err);
+    }
+}
+
+document.getElementById('filter_year').addEventListener('change', loadFilteredServices);
+document.getElementById('filter_month').addEventListener('change', loadFilteredServices);
+
+// Load initially if no services are pre-loaded
+if (document.getElementById('service_id').options.length <= 1) {
+    loadFilteredServices();
+}
 
 // Search functionality
 document.getElementById('member-search')?.addEventListener('input', function(e) {

@@ -117,9 +117,18 @@
                 <!-- Filters Group -->
                 <div class="flex flex-wrap items-center gap-3">
                     
+                    <!-- Year -->
+                    <select name="year" class="block w-28 pl-3 pr-10 py-2.5 text-base border-gray-200 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-xl bg-gray-50 hover:bg-white transition-colors cursor-pointer" onchange="this.form.submit()">
+                        @php $currentYear = date('Y'); @endphp
+                        @for($y = $currentYear - 2; $y <= $currentYear + 1; $y++)
+                            <option value="{{ $y }}" {{ request('year', $year) == $y ? 'selected' : '' }}>
+                                {{ $y }}
+                            </option>
+                        @endfor
+                    </select>
+
                     <!-- Month -->
                     <select name="month" class="block w-32 pl-3 pr-10 py-2.5 text-base border-gray-200 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-xl bg-gray-50 hover:bg-white transition-colors cursor-pointer" onchange="this.form.submit()">
-                        <option value="">Month</option>
                         @foreach(range(1, 12) as $m)
                             <option value="{{ $m }}" {{ request('month', $month) == $m ? 'selected' : '' }}>
                                 {{ DateTime::createFromFormat('!m', $m)->format('F') }}

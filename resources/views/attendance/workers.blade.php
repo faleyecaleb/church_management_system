@@ -8,13 +8,27 @@
 
     <!-- Filters -->
     <div class="glass-effect rounded-2xl p-6 mb-8">
-        <form action="{{ route('attendance.workers') }}" method="GET" class="flex flex-col sm:flex-row gap-4">
-            <div class="flex-1">
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                <input type="date" name="date" id="date" value="{{ request('date', $date->format('Y-m-d')) }}" 
-                       class="w-full rounded-xl border-gray-300 focus:border-primary-500 focus:ring-primary-500 shadow-sm">
+        <form action="{{ route('attendance.workers') }}" method="GET" class="flex flex-col sm:flex-row flex-wrap gap-4" id="workerFilterForm">
+            <div class="w-full sm:w-auto">
+                <label for="filter_year" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select id="filter_year" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    @php $currentYear = date('Y'); @endphp
+                    @for($y = $currentYear - 2; $y <= $currentYear + 1; $y++)
+                        <option value="{{ $y }}" {{ $y == request('year', $currentYear) ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
             </div>
-            <div class="flex-1">
+            <div class="w-full sm:w-auto">
+                <label for="filter_month" class="block text-sm font-medium text-gray-700 mb-1">Month</label>
+                <select id="filter_month" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ $m == request('month', date('n')) ? 'selected' : '' }}>
+                            {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
                 <label for="service_id" class="block text-sm font-medium text-gray-700 mb-1">Service</label>
                 <select name="service_id" id="service_id" class="w-full rounded-xl border-gray-300 focus:border-primary-500 focus:ring-primary-500 shadow-sm">
                     <option value="">All Services</option>
@@ -25,8 +39,13 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-colors">
+            <div class="flex-1 min-w-[150px]">
+                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input type="date" name="date" id="date" value="{{ request('date', $date->format('Y-m-d')) }}" 
+                       class="w-full rounded-xl border-gray-300 focus:border-primary-500 focus:ring-primary-500 shadow-sm">
+            </div>
+            <div class="flex items-end w-full sm:w-auto mt-2 sm:mt-0">
+                <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-colors">
                     Filter Workers
                 </button>
             </div>
@@ -123,4 +142,50 @@
         @endif
     </div>
 </div>
+
+@push('scripts')
+<script>
+// Dynamic Service Filtering
+async function loadFilteredServices() {
+    const year = document.getElementById('filter_year').value;
+    const month = document.getElementById('filter_month').value;
+    const serviceSelect = document.getElementById('service_id');
+    const currentSelected = serviceSelect.value;
+    
+    try {
+        const response = await fetch(`/attendance/bulk-marking/services`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ month, year })
+        });
+        
+        const data = await response.json();
+        if(data.success) {
+            serviceSelect.innerHTML = '<option value="">All Services</option>';
+            data.services.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = service.name;
+                if(service.id == currentSelected) option.selected = true;
+                serviceSelect.appendChild(option);
+            });
+        }
+    } catch(err) {
+        console.error("Error loading services:", err);
+    }
+}
+
+document.getElementById('filter_year').addEventListener('change', loadFilteredServices);
+document.getElementById('filter_month').addEventListener('change', loadFilteredServices);
+
+// Load initially if no services are pre-loaded
+if (document.getElementById('service_id').options.length <= 1) {
+    loadFilteredServices();
+}
+</script>
+@endpush
 @endsection

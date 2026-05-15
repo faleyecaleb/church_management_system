@@ -222,20 +222,35 @@ class AttendanceMarkingController extends Controller
             $month = $request->month;
             $year = $request->year;
             
-            // Get all active services
+            // Get active recurring services AND one-time services for the selected month/year
             $services = Service::active()
+                ->where(function ($query) use ($year, $month) {
+                    $query->where('is_recurring', 1)
+                          ->orWhere(function ($subQuery) use ($year, $month) {
+                              $subQuery->where('is_recurring', 0)
+                                       ->whereYear('date', $year)
+                                       ->whereMonth('date', $month);
+                          });
+                })
+                ->orderBy('is_recurring', 'desc')
+                ->orderBy('date', 'asc')
                 ->orderBy('day_of_week')
                 ->orderBy('start_time')
                 ->get()
                 ->map(function ($service) use ($month, $year) {
+                    $dateInfo = $service->is_recurring 
+                        ? "{$service->day_of_week_name}s (Recurring)" 
+                        : (optional($service->date)->format('M j, Y') ?? 'Date Not Set');
+                    
                     return [
                         'id' => $service->id,
-                        'name' => $service->name,
+                        'name' => $service->name . " - " . $dateInfo,
                         'day_of_week' => $service->day_of_week,
                         'day_of_week_name' => $service->day_of_week_name,
                         'start_time' => $service->start_time->format('H:i'),
                         'location' => $service->location,
-                        'description' => $service->description
+                        'description' => $service->description,
+                        'is_recurring' => $service->is_recurring
                     ];
                 });
 

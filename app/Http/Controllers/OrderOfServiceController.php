@@ -20,12 +20,27 @@ class OrderOfServiceController extends Controller
     /**
      * Display an overview of all services and their order of service status.
      */
-    public function overview()
+    public function overview(Request $request)
     {
+        $year = $request->input('year', date('Y'));
+        $month = $request->input('month', date('n'));
+
         $services = Service::with(['orderOfServices' => function($query) {
             $query->ordered();
         }])
         ->active()
+        ->where(function ($query) use ($year, $month) {
+            $query->where('is_recurring', 1)
+                  ->orWhere(function ($subQuery) use ($year, $month) {
+                      $subQuery->where('is_recurring', 0)
+                               ->whereYear('date', $year)
+                               ->whereMonth('date', $month);
+                  });
+        })
+        ->orderBy('is_recurring', 'desc')
+        ->orderBy('date', 'asc')
+        ->orderBy('day_of_week')
+        ->orderBy('start_time')
         ->get()
         ->map(function($service) {
             $service->order_count = $service->orderOfServices->count();
@@ -33,7 +48,7 @@ class OrderOfServiceController extends Controller
             return $service;
         });
 
-        return view('order-of-services.overview', compact('services'));
+        return view('order-of-services.overview', compact('services', 'year', 'month'));
     }
 
     /**

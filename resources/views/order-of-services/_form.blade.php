@@ -60,21 +60,37 @@
     <!-- Start Time -->
     <div>
         <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
-        <input type="time" 
-               name="start_time" 
-               id="start_time" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-               value="{{ old('start_time', isset($orderOfService) && $orderOfService->start_time ? $orderOfService->start_time->format('H:i') : '') }}">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <input type="text" 
+                   name="start_time" 
+                   id="start_time" 
+                   class="timepicker w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" 
+                   value="{{ old('start_time', isset($orderOfService) && $orderOfService->start_time ? $orderOfService->start_time->format('H:i') : '') }}"
+                   placeholder="Select start time">
+        </div>
     </div>
 
     <!-- End Time -->
     <div>
         <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
-        <input type="time" 
-               name="end_time" 
-               id="end_time" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-               value="{{ old('end_time', isset($orderOfService) && $orderOfService->end_time ? $orderOfService->end_time->format('H:i') : '') }}">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <input type="text" 
+                   name="end_time" 
+                   id="end_time" 
+                   class="timepicker w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" 
+                   value="{{ old('end_time', isset($orderOfService) && $orderOfService->end_time ? $orderOfService->end_time->format('H:i') : '') }}"
+                   placeholder="Select end time">
+        </div>
     </div>
 
     <!-- Duration (Alternative to End Time) -->
@@ -112,8 +128,21 @@
     </div>
 </div>
 
+<!-- Flatpickr CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr for time inputs
+    flatpickr(".timepicker", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: false, // Allows AM/PM selection while saving in 24h format
+        minuteIncrement: 5
+    });
+
     const startTimeInput = document.getElementById('start_time');
     const endTimeInput = document.getElementById('end_time');
     const durationInput = document.getElementById('duration_minutes');
