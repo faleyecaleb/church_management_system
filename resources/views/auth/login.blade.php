@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Church Management System - Login</title>
+    <title>CAC Hosanna Chapel - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -167,14 +167,14 @@
     <div class="login-container max-w-md w-full space-y-8 p-8 sm:p-10 rounded-2xl relative z-10">
         <!-- Header Section -->
         <div class="text-center">
-            <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 mb-6">
-                <i class="fas fa-church text-2xl text-white"></i>
+            <div class="mx-auto h-24 w-24 flex items-center justify-center mb-6">
+                <img src="{{ asset('images/logo.png') }}" alt="Christ Apostolic Church Logo" class="h-full w-full object-contain rounded-full shadow-lg">
             </div>
             <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
                 Welcome Back
             </h2>
             <p class="text-sm sm:text-base text-gray-600 font-medium">
-                Church Management System
+                CAC Hosanna Chapel
             </p>
             <div class="w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 mx-auto mt-4 rounded-full"></div>
         </div>
@@ -266,7 +266,7 @@
         <!-- Footer -->
         <div class="text-center pt-6 border-t border-gray-200">
             <p class="text-xs text-gray-500">
-                © {{ date('Y') }} Church Management System. All rights reserved.
+                © {{ date('Y') }} CAC Hosanna Chapel. All rights reserved.
             </p>
         </div>
     </div>

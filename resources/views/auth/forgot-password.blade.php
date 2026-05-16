@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password - Church Management System</title>
+    <title>Forgot Password - CAC Hosanna Chapel</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -11,7 +11,10 @@
     <div class="max-w-md w-full space-y-8 p-8">
         <div class="bg-white rounded-2xl shadow-xl p-8">
             <div class="text-center">
-                <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                <div class="mx-auto h-20 w-20 flex items-center justify-center mb-4">
+                    <img src="{{ asset('images/logo.png') }}" alt="CAC Logo" class="h-full w-full object-contain rounded-full shadow">
+                </div>
+                <h2 class="mt-2 text-3xl font-extrabold text-gray-900">
                     Forgot Password
                 </h2>
                 <p class="mt-2 text-sm text-gray-600">

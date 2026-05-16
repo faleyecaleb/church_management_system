@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title') - Church Management System</title>
+    <title>@yield('title') - CAC Hosanna Chapel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/icons-sprite.svg" rel="prefetch">
@@ -59,14 +59,12 @@
             <!-- Logo Section -->
             <div class="flex items-center justify-between p-6 border-b border-white/10">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
+                    <div class="w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center shadow-md">
+                        <img src="{{ asset('images/logo.png') }}" alt="CAC Logo" class="w-full h-full object-contain rounded-full">
                     </div>
                     <div>
-                        <h1 class="text-white text-lg font-bold leading-tight">Church</h1>
-                        <p class="text-white/70 text-sm font-medium">Management</p>
+                        <h1 class="text-white text-lg font-bold leading-tight">CAC</h1>
+                        <p class="text-white/70 text-sm font-medium">Hosanna Chapel</p>
                     </div>
                 </div>
                 <button @click="sidebarOpen = false" class="lg:hidden text-white/70 hover:text-white transition-colors">
