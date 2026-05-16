@@ -275,8 +275,8 @@ Route::resource('members', MemberController::class);
 
         // Legacy Service Attendance Management
         Route::get('/services/{service}', [AttendanceController::class, 'index'])->name('index');
-        Route::get('/services/{service}/qr-code', [QrCodeController::class, 'generate'])->name('qr-code');
-        Route::post('/services/{service}/process-qr', [QrCodeController::class, 'checkIn'])->name('process-qr');
+        Route::get('/services/{serviceId}/qr-code', [AttendanceController::class, 'showQrCode'])->name('qr-code');
+        Route::post('/services/{service}/process-qr', [AttendanceController::class, 'processQrCode'])->name('process-qr');
 
         // Member Check-in/out
         Route::post('/services/{service}/members/{member}/check-in', [AttendanceController::class, 'checkInMember'])->name('check-in-member');

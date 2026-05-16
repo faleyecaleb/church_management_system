@@ -76,6 +76,7 @@
 
             <!-- Navigation -->
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                @if(Auth::user()->hasPermission('dashboard.access'))
                 <a href="{{ route('admin.dashboard') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +86,9 @@
                     </div>
                     <span class="font-medium">Dashboard</span>
                 </a>
+                @endif
                 
+                @if(Auth::user()->hasPermission('member.view'))
                 <div x-data="{ membersOpen: false }" class="relative" @click.away="membersOpen = false">
                     <button @click="membersOpen = !membersOpen; attendanceOpen = false" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('members.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -126,7 +129,9 @@
                         </a>
                     </div>
                 </div>
-                
+                @endif
+
+                @if(Auth::user()->hasPermission('attendance.view'))
                 <div x-data="{ attendanceOpen: false }" class="relative" @click.away="attendanceOpen = false">
                     <button @click="attendanceOpen = !attendanceOpen; membersOpen = false" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('attendance.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -166,7 +171,7 @@
                                 Service Attendance
                             </div>
                         </a>
-                        <a href="{{ route('attendance.qr-code', ['service' => 'current']) }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('attendance.qr-code') ? 'bg-white/10' : '' }}">
+                        <a href="{{ route('attendance.qr-code', ['serviceId' => 'current']) }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('attendance.qr-code') ? 'bg-white/10' : '' }}">
                             <div class="flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2m0 0H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -209,7 +214,9 @@
                         </a>
                     </div>
                 </div>
+                @endif
 
+                @if(Auth::user()->hasPermission('attendance.view') || Auth::user()->hasPermission('member.view'))
                 <div x-data="{ servicesOpen: false }" class="relative" @click.away="servicesOpen = false">
                     <button @click="servicesOpen = !servicesOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('services.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -249,7 +256,9 @@
                         </a>
                     </div>
                 </div>
+                @endif
 
+               @if(Auth::user()->hasPermission('communication.view'))
                <div x-data="{ complaintsOpen: false }" class="relative" @click.away="complaintsOpen = false">
                    <button @click="complaintsOpen = !complaintsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('complaints.*') ? 'active' : '' }}">
                        <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -280,10 +289,10 @@
                            </div>
                        </a>
                    </div>
-               </div>
+                   </div>
+                   @endif
 
-                @if(Auth::user()->isSuperAdmin() || Auth::user()->hasPermission('counselling.manage'))
-                <a href="{{ route('counselling.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('counselling.*') ? 'active' : '' }}">
+                   @if(Auth::user()->isSuperAdmin() || Auth::user()->hasPermission('counselling.manage'))                <a href="{{ route('counselling.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('counselling.*') ? 'active' : '' }}">
                     <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -292,10 +301,10 @@
                     <span class="font-medium">Counselling</span>
                 </a>
                 @endif
-               
+
                 <!-- Reports -->
-                <div x-data="{ reportsOpen: false }" class="relative" @click.away="reportsOpen = false">
-                    <button @click="reportsOpen = !reportsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                @if(Auth::user()->hasPermission('reports.generate'))
+                <div x-data="{ reportsOpen: false }" class="relative" @click.away="reportsOpen = false">                    <button @click="reportsOpen = !reportsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -315,7 +324,9 @@
                         <a href="{{ route('reports.growth') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('reports.growth') ? 'bg-white/10' : '' }}">Growth</a>
                     </div>
                 </div>
+                @endif
 
+                @if(Auth::user()->hasPermission('finance.view'))
                 <div x-data="{ pledgesOpen: false }" class="relative" @click.away="pledgesOpen = false">
                     <button @click="pledgesOpen = !pledgesOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('pledges.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -355,7 +366,9 @@
                         </a>
                     </div>
                 </div>
+                @endif
 
+                @if(Auth::user()->hasPermission('communication.view'))
                 <a href="{{ route('prayer-requests.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('prayer-requests.*') ? 'active' : '' }}">
                     <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,9 +377,10 @@
                     </div>
                     <span class="font-medium">Prayer Requests</span>
                 </a>
-                
-                <div x-data="{ expensesOpen: false }" class="relative" @click.away="expensesOpen = false">
-                    <button @click="expensesOpen = !expensesOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                @endif
+
+                    @if(Auth::user()->hasPermission('finance.view'))
+                    <div x-data="{ expensesOpen: false }" class="relative" @click.away="expensesOpen = false">                    <button @click="expensesOpen = !expensesOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -404,7 +418,9 @@
                         </a>
                     </div>
                 </div>
-                
+                @endif
+
+                @if(Auth::user()->hasPermission('finance.view'))
                 <div x-data="{ budgetsOpen: false }" class="relative" @click.away="budgetsOpen = false">
                     <button @click="budgetsOpen = !budgetsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('budgets.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -442,17 +458,19 @@
                                 Reports
                             </div>
                         </a>
-                    </div>
-                </div>
-                
-                <a href="{{ route('messages.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('messages.*') ? 'active' : '' }}">
-                    <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                        </div>
+                        </div>
+                        @endif
+
+                        @if(Auth::user()->hasPermission('communication.view'))
+                        <a href="{{ route('messages.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('messages.*') ? 'active' : '' }}">                    <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                     </div>
                     <span class="font-medium">Messages</span>
                 </a>
+                @endif
 
                 <div x-data="{ notificationsOpen: false }" class="relative" @click.away="notificationsOpen = false">
                     <button @click="notificationsOpen = !notificationsOpen" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
@@ -488,6 +506,7 @@
                 
                 
 
+                @if(Auth::user()->hasPermission('settings.view') || Auth::user()->hasPermission('settings.manage') || Auth::user()->isSuperAdmin())
                 <div class="pt-4 mt-4 border-t border-white/10">
                     <a href="{{ route('settings.index') }}" class="nav-link flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
@@ -499,6 +518,7 @@
                         <span class="font-medium">Settings</span>
                     </a>
                 </div>
+                @endif
             </nav>
         </div>
     </aside>

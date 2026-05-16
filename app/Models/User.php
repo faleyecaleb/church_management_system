@@ -120,7 +120,7 @@ class User extends Authenticatable
      */
     public function hasPermission($permission)
     {
-        if ($this->isAdmin()) {
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -173,7 +173,7 @@ class User extends Authenticatable
      */
     public function hasAnyPermission(array $permissions): bool
     {
-        return $this->isAdmin() || $this->permissions()->whereIn('name', $permissions)->exists();
+        return $this->isSuperAdmin() || $this->permissions()->whereIn('name', $permissions)->exists();
     }
 
     /**
@@ -184,7 +184,7 @@ class User extends Authenticatable
      */
     public function hasAllPermissions(array $permissions): bool
     {
-        if ($this->isAdmin()) {
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -218,3 +218,4 @@ class User extends Authenticatable
         return $this->belongsToMany(MessageGroup::class);
     }
 }
+

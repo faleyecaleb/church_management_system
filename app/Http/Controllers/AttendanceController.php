@@ -307,8 +307,17 @@ class AttendanceController extends Controller
     /**
      * Display QR code for check-in.
      */
-    public function showQrCode(Service $service)
+    public function showQrCode($serviceId)
     {
+        if ($serviceId === 'current') {
+            $service = Service::whereDate('date', today())->orderBy('start_time', 'asc')->first();
+            if (!$service) {
+                return redirect()->route('attendance.dashboard')->with('error', 'No active service found for today.');
+            }
+        } else {
+            $service = Service::findOrFail($serviceId);
+        }
+
         if (!$service->isCheckInAllowed()) {
             return back()->with('error', 'Check-in is not currently allowed for this service.');
         }
