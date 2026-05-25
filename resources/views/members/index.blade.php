@@ -561,7 +561,7 @@
                 </div>
                 
                 <!-- Filter Options -->
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
                     <div>
                         <label for="status" class="block text-xs font-medium text-gray-300 mb-2">Status</label>
                         <select name="status" id="status" class="filter-select block w-full px-4 py-2.5 rounded-xl">
@@ -586,8 +586,18 @@
                         <label for="department" class="block text-xs font-medium text-gray-300 mb-2">Department</label>
                         <select name="department" id="department" class="filter-select block w-full px-4 py-2.5 rounded-xl">
                             <option value="">All Departments</option>
-                            @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}" {{ request('department') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                            @foreach($formDepartments as $dept)
+                                <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="church_group" class="block text-xs font-medium text-gray-300 mb-2">Church Group</label>
+                        <select name="church_group" id="church_group" class="filter-select block w-full px-4 py-2.5 rounded-xl">
+                            <option value="">All Groups</option>
+                            @foreach($formGroups as $group)
+                                <option value="{{ $group }}" {{ request('church_group') == $group ? 'selected' : '' }}>{{ $group }}</option>
                             @endforeach
                         </select>
                     </div>

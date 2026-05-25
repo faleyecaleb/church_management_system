@@ -23,10 +23,13 @@ class AttendanceAnalyticsController extends Controller
         $filterType = $request->get('filter_type', 'timeframe');
 
         if ($filterType === 'month') {
-            $month = $request->get('month', Carbon::now()->month);
-            $year = $request->get('year', Carbon::now()->year);
-            $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-            $endDate = $startDate->copy()->endOfMonth();
+            $startMonth = $request->get('start_month', Carbon::now()->month);
+            $startYear = $request->get('start_year', Carbon::now()->year);
+            $endMonth = $request->get('end_month', Carbon::now()->month);
+            $endYear = $request->get('end_year', Carbon::now()->year);
+            
+            $startDate = Carbon::createFromDate($startYear, $startMonth, 1)->startOfMonth();
+            $endDate = Carbon::createFromDate($endYear, $endMonth, 1)->endOfMonth();
         } else {
             $timeframe = $request->get('timeframe', '30'); // Default to 30 days
             $startDate = Carbon::now()->subDays((int)$timeframe)->startOfDay();
@@ -39,14 +42,30 @@ class AttendanceAnalyticsController extends Controller
             ->where('attendances.is_present', true)
             ->whereBetween('attendances.attendance_date', [$startDate, $endDate])
             ->groupBy(
-                'members.id', 'members.first_name', 'members.last_name', 'members.email', 
+                'members.id', 'members.first_name', 'members.last_name', 'members.other_names', 'members.email', 
                 'members.password', 'members.remember_token', 'members.phone', 'members.address', 
-                'members.date_of_birth', 'members.baptism_date', 'members.membership_status', 
+                'members.date_of_birth', 'members.birth_day', 'members.birth_month', 
+                'members.baptism_date', 'members.membership_status', 'members.marital_status', 
+                'members.partner_name', 'members.state_of_origin', 'members.lga_of_origin', 
+                'members.state_of_residence', 'members.city_of_residence', 'members.profession', 
+                'members.church_group', 'members.is_baptized', 'members.baptism_year_and_place', 
+                'members.baptism_church_name', 'members.spiritual_gifts', 'members.emergency_contact_details',
                 'members.member_type', 'members.profile_photo', 'members.gender', 
                 'members.emergency_contacts', 'members.custom_fields', 'members.created_at', 
                 'members.updated_at', 'members.deleted_at', 'members.church_id', 'members.unique_id'
             )
             ->orderBy('attendance_count', 'desc');
+
+        if ($request->filled('department')) {
+            $mostRegularQuery->whereHas('departments', function ($q) use ($request) {
+                $q->whereHas('department', function ($subQ) use ($request) {
+                    $subQ->where('name', $request->input('department'));
+                });
+            });
+        }
+        if ($request->filled('church_group')) {
+            $mostRegularQuery->where('members.church_group', $request->input('church_group'));
+        }
 
         if ($limit) {
             $mostRegularQuery->take($limit);
@@ -68,9 +87,14 @@ class AttendanceAnalyticsController extends Controller
             ->whereNotNull('attendances.check_in_time')
             ->whereBetween('attendances.attendance_date', [$startDate, $endDate])
             ->groupBy(
-                'members.id', 'members.first_name', 'members.last_name', 'members.email', 
+                'members.id', 'members.first_name', 'members.last_name', 'members.other_names', 'members.email', 
                 'members.password', 'members.remember_token', 'members.phone', 'members.address', 
-                'members.date_of_birth', 'members.baptism_date', 'members.membership_status', 
+                'members.date_of_birth', 'members.birth_day', 'members.birth_month', 
+                'members.baptism_date', 'members.membership_status', 'members.marital_status', 
+                'members.partner_name', 'members.state_of_origin', 'members.lga_of_origin', 
+                'members.state_of_residence', 'members.city_of_residence', 'members.profession', 
+                'members.church_group', 'members.is_baptized', 'members.baptism_year_and_place', 
+                'members.baptism_church_name', 'members.spiritual_gifts', 'members.emergency_contact_details',
                 'members.member_type', 'members.profile_photo', 'members.gender', 
                 'members.emergency_contacts', 'members.custom_fields', 'members.created_at', 
                 'members.updated_at', 'members.deleted_at', 'members.church_id', 'members.unique_id'
@@ -78,10 +102,24 @@ class AttendanceAnalyticsController extends Controller
             ->having('total_attendances', '>=', 2) // Must have attended at least twice to be considered
             ->orderBy('avg_minutes_late', 'asc'); // Lowest average (most negative) is best
 
+        if ($request->filled('department')) {
+            $mostPunctualQuery->whereHas('departments', function ($q) use ($request) {
+                $q->whereHas('department', function ($subQ) use ($request) {
+                    $subQ->where('name', $request->input('department'));
+                });
+            });
+        }
+        if ($request->filled('church_group')) {
+            $mostPunctualQuery->where('members.church_group', $request->input('church_group'));
+        }
+
         if ($limit) {
             $mostPunctualQuery->take($limit);
         }
         $mostPunctual = $mostPunctualQuery->get();
+
+        $formDepartments = ['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'];
+        $formGroups = ['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'];
 
         return [
             'mostRegular' => $mostRegular,
@@ -89,6 +127,8 @@ class AttendanceAnalyticsController extends Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
             'filterType' => $filterType,
+            'formDepartments' => $formDepartments,
+            'formGroups' => $formGroups,
         ];
     }
 
@@ -108,8 +148,10 @@ class AttendanceAnalyticsController extends Controller
         return view('attendance.analytics.index', array_merge($data, [
             'chartData' => $chartData,
             'timeframe' => $request->get('timeframe', '30'),
-            'month' => $request->get('month', Carbon::now()->month),
-            'year' => $request->get('year', Carbon::now()->year),
+            'start_month' => $request->get('start_month', Carbon::now()->month),
+            'start_year' => $request->get('start_year', Carbon::now()->year),
+            'end_month' => $request->get('end_month', Carbon::now()->month),
+            'end_year' => $request->get('end_year', Carbon::now()->year),
         ]));
     }
 

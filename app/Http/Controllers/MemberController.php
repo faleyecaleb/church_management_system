@@ -46,8 +46,15 @@ class MemberController extends Controller
 
         if ($request->filled('department')) {
             $query->whereHas('departments', function ($q) use ($request) {
-                $q->where('department_id', $request->input('department'));
+                // Now filtering by department name via the relation
+                $q->whereHas('department', function ($subQ) use ($request) {
+                    $subQ->where('name', $request->input('department'));
+                });
             });
+        }
+
+        if ($request->filled('church_group')) {
+            $query->where('church_group', $request->input('church_group'));
         }
 
         if ($request->filled('gender')) {
@@ -73,9 +80,11 @@ class MemberController extends Controller
         }
 
         $members = $query->with('departments.department')->paginate(20);
-        $departments = \App\Models\Department::where('is_active', true)->orderBy('name')->get();
+        
+        $formDepartments = ['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'];
+        $formGroups = ['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'];
 
-        return view('members.index', compact('members', 'departments'));
+        return view('members.index', compact('members', 'formDepartments', 'formGroups'));
     }
 
     public function create()
@@ -91,17 +100,30 @@ class MemberController extends Controller
             $validated = $request->validate([
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
+                'other_names' => 'nullable|string|max:255',
                 'email' => 'required|email|unique:members,email',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-                'date_of_birth' => 'nullable|date',
-                'baptism_date' => 'nullable|date',
-                'departments' => 'required|array|min:1',
-                'departments.*' => 'exists:departments,id',
-                'membership_status' => 'required|string',
+                'phone' => 'required|string|max:20',
+                'address' => 'required|string|max:500',
+                'birth_day' => 'required|string|max:2',
+                'birth_month' => 'required|string|max:20',
+                'gender' => 'required|string|in:male,female,other,MALE,FEMALE,OTHER',
+                'marital_status' => 'required|string',
+                'partner_name' => 'nullable|string|max:255',
+                'state_of_origin' => 'required|string|max:255',
+                'lga_of_origin' => 'required|string|max:255',
+                'state_of_residence' => 'required|string|max:255',
+                'city_of_residence' => 'required|string|max:255',
+                'profession' => 'required|string|max:255',
+                'church_group' => 'nullable|string|max:255',
+                'department' => 'required|string|max:255',
+                'is_baptized' => 'required|string',
+                'baptism_year_and_place' => 'nullable|string|max:255',
+                'baptism_church_name' => 'nullable|string|max:255',
+                'spiritual_gifts' => 'nullable|string',
+                'emergency_contact_details' => 'nullable|string',
+                
+                'membership_status' => 'nullable|string',
                 'profile_photo' => 'nullable|image|max:2048',
-                'emergency_contacts' => 'nullable|array',
-                'custom_fields' => 'nullable|array',
                 'roles' => 'nullable|array',
                 'roles.*' => 'exists:roles,id'
             ]);
@@ -112,18 +134,22 @@ class MemberController extends Controller
                 $path = $request->file('profile_photo')->store('profile-photos', 'public');
                 $validated['profile_photo'] = $path;
             }
-
-            // Remove departments from validated data before creating member
-            $departments = $validated['departments'];
-            unset($validated['departments']);
+            
+            $departmentName = $validated['department'];
+            unset($validated['department']);
+            
+            $validated['gender'] = strtolower($validated['gender']);
+            $validated['membership_status'] = $validated['membership_status'] ?? 'active';
             
             DB::beginTransaction();
             $member = Member::create($validated);
 
-            // Create department associations
-            foreach ($departments as $departmentId) {
-                $member->departments()->create(['department_id' => $departmentId]);
-            }
+            // Find or create department by name
+            $department = \App\Models\Department::firstOrCreate(
+                ['name' => $departmentName],
+                ['is_active' => true, 'description' => $departmentName . ' Department']
+            );
+            $member->departments()->create(['department_id' => $department->id]);
 
             if ($request->filled('roles')) {
                 $member->roles()->sync($request->input('roles'));
@@ -161,18 +187,30 @@ class MemberController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
+            'other_names' => 'nullable|string|max:255',
             'email' => ['required', 'email', Rule::unique('members')->ignore($member->id)],
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
-            'date_of_birth' => 'nullable|date',
-            'baptism_date' => 'nullable|date',
-            'gender' => 'nullable|string|in:male,female,other',
-            'departments' => 'required|array|min:1',
-            'departments.*' => 'exists:departments,id',
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'birth_day' => 'required|string|max:2',
+            'birth_month' => 'required|string|max:20',
+            'gender' => 'required|string|in:male,female,other,MALE,FEMALE,OTHER',
+            'marital_status' => 'required|string',
+            'partner_name' => 'nullable|string|max:255',
+            'state_of_origin' => 'required|string|max:255',
+            'lga_of_origin' => 'required|string|max:255',
+            'state_of_residence' => 'required|string|max:255',
+            'city_of_residence' => 'required|string|max:255',
+            'profession' => 'required|string|max:255',
+            'church_group' => 'nullable|string|max:255',
+            'department' => 'required|string|max:255',
+            'is_baptized' => 'required|string',
+            'baptism_year_and_place' => 'nullable|string|max:255',
+            'baptism_church_name' => 'nullable|string|max:255',
+            'spiritual_gifts' => 'nullable|string',
+            'emergency_contact_details' => 'nullable|string',
+            
             'membership_status' => 'required|string',
             'profile_photo' => 'nullable|image|max:2048',
-            'emergency_contacts' => 'nullable|array',
-            'custom_fields' => 'nullable|array',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id'
         ]);
@@ -188,20 +226,20 @@ class MemberController extends Controller
                 $validated['profile_photo'] = $path;
             }
 
-        // Remove departments from validated data before updating member
-        $departments = $validated['departments'];
-        unset($validated['departments']);
+        $departmentName = $validated['department'];
+        unset($validated['department']);
+        
+        $validated['gender'] = strtolower($validated['gender']);
 
         $member->update($validated);
 
         // Update department associations
-        // First, delete existing departments
         $member->departments()->delete();
-        
-        // Then create new department associations
-        foreach ($departments as $departmentId) {
-            $member->departments()->create(['department_id' => $departmentId]);
-        }
+        $department = \App\Models\Department::firstOrCreate(
+            ['name' => $departmentName],
+            ['is_active' => true, 'description' => $departmentName . ' Department']
+        );
+        $member->departments()->create(['department_id' => $department->id]);
 
         if ($request->filled('roles')) {
             $member->roles()->sync($request->input('roles'));

@@ -9,7 +9,6 @@ use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 
 class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths, WithTitle
 {
@@ -17,52 +16,29 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
     {
         return [
             [
-                'John',
-                'Doe', 
                 'john.doe@example.com',
-                '+1234567890',
-                '123 Main St, City, State',
-                '1990-01-15',
-                '2010-05-20',
-                'active',
-                'male',
-                'choir,youth'
-            ],
-            [
-                'Jane',
-                'Smith',
-                'jane.smith@example.com', 
-                '+1234567891',
-                '456 Oak Ave, City, State',
-                '1985-03-22',
-                '2008-12-10',
-                'active',
-                'female',
-                'women_ministry'
-            ],
-            [
-                'Michael',
-                'Johnson',
-                'michael.j@example.com',
-                '+1234567892', 
-                '789 Pine St, City, State',
-                '1975-07-08',
-                '2005-09-15',
-                'active',
-                'male',
-                'men_ministry,ushering'
-            ],
-            [
-                'Sarah',
-                'Williams',
-                'sarah.w@example.com',
-                '+1234567893',
-                '321 Elm Dr, City, State', 
-                '1992-11-30',
-                '2015-03-25',
-                'active',
-                'female',
-                'choir,children_ministry'
+                'Doe',
+                'John',
+                'David',
+                '15',
+                'January',
+                'MALE',
+                'Jane Doe: 09012345678',
+                'MARRIED',
+                'Jane Doe',
+                '08012345678',
+                'Lagos',
+                'Ikeja',
+                'Lagos',
+                'Ikeja',
+                '123 Main St, Ikeja',
+                'Software Engineer',
+                'Men Fellowship',
+                'CHOIR',
+                'YES',
+                '2010 - Lagos',
+                'RCCG',
+                'Teaching, Healing'
             ]
         ];
     }
@@ -70,16 +46,29 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
     public function headings(): array
     {
         return [
-            'First Name *',
-            'Last Name *', 
             'Email *',
-            'Phone',
-            'Address',
-            'Date of Birth (YYYY-MM-DD)',
-            'Baptism Date (YYYY-MM-DD)',
-            'Membership Status (active/inactive/pending)',
-            'Gender (male/female/other)',
-            'Departments (comma-separated)'
+            'LASTNAME/SURNAME *',
+            'FIRSTNAME *',
+            'OTHERS',
+            'DAY OF BIRTH *',
+            'MONTH OF BIRTH *',
+            'GENDER *',
+            'EMERGENCY CONTACT NAME & PHONE NUMBER',
+            'MARITAL STATUS *',
+            'NAME OF PARTNER (If married)',
+            'PHONE NUMBER (primary) *',
+            'STATE OF ORIGIN *',
+            'LOCAL GOVERNMENT OF ORIGIN *',
+            'STATE OF RESIDENCE *',
+            'CITY OF RESIDENCE *',
+            'STREET NO AND NAME (eg: 2, Korogboji) *',
+            'PROFESSION/OCCUPATION *',
+            'GROUP IN CHURCH',
+            'DEPARTMENT IN CHURCH *',
+            'ARE YOU BAPTIZED ? *',
+            'WHAT YEAR AND WHERE ?',
+            'NAME OF THE CHURCH',
+            'SPIRITUAL GIFTS'
         ];
     }
 
@@ -98,7 +87,7 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
                 ]
             ],
             // Style data rows with alternating colors
-            '2:5' => [
+            '2:2' => [
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['rgb' => 'F8FAFC'] // Light gray
@@ -110,21 +99,34 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
     public function columnWidths(): array
     {
         return [
-            'A' => 15, // First Name
-            'B' => 15, // Last Name
-            'C' => 25, // Email
-            'D' => 15, // Phone
-            'E' => 30, // Address
-            'F' => 20, // Date of Birth
-            'G' => 20, // Baptism Date
-            'H' => 25, // Membership Status
-            'I' => 15, // Gender
-            'J' => 30, // Departments
+            'A' => 25, // Email
+            'B' => 20, // Last Name
+            'C' => 20, // First Name
+            'D' => 20, // Others
+            'E' => 15, // Day of Birth
+            'F' => 15, // Month of Birth
+            'G' => 15, // Gender
+            'H' => 40, // Emergency Contact
+            'I' => 20, // Marital Status
+            'J' => 25, // Name of Partner
+            'K' => 20, // Phone
+            'L' => 20, // State of Origin
+            'M' => 25, // LGA
+            'N' => 20, // State of Res
+            'O' => 20, // City of Res
+            'P' => 35, // Street No
+            'Q' => 25, // Profession
+            'R' => 20, // Group in Church
+            'S' => 25, // Department
+            'T' => 20, // Baptized
+            'U' => 25, // Year & Where
+            'V' => 25, // Name of Church
+            'W' => 30, // Spiritual Gifts
         ];
     }
 
     public function title(): string
     {
-        return 'Member Import Template';
+        return 'Adult Member Import Template';
     }
 }

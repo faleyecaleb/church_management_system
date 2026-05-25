@@ -46,7 +46,20 @@
                 @endcan
             </div>
             <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-                <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">First Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->first_name }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Last Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->last_name }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Other Names</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->other_names ?? 'N/A' }}</dd>
+                    </div>
+
                     <div class="sm:col-span-1">
                         <dt class="text-sm font-medium text-gray-500">Email</dt>
                         <dd class="mt-1 text-sm text-gray-900">{{ $member->email }}</dd>
@@ -56,19 +69,45 @@
                         <dd class="mt-1 text-sm text-gray-900">{{ $member->phone ?? 'Not provided' }}</dd>
                     </div>
                     <div class="sm:col-span-1">
-                        <dt class="text-sm font-medium text-gray-500">Date of Birth</dt>
-                        <dd class="mt-1 text-sm text-gray-900">
-                            {{ $member->date_of_birth ? $member->date_of_birth->format('M d, Y') : 'Not provided' }}</dd>
+                        <dt class="text-sm font-medium text-gray-500">Gender</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ ucfirst($member->gender ?? 'Not provided') }}</dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Date of Birth (Full)</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->date_of_birth ? $member->date_of_birth->format('M d, Y') : ($member->birth_month && $member->birth_day ? $member->birth_month . ' ' . $member->birth_day : 'Not provided') }}</dd>
                     </div>
                     <div class="sm:col-span-1">
-                        <dt class="text-sm font-medium text-gray-500">Baptism Date</dt>
-                        <dd class="mt-1 text-sm text-gray-900">
-                            {{ $member->baptism_date ? $member->baptism_date->format('M d, Y') : 'Not provided' }}</dd>
+                        <dt class="text-sm font-medium text-gray-500">Marital Status</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->marital_status ?? 'Not provided' }}</dd>
                     </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Name of Partner</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->partner_name ?? 'N/A' }}</dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">State of Origin</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->state_of_origin ?? 'N/A' }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">LGA of Origin</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->lga_of_origin ?? 'N/A' }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Profession/Occupation</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->profession ?? 'N/A' }}</dd>
+                    </div>
+
                     <div class="sm:col-span-2">
-                        <dt class="text-sm font-medium text-gray-500">Address</dt>
+                        <dt class="text-sm font-medium text-gray-500">Address (Street)</dt>
                         <dd class="mt-1 text-sm text-gray-900">{{ $member->address ?? 'Not provided' }}</dd>
                     </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">City / State of Residence</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->city_of_residence ?? 'N/A' }} / {{ $member->state_of_residence ?? 'N/A' }}</dd>
+                    </div>
+
                     <div class="sm:col-span-1">
                         <dt class="text-sm font-medium text-gray-500">Department</dt>
                         <dd class="mt-1 text-sm text-gray-900">
@@ -82,13 +121,40 @@
                         </dd>
                     </div>
                     <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Group in Church</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->church_group ?? 'N/A' }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
                         <dt class="text-sm font-medium text-gray-500">Membership Status</dt>
                         <dd class="mt-1 text-sm text-gray-900">
                             <span
                                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $member->membership_status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ ucfirst($member->membership_status) }}
+                                {{ ucfirst($member->membership_status ?? 'active') }}
                             </span>
                         </dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Is Baptized?</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->is_baptized ?? 'N/A' }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Baptism Year & Place</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->baptism_year_and_place ?? 'N/A' }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Baptism Church Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->baptism_church_name ?? 'N/A' }}</dd>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <dt class="text-sm font-medium text-gray-500">Spiritual Gifts</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->spiritual_gifts ?? 'N/A' }}</dd>
+                    </div>
+                    
+                    <div class="sm:col-span-3">
+                        <dt class="text-sm font-medium text-gray-500">Emergency Contact Details (Raw)</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $member->emergency_contact_details ?? 'N/A' }}</dd>
                     </div>
                 </dl>
             </div>

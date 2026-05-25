@@ -8,7 +8,7 @@
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600">
             <h2 class="text-2xl font-bold text-white">Create New Member Profile</h2>
-            <p class="mt-1 text-indigo-100">Add a new member to the church database</p>
+            <p class="mt-1 text-indigo-100">Add a new adult member to the church database</p>
         </div>
 
         <div class="p-6">
@@ -62,173 +62,233 @@
                         <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                             <div class="sm:col-span-3">
                                 <label for="first_name" class="block text-sm font-medium text-gray-700">First name *</label>
-                                <div class="mt-1">
-                                    <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                </div>
+                                <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="sm:col-span-3">
-                                <label for="last_name" class="block text-sm font-medium text-gray-700">Last name *</label>
-                                <div class="mt-1">
-                                    <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                </div>
+                                <label for="last_name" class="block text-sm font-medium text-gray-700">Last name (Surname) *</label>
+                                <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
-                            <div class="sm:col-span-4">
+                            <div class="sm:col-span-3">
+                                <label for="other_names" class="block text-sm font-medium text-gray-700">Others</label>
+                                <input type="text" name="other_names" id="other_names" value="{{ old('other_names') }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-3">
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email address *</label>
-                                <div class="mt-1">
-                                    <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                </div>
+                                <input type="email" name="email" id="email" value="{{ old('email') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="sm:col-span-3">
-                                <label for="phone" class="block text-sm font-medium text-gray-700">Phone number</label>
-                                <div class="mt-1">
-                                    <input type="tel" name="phone" id="phone" value="{{ old('phone') }}"
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                </div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700">Phone number (Primary) *</label>
+                                <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="sm:col-span-3">
-                                <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of birth</label>
-                                <div class="mt-1">
-                                    <input type="date" name="date_of_birth" id="date_of_birth" value="{{ old('date_of_birth') }}"
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                </div>
+                                <label for="gender" class="block text-sm font-medium text-gray-700">Gender *</label>
+                                <select name="gender" id="gender" required
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Gender</option>
+                                    <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                                    <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="birth_month" class="block text-sm font-medium text-gray-700">Month of Birth *</label>
+                                <select name="birth_month" id="birth_month" required
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Month</option>
+                                    @foreach(['January','February','March','April','May','June','July','August','September','October','November','December'] as $month)
+                                        <option value="{{ $month }}" {{ old('birth_month') == $month ? 'selected' : '' }}>{{ $month }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="birth_day" class="block text-sm font-medium text-gray-700">Day of Birth *</label>
+                                <select name="birth_day" id="birth_day" required
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Day</option>
+                                    @for($i = 1; $i <= 31; $i++)
+                                        <option value="{{ $i }}" {{ old('birth_day') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="marital_status" class="block text-sm font-medium text-gray-700">Marital Status *</label>
+                                <select name="marital_status" id="marital_status" required
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Status</option>
+                                    <option value="SINGLE" {{ old('marital_status') == 'SINGLE' ? 'selected' : '' }}>SINGLE</option>
+                                    <option value="MARRIED" {{ old('marital_status') == 'MARRIED' ? 'selected' : '' }}>MARRIED</option>
+                                    <option value="ENGAGED" {{ old('marital_status') == 'ENGAGED' ? 'selected' : '' }}>ENGAGED</option>
+                                    <option value="WIDOWED" {{ old('marital_status') == 'WIDOWED' ? 'selected' : '' }}>WIDOWED</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="partner_name" class="block text-sm font-medium text-gray-700">Name of Partner (If married)</label>
+                                <input type="text" name="partner_name" id="partner_name" value="{{ old('partner_name') }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="sm:col-span-6">
-                                <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                                <div class="mt-1">
-                                    <textarea name="address" id="address" rows="3"
-                                              class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">{{ old('address') }}</textarea>
-                                </div>
+                                <label for="emergency_contact_details" class="block text-sm font-medium text-gray-700">Emergency Contact Name & Phone Number</label>
+                                <input type="text" name="emergency_contact_details" id="emergency_contact_details" value="{{ old('emergency_contact_details') }}"
+                                          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Church Information -->
+                    <!-- Location & Origin -->
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
                         <div class="flex items-center justify-between mb-6">
                             <div>
-                                <h3 class="text-xl font-semibold text-gray-900">Church Information</h3>
-                                <p class="mt-1 text-sm text-gray-500">Information about church membership and baptism.</p>
+                                <h3 class="text-xl font-semibold text-gray-900">Location & Origin</h3>
                             </div>
                         </div>
 
                         <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                             <div class="sm:col-span-3">
-                                <label for="baptism_date" class="block text-sm font-medium text-gray-700">Baptism date</label>
-                                <div class="mt-1">
-                                    <input type="date" name="baptism_date" id="baptism_date" value="{{ old('baptism_date') }}"
-                                           class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                </div>
+                                <label for="state_of_origin" class="block text-sm font-medium text-gray-700">State of Origin *</label>
+                                <input type="text" name="state_of_origin" id="state_of_origin" value="{{ old('state_of_origin') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="lga_of_origin" class="block text-sm font-medium text-gray-700">Local Government of Origin *</label>
+                                <input type="text" name="lga_of_origin" id="lga_of_origin" value="{{ old('lga_of_origin') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="state_of_residence" class="block text-sm font-medium text-gray-700">State of Residence *</label>
+                                <input type="text" name="state_of_residence" id="state_of_residence" value="{{ old('state_of_residence') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="city_of_residence" class="block text-sm font-medium text-gray-700">City of Residence *</label>
+                                <input type="text" name="city_of_residence" id="city_of_residence" value="{{ old('city_of_residence') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="sm:col-span-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-3">Departments *</label>
-                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                    <div class="mt-4 space-y-4">
-                                        @foreach($departments as $dept)
-                                            <div class="flex items-start">
-                                                <div class="flex items-center h-5">
-                                                    <input id="department_{{ $dept->id }}" name="departments[]" type="checkbox" value="{{ $dept->id }}"
-                                                        {{ in_array($dept->id, old('departments', [])) ? 'checked' : '' }}
-                                                        class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                                                </div>
-                                                <div class="ml-3 text-sm">
-                                                    <label for="department_{{ $dept->id }}" class="font-medium text-gray-700">{{ $dept->name }}</label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                <p class="mt-2 text-xs text-gray-500">Select one or more departments for this member.</p>
-                            </div>
-
-                            <div class="sm:col-span-3">
-                                <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
-                                <div class="mt-1">
-                                    <select name="gender" id="gender"
-                                            class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                        <option value="">Select gender</option>
-                                        <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
-                                        <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
-                                        <option value="other" {{ old('gender') === 'other' ? 'selected' : '' }}>Other</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="sm:col-span-3">
-                                <label for="membership_status" class="block text-sm font-medium text-gray-700">Membership status *</label>
-                                <div class="mt-1">
-                                    <select name="membership_status" id="membership_status" required
-                                            class="shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg px-4 py-3 bg-white transition duration-150 ease-in-out">
-                                        <option value="">Select status</option>
-                                        <option value="active" {{ old('membership_status') === 'active' ? 'selected' : '' }}>Active</option>
-                                        <option value="inactive" {{ old('membership_status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                        <option value="transferred" {{ old('membership_status') === 'transferred' ? 'selected' : '' }}>Transferred</option>
-                                        <option value="deceased" {{ old('membership_status') === 'deceased' ? 'selected' : '' }}>Deceased</option>
-                                    </select>
-                                </div>
+                                <label for="address" class="block text-sm font-medium text-gray-700">Street No and Name (eg: 2, Korogboji) *</label>
+                                <input type="text" name="address" id="address" value="{{ old('address') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Roles Section (if roles exist) -->
-                    @if(isset($roles) && $roles->count() > 0)
+                    <!-- Professional & Church Information -->
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
                         <div class="flex items-center justify-between mb-6">
                             <div>
-                                <h3 class="text-xl font-semibold text-gray-900">Church Roles</h3>
-                                <p class="mt-1 text-sm text-gray-500">Assign roles and responsibilities to the member.</p>
+                                <h3 class="text-xl font-semibold text-gray-900">Professional & Church Information</h3>
                             </div>
                         </div>
 
-                        <div class="mt-6">
-                            <fieldset>
-                                <legend class="sr-only">Church Roles</legend>
-                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                    @foreach($roles as $role)
-                                    <div class="relative flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="role_{{ $role->id }}" name="roles[]" type="checkbox" value="{{ $role->id }}"
-                                                   {{ in_array($role->id, old('roles', [])) ? 'checked' : '' }}
-                                                   class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="role_{{ $role->id }}" class="font-medium text-gray-700">{{ $role->name }}</label>
-                                            @if($role->description)
-                                            <p class="text-gray-500">{{ $role->description }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
+                        <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                            <div class="sm:col-span-3">
+                                <label for="profession" class="block text-sm font-medium text-gray-700">Profession / Occupation *</label>
+                                <input type="text" name="profession" id="profession" value="{{ old('profession') }}" required
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="church_group" class="block text-sm font-medium text-gray-700">Group in Church</label>
+                                <select name="church_group" id="church_group"
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Group</option>
+                                    @foreach(['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'] as $group)
+                                        <option value="{{ $group }}" {{ old('church_group') == $group ? 'selected' : '' }}>{{ $group }}</option>
                                     @endforeach
-                                </div>
-                            </fieldset>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-6">
+                                <label for="department" class="block text-sm font-medium text-gray-700">Department in Church *</label>
+                                <select name="department" id="department" required
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Department</option>
+                                    @foreach(['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'] as $dept)
+                                        <option value="{{ $dept }}" {{ old('department') == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? *</label>
+                                <select name="is_baptized" id="is_baptized" required
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Option</option>
+                                    <option value="YES" {{ old('is_baptized') == 'YES' ? 'selected' : '' }}>YES</option>
+                                    <option value="NO" {{ old('is_baptized') == 'NO' ? 'selected' : '' }}>NO</option>
+                                    <option value="MAYBE" {{ old('is_baptized') == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
+                                <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place') }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
+                                <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name') }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-6">
+                                <label for="spiritual_gifts" class="block text-sm font-medium text-gray-700">Spiritual Gifts</label>
+                                <textarea name="spiritual_gifts" id="spiritual_gifts" rows="3"
+                                          class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">{{ old('spiritual_gifts') }}</textarea>
+                            </div>
                         </div>
                     </div>
-                    @endif
+
+                    <!-- System Information -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">System Information</h3>
+                                <p class="mt-1 text-sm text-gray-500">Roles and account status.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                            <div class="sm:col-span-3">
+                                <label for="membership_status" class="block text-sm font-medium text-gray-700">Membership status</label>
+                                <select id="membership_status" name="membership_status"
+                                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    <option value="active" {{ old('membership_status') == 'active' ? 'selected' : '' }}>Active</option>
+                                    <option value="inactive" {{ old('membership_status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                    <option value="suspended" {{ old('membership_status') == 'suspended' ? 'selected' : '' }}>Suspended</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="pt-6 border-t border-gray-200">
-                    <div class="flex justify-end space-x-4">
-                        <a href="{{ route('members.index') }}" 
-                           class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                <div class="pt-5 border-t border-gray-200">
+                    <div class="flex justify-end gap-x-3">
+                        <a href="{{ route('members.index') }}"
+                           class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Cancel
                         </a>
-                        <button type="submit" 
-                                class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg text-base font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            Create Member
+                        <button type="submit"
+                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Save Member
                         </button>
                     </div>
                 </div>

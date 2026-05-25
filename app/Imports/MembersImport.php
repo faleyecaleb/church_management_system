@@ -85,21 +85,35 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         // Normalize column names (handle different naming conventions)
         $normalizedRow = $this->normalizeColumnNames($row);
 
-        // Force phone to be a string (Excel often parses numeric phone numbers as floats/ints)
+        // Force phone to be a string
         if (isset($normalizedRow['phone'])) {
             $normalizedRow['phone'] = (string) $normalizedRow['phone'];
         }
 
         $validator = Validator::make($normalizedRow, [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'date_of_birth' => 'nullable|date',
-            'baptism_date' => 'nullable|date',
-            'membership_status' => 'nullable|in:active,inactive,pending',
-            'gender' => 'nullable|in:male,female,other',
+            'last_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'other_names' => 'nullable|string|max:255',
+            'birth_day' => 'required|string|max:2',
+            'birth_month' => 'required|string|max:20',
+            'gender' => 'required|string|in:male,female,other,MALE,FEMALE,OTHER',
+            'emergency_contact_details' => 'nullable|string',
+            'marital_status' => 'required|string',
+            'partner_name' => 'nullable|string',
+            'phone' => 'required|string|max:20',
+            'state_of_origin' => 'required|string',
+            'lga_of_origin' => 'required|string',
+            'state_of_residence' => 'required|string',
+            'city_of_residence' => 'required|string',
+            'address' => 'required|string',
+            'profession' => 'required|string',
+            'church_group' => 'nullable|string',
+            'department' => 'required|string',
+            'is_baptized' => 'required|string',
+            'baptism_year_and_place' => 'nullable|string',
+            'baptism_church_name' => 'nullable|string',
+            'spiritual_gifts' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -108,15 +122,31 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         }
 
         return [
-            'first_name' => $normalizedRow['first_name'],
-            'last_name' => $normalizedRow['last_name'],
             'email' => strtolower(trim($normalizedRow['email'])),
-            'phone' => $normalizedRow['phone'] ?? null,
-            'address' => $normalizedRow['address'] ?? null,
-            'date_of_birth' => !empty($normalizedRow['date_of_birth']) ? Carbon::parse($normalizedRow['date_of_birth']) : null,
-            'baptism_date' => !empty($normalizedRow['baptism_date']) ? Carbon::parse($normalizedRow['baptism_date']) : null,
-            'membership_status' => $normalizedRow['membership_status'] ?? 'active',
-            'gender' => $normalizedRow['gender'] ?? null,
+            'last_name' => $normalizedRow['last_name'],
+            'first_name' => $normalizedRow['first_name'],
+            'other_names' => $normalizedRow['other_names'] ?? null,
+            'birth_day' => $normalizedRow['birth_day'],
+            'birth_month' => $normalizedRow['birth_month'],
+            'gender' => strtolower($normalizedRow['gender']),
+            'emergency_contact_details' => $normalizedRow['emergency_contact_details'] ?? null,
+            'marital_status' => $normalizedRow['marital_status'],
+            'partner_name' => $normalizedRow['partner_name'] ?? null,
+            'phone' => $normalizedRow['phone'],
+            'state_of_origin' => $normalizedRow['state_of_origin'],
+            'lga_of_origin' => $normalizedRow['lga_of_origin'],
+            'state_of_residence' => $normalizedRow['state_of_residence'],
+            'city_of_residence' => $normalizedRow['city_of_residence'],
+            'address' => $normalizedRow['address'],
+            'profession' => $normalizedRow['profession'],
+            'church_group' => $normalizedRow['church_group'] ?? null,
+            'department' => $normalizedRow['department'], // we'll use this below
+            'is_baptized' => $normalizedRow['is_baptized'],
+            'baptism_year_and_place' => $normalizedRow['baptism_year_and_place'] ?? null,
+            'baptism_church_name' => $normalizedRow['baptism_church_name'] ?? null,
+            'spiritual_gifts' => $normalizedRow['spiritual_gifts'] ?? null,
+            'membership_status' => 'active',
+            'member_type' => 'main_member',
         ];
     }
 
@@ -127,24 +157,52 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     {
         $normalized = [];
         $columnMapping = [
-            // Standard names
-            'first_name' => ['first_name', 'firstname', 'first name', 'given_name', 'given name'],
-            'last_name' => ['last_name', 'lastname', 'last name', 'surname', 'family_name', 'family name'],
-            'email' => ['email', 'email_address', 'email address', 'e_mail', 'e mail'],
-            'phone' => ['phone', 'phone_number', 'phone number', 'mobile', 'cell', 'telephone'],
-            'address' => ['address', 'home_address', 'home address', 'street_address', 'street address'],
-            'date_of_birth' => ['date_of_birth', 'dob', 'birth_date', 'birth date', 'birthday'],
-            'baptism_date' => ['baptism_date', 'baptism date', 'baptized_date', 'baptized date'],
-            'membership_status' => ['membership_status', 'membership status', 'status', 'member_status', 'member status'],
+            'email' => ['email', 'email_address', 'e_mail'],
+            'last_name' => ['lastname_surname', 'last_name', 'surname', 'lastname', 'family_name'],
+            'first_name' => ['firstname', 'first_name', 'given_name'],
+            'other_names' => ['others', 'other_names', 'middle_name'],
+            'birth_day' => ['day_of_birth', 'birth_day', 'day'],
+            'birth_month' => ['month_of_birth', 'birth_month', 'month'],
             'gender' => ['gender', 'sex'],
-            'departments' => ['departments', 'department', 'ministry', 'ministries', 'groups', 'group']
+            'emergency_contact_details' => ['emergency_contact_name_phone_number', 'emergency_contact', 'emergency_contact_details'],
+            'marital_status' => ['marital_status', 'status'],
+            'partner_name' => ['name_of_partner_if_married', 'name_of_partner', 'partner_name', 'spouse_name'],
+            'phone' => ['phone_number_primary', 'phone_number', 'phone', 'mobile'],
+            'state_of_origin' => ['state_of_origin', 'state_origin'],
+            'lga_of_origin' => ['local_government_of_origin', 'lga_of_origin', 'lga'],
+            'state_of_residence' => ['state_of_residence', 'state_residence'],
+            'city_of_residence' => ['city_of_residence', 'city_residence'],
+            'address' => ['street_no_and_name_eg_2_korogboji', 'street_no_and_name', 'address', 'street'],
+            'profession' => ['profession_occupation', 'profession', 'occupation'],
+            'church_group' => ['group_in_church', 'church_group', 'group'],
+            'department' => ['department_in_church', 'department', 'departments', 'ministry'],
+            'is_baptized' => ['are_you_baptized', 'is_baptized', 'baptized'],
+            'baptism_year_and_place' => ['what_year_and_where', 'baptism_year_and_place'],
+            'baptism_church_name' => ['name_of_the_church', 'baptism_church_name'],
+            'spiritual_gifts' => ['spiritual_gifts', 'gifts']
         ];
+
+        // Ensure keys are strictly lowercase alphanumeric for matching from exact headings
+        $cleanRow = [];
+        foreach ($row as $key => $value) {
+            $cleanKey = preg_replace('/[^a-z0-9_]/', '_', strtolower(trim($key)));
+            $cleanRow[$cleanKey] = $value;
+        }
 
         foreach ($columnMapping as $standardName => $variations) {
             foreach ($variations as $variation) {
-                if (isset($row[$variation])) {
-                    $normalized[$standardName] = $row[$variation];
+                // Check exact variation or slugified version of typical headers
+                if (isset($cleanRow[$variation])) {
+                    $normalized[$standardName] = $cleanRow[$variation];
                     break;
+                }
+                
+                // Fallback check on original keys just in case
+                foreach ($row as $rawKey => $rawValue) {
+                    if (str_replace(' ', '_', strtolower(trim($rawKey))) === $variation) {
+                        $normalized[$standardName] = $rawValue;
+                        break 2;
+                    }
                 }
             }
         }
@@ -164,10 +222,10 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
 
         $member = Member::create($memberData);
         
-        // Handle departments
+        // Handle department
         $normalizedRow = $this->normalizeColumnNames($row);
-        if (!empty($normalizedRow['departments'])) {
-            $this->assignDepartments($member, $normalizedRow['departments']);
+        if (!empty($normalizedRow['department'])) {
+            $this->assignDepartments($member, $normalizedRow['department']);
         }
 
         $this->syncUserAccount($memberData);
@@ -182,11 +240,11 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     {
         $member->update($memberData);
         
-        // Handle departments - remove existing and add new ones
+        // Handle department - remove existing and add new ones
         $normalizedRow = $this->normalizeColumnNames($row);
-        if (!empty($normalizedRow['departments'])) {
+        if (!empty($normalizedRow['department'])) {
             $member->departments()->delete();
-            $this->assignDepartments($member, $normalizedRow['departments']);
+            $this->assignDepartments($member, $normalizedRow['department']);
         }
 
         $this->syncUserAccount(array_merge($memberData, ['password' => $member->password]));
@@ -201,11 +259,17 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     {
         $departments = array_map('trim', explode(',', $departmentsString));
         
-        foreach ($departments as $department) {
-            if (!empty($department)) {
-                MemberDepartment::create([
+        foreach ($departments as $departmentName) {
+            if (!empty($departmentName)) {
+                // Find or create department by name
+                $department = \App\Models\Department::firstOrCreate(
+                    ['name' => $departmentName],
+                    ['is_active' => true, 'description' => $departmentName . ' Department']
+                );
+                
+                \App\Models\MemberDepartment::updateOrCreate([
                     'member_id' => $member->id,
-                    'department' => $department
+                    'department_id' => $department->id
                 ]);
             }
         }

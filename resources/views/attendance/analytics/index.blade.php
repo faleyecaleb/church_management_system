@@ -27,19 +27,47 @@
                     <option value="365" {{ $timeframe == '365' ? 'selected' : '' }}>Last 365 Days</option>
                 </select>
 
-                <!-- Month/Year Dropdowns -->
-                <div id="month_filter" class="flex space-x-2 {{ $filterType == 'timeframe' ? 'hidden' : '' }}">
-                    <select name="month" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
+                <!-- Date Range Dropdowns -->
+                <div id="month_filter" class="flex flex-wrap items-center space-x-2 {{ $filterType == 'timeframe' ? 'hidden' : '' }}">
+                    <span class="text-xs font-medium text-gray-500 hidden sm:block">From:</span>
+                    <select name="start_month" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
                         @for($m=1; $m<=12; $m++)
-                            <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
+                            <option value="{{ $m }}" {{ $start_month == $m ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $m, 1)) }}</option>
                         @endfor
                     </select>
-                    <select name="year" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
+                    <select name="start_year" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
                         @for($y=date('Y'); $y>=2020; $y--)
-                            <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            <option value="{{ $y }}" {{ $start_year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                    
+                    <span class="text-xs font-medium text-gray-500 ml-2 hidden sm:block">To:</span>
+                    <select name="end_month" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
+                        @for($m=1; $m<=12; $m++)
+                            <option value="{{ $m }}" {{ $end_month == $m ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $m, 1)) }}</option>
+                        @endfor
+                    </select>
+                    <select name="end_year" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
+                        @for($y=date('Y'); $y>=2020; $y--)
+                            <option value="{{ $y }}" {{ $end_year == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
                 </div>
+                
+                <!-- Department and Group -->
+                <select name="department" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
+                    <option value="">All Departments</option>
+                    @foreach($formDepartments ?? [] as $dept)
+                        <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                    @endforeach
+                </select>
+
+                <select name="church_group" class="rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm py-2">
+                    <option value="">All Groups</option>
+                    @foreach($formGroups ?? [] as $group)
+                        <option value="{{ $group }}" {{ request('church_group') == $group ? 'selected' : '' }}>{{ $group }}</option>
+                    @endforeach
+                </select>
 
                 <button type="submit" class="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
