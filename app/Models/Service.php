@@ -158,12 +158,18 @@ class Service extends Model
         }
 
         $now = now();
-        $serviceTime = $this->start_time;
-        $gracePeriod = config('church.attendance.grace_period', 15); // 15 minutes default
+        
+        // Ensure we are comparing today's date with the service's start and end times
+        $serviceTime = \Carbon\Carbon::parse($now->format('Y-m-d') . ' ' . $this->start_time->format('H:i:s'));
+        
+        $endTime = $this->end_time 
+            ? \Carbon\Carbon::parse($now->format('Y-m-d') . ' ' . $this->end_time->format('H:i:s'))
+            : $serviceTime->copy()->addHours(4); // Default to 4 hours if end time is missing
 
+        // Allow check-in 2 hours before the service starts, and until the service ends.
         return $now->between(
-            $serviceTime->copy()->subHours(1), // Allow check-in 1 hour before service
-            $serviceTime->copy()->addMinutes($gracePeriod) // Until grace period ends
+            $serviceTime->copy()->subHours(2), 
+            $endTime
         );
     }
 }

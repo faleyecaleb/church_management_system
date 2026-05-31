@@ -218,4 +218,44 @@ class OrderOfServiceController extends Controller
         
         return view('order-of-services.print', compact('service', 'orderOfServices', 'totalDuration'));
     }
+
+    /**
+     * Download the bulk import template.
+     */
+    public function downloadTemplate()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\OrderOfServiceTemplateExport(), 
+            'order_of_service_template.xlsx'
+        );
+    }
+
+    /**
+     * Import order of service items from excel file.
+     */
+    public function import(Request $request, Service $service)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
+        ]);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(
+                new \App\Imports\OrderOfServiceImport($service->id, $service->church_id), 
+                $request->file('file')
+            );
+
+            return redirect()->route('services.order-of-services.index', $service->id)
+                ->with('success', 'Order of Service items imported successfully.');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $messages = [];
+            foreach ($failures as $failure) {
+                $messages[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+            }
+            return back()->with('error', 'Import failed due to validation errors.')->with('import_errors', $messages);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error importing file: ' . $e->getMessage());
+        }
+    }
 }

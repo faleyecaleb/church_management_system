@@ -47,9 +47,29 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
-                    Generate Report
+            <div class="w-48">
+                <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <select name="department" id="department" 
+                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    <option value="">All Departments</option>
+                    @foreach($formDepartments ?? [] as $dept)
+                        <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-48">
+                <label for="church_group" class="block text-sm font-medium text-gray-700 mb-1">Church Group</label>
+                <select name="church_group" id="church_group" 
+                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    <option value="">All Groups</option>
+                    @foreach($formGroups ?? [] as $group)
+                        <option value="{{ $group }}" {{ request('church_group') == $group ? 'selected' : '' }}>{{ $group }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex items-end mt-4 lg:mt-0 w-full lg:w-auto">
+                <button type="submit" class="w-full lg:w-auto px-6 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-sm font-medium">
+                    Apply Filters
                 </button>
             </div>
         </form>
@@ -118,11 +138,28 @@
         </div>
     </div>
 
-    <!-- Attendance Chart -->
+    <!-- Attendance Trend Chart -->
     <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 mb-6 hover:bg-white/90 transition-all duration-300">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Attendance Trends</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Attendance Trends (Over Time)</h3>
         <div class="chart-container">
             <canvas id="attendanceChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Demographics Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 hover:bg-white/90 transition-all duration-300">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Attendance by Department</h3>
+            <div class="chart-container">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 p-6 hover:bg-white/90 transition-all duration-300">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Attendance by Church Group</h3>
+            <div class="chart-container">
+                <canvas id="groupChart"></canvas>
+            </div>
         </div>
     </div>
 

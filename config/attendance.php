@@ -27,7 +27,7 @@ return [
     'enable_mobile_checkin' => env('ENABLE_MOBILE_CHECKIN', true),
 
     // Geofencing settings
-    'require_geofencing' => env('REQUIRE_GEOFENCING', false),
+    'require_geofencing' => env('REQUIRE_GEOFENCING', true),
     'allowed_distance' => env('ALLOWED_DISTANCE', 100), // Distance in meters
 
     // Church location coordinates

@@ -244,6 +244,8 @@ Route::resource('members', MemberController::class);
     Route::get('order-of-services', [OrderOfServiceController::class, 'overview'])->name('order-of-services.overview');
     
     // Additional Order of Service routes
+    Route::post('services/{service}/order-of-services/import', [OrderOfServiceController::class, 'import'])->name('services.order-of-services.import');
+    Route::get('services/order-of-services/template', [OrderOfServiceController::class, 'downloadTemplate'])->name('services.order-of-services.template');
     Route::post('services/{service}/order-of-services/reorder', [OrderOfServiceController::class, 'reorder'])->name('services.order-of-services.reorder');
     Route::post('services/{service}/order-of-services/duplicate', [OrderOfServiceController::class, 'duplicate'])->name('services.order-of-services.duplicate');
     Route::get('services/{service}/order-of-services/print', [OrderOfServiceController::class, 'print'])->name('services.order-of-services.print');
@@ -276,7 +278,7 @@ Route::resource('members', MemberController::class);
         // Legacy Service Attendance Management
         Route::get('/services/{service}', [AttendanceController::class, 'index'])->name('index');
         Route::get('/services/{serviceId}/qr-code', [AttendanceController::class, 'showQrCode'])->name('qr-code');
-        Route::post('/services/{service}/process-qr', [AttendanceController::class, 'processQrCode'])->name('process-qr');
+        Route::match(['get', 'post'], '/services/{service}/process-qr', [AttendanceController::class, 'processQrCode'])->name('process-qr');
 
         // Member Check-in/out
         Route::post('/services/{service}/members/{member}/check-in', [AttendanceController::class, 'checkInMember'])->name('check-in-member');

@@ -62,30 +62,69 @@ class AttendanceController extends Controller
         if ($request->filled('service_id')) {
             $query->where('service_id', $request->input('service_id'));
         }
+        
+        if ($request->filled('department')) {
+            $query->whereHas('member.departments.department', function ($q) use ($request) {
+                $q->where('name', $request->input('department'));
+            });
+        }
+        
+        if ($request->filled('church_group')) {
+            $query->whereHas('member', function ($q) use ($request) {
+                $q->where('church_group', $request->input('church_group'));
+            });
+        }
 
         $attendances = $query->paginate(20);
         $services = Service::active()->get();
+        
+        $formDepartments = ['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'];
+        $formGroups = ['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'];
 
-        return view('attendance.workers', compact('attendances', 'services', 'date'));
+        return view('attendance.workers', compact('attendances', 'services', 'date', 'formDepartments', 'formGroups'));
     }
 
     public function report(Request $request)    {
         // Get services for the filter dropdown
         $services = Service::active()->get();
 
-        // Initialize query with date range filter
-        $query = Attendance::query();
-        if ($request->filled(['start_date', 'end_date'])) {
-            $query->whereBetween('check_in_time', [
-                $request->input('start_date') . ' 00:00:00',
-                $request->input('end_date') . ' 23:59:59'
-            ]);
-        }
+        // Standard dropdown lists for filters
+        $formDepartments = ['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'];
+        $formGroups = ['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'];
 
-        // Filter by service if specified
-        if ($request->filled('service_id')) {
-            $query->where('service_id', $request->input('service_id'));
-        }
+        // Apply filters closure
+        $applyFilters = function($q) use ($request) {
+            if ($request->filled(['start_date', 'end_date'])) {
+                $q->whereBetween('check_in_time', [
+                    $request->input('start_date') . ' 00:00:00',
+                    $request->input('end_date') . ' 23:59:59'
+                ]);
+            }
+            if ($request->filled('service_id')) {
+                $q->where('service_id', $request->input('service_id'));
+            }
+            
+            // Join member if we need to filter by department or group
+            if ($request->filled('department') || $request->filled('church_group')) {
+                $q->join('members', 'attendances.member_id', '=', 'members.id');
+                
+                if ($request->filled('department')) {
+                    $q->join('member_departments', 'members.id', '=', 'member_departments.member_id')
+                      ->join('departments', 'member_departments.department_id', '=', 'departments.id')
+                      ->where('departments.name', $request->input('department'));
+                }
+                
+                if ($request->filled('church_group')) {
+                    $q->where('members.church_group', $request->input('church_group'));
+                }
+                // select attendances.* to avoid ambiguity
+                $q->select('attendances.*');
+            }
+        };
+
+        // Initialize query
+        $query = Attendance::query();
+        $applyFilters($query);
 
         // Calculate statistics
         $totalAttendance = $query->count();
@@ -108,24 +147,45 @@ class AttendanceController extends Controller
             $previousStartDate = \Carbon\Carbon::parse($startDate)->subDays($periodLength + 1);
             $previousEndDate = \Carbon\Carbon::parse($startDate)->subDay();
             
-            $previousPeriodQuery->whereBetween('check_in_time', [
+            $previousPeriodQuery->whereBetween('attendances.check_in_time', [
                 $previousStartDate->format('Y-m-d') . ' 00:00:00',
                 $previousEndDate->format('Y-m-d') . ' 23:59:59'
             ]);
             
-            $currentPeriodQuery->whereBetween('check_in_time', [
+            $currentPeriodQuery->whereBetween('attendances.check_in_time', [
                 $startDate . ' 00:00:00',
                 $endDate . ' 23:59:59'
             ]);
         } else {
-            $previousPeriodQuery->where('check_in_time', '<', now()->subMonth());
-            $currentPeriodQuery->where('check_in_time', '>=', now()->subMonth());
+            $previousPeriodQuery->where('attendances.check_in_time', '<', now()->subMonth());
+            $currentPeriodQuery->where('attendances.check_in_time', '>=', now()->subMonth());
         }
         
         if ($request->filled('service_id')) {
-            $previousPeriodQuery->where('service_id', $request->input('service_id'));
-            $currentPeriodQuery->where('service_id', $request->input('service_id'));
+            $previousPeriodQuery->where('attendances.service_id', $request->input('service_id'));
+            $currentPeriodQuery->where('attendances.service_id', $request->input('service_id'));
         }
+
+        // Apply department and group filters if present (without overwriting date/service filters applied above)
+        $applySecondaryFilters = function($q) use ($request) {
+            if ($request->filled('department') || $request->filled('church_group')) {
+                $q->join('members', 'attendances.member_id', '=', 'members.id');
+                
+                if ($request->filled('department')) {
+                    $q->join('member_departments', 'members.id', '=', 'member_departments.member_id')
+                      ->join('departments', 'member_departments.department_id', '=', 'departments.id')
+                      ->where('departments.name', $request->input('department'));
+                }
+                
+                if ($request->filled('church_group')) {
+                    $q->where('members.church_group', $request->input('church_group'));
+                }
+                $q->select('attendances.*');
+            }
+        };
+
+        $applySecondaryFilters($previousPeriodQuery);
+        $applySecondaryFilters($currentPeriodQuery);
         
         $previousPeriodCount = $previousPeriodQuery->count();
         $currentPeriodCount = $currentPeriodQuery->count();
@@ -137,50 +197,54 @@ class AttendanceController extends Controller
         $attendanceRecordsQuery = Attendance::query();
         
         if ($request->filled(['start_date', 'end_date'])) {
-            $attendanceRecordsQuery->whereBetween('check_in_time', [
+            $attendanceRecordsQuery->whereBetween('attendances.check_in_time', [
                 $request->input('start_date') . ' 00:00:00',
                 $request->input('end_date') . ' 23:59:59'
             ]);
         }
 
         if ($request->filled('service_id')) {
-            $attendanceRecordsQuery->where('service_id', $request->input('service_id'));
+            $attendanceRecordsQuery->where('attendances.service_id', $request->input('service_id'));
         }
+
+        $applySecondaryFilters($attendanceRecordsQuery);
         
         $attendanceRecords = $attendanceRecordsQuery->select(
-                DB::raw('DATE(check_in_time) as date'),
+                DB::raw('DATE(attendances.check_in_time) as date'),
                 'services.name as service_name',
-                DB::raw('COUNT(*) as count'),
-                'check_in_method'
+                DB::raw('COUNT(attendances.id) as count'),
+                'attendances.check_in_method'
             )
             ->join('services', 'services.id', '=', 'attendances.service_id')
-            ->groupBy(DB::raw('DATE(check_in_time)'), 'services.name', 'check_in_method')
-            ->orderByDesc(DB::raw('DATE(check_in_time)'))
+            ->groupBy(DB::raw('DATE(attendances.check_in_time)'), 'services.name', 'attendances.check_in_method')
+            ->orderByDesc(DB::raw('DATE(attendances.check_in_time)'))
             ->paginate(10);
 
         // Prepare chart data (separate query for chart to avoid pagination issues)
         $chartQuery = Attendance::query();
         
         if ($request->filled(['start_date', 'end_date'])) {
-            $chartQuery->whereBetween('check_in_time', [
+            $chartQuery->whereBetween('attendances.check_in_time', [
                 $request->input('start_date') . ' 00:00:00',
                 $request->input('end_date') . ' 23:59:59'
             ]);
         } else {
             // Default to last 30 days if no date range specified
-            $chartQuery->where('check_in_time', '>=', now()->subDays(30));
+            $chartQuery->where('attendances.check_in_time', '>=', now()->subDays(30));
         }
 
         if ($request->filled('service_id')) {
-            $chartQuery->where('service_id', $request->input('service_id'));
+            $chartQuery->where('attendances.service_id', $request->input('service_id'));
         }
+
+        $applySecondaryFilters($chartQuery);
         
         $chartDataRaw = $chartQuery->select(
-                DB::raw('DATE(check_in_time) as date'),
-                DB::raw('COUNT(*) as count')
+                DB::raw('DATE(attendances.check_in_time) as date'),
+                DB::raw('COUNT(attendances.id) as count')
             )
-            ->groupBy(DB::raw('DATE(check_in_time)'))
-            ->orderBy(DB::raw('DATE(check_in_time)'))
+            ->groupBy(DB::raw('DATE(attendances.check_in_time)'))
+            ->orderBy(DB::raw('DATE(attendances.check_in_time)'))
             ->get();
 
         $chartData = [
@@ -188,14 +252,68 @@ class AttendanceController extends Controller
             'data' => $chartDataRaw->pluck('count')->toArray()
         ];
 
+        // Fetch distribution for Departments
+        $deptQuery = Attendance::query()
+            ->join('members', 'attendances.member_id', '=', 'members.id')
+            ->join('member_departments', 'members.id', '=', 'member_departments.member_id')
+            ->join('departments', 'member_departments.department_id', '=', 'departments.id');
+            
+        if ($request->filled(['start_date', 'end_date'])) {
+            $deptQuery->whereBetween('attendances.check_in_time', [
+                $request->input('start_date') . ' 00:00:00',
+                $request->input('end_date') . ' 23:59:59'
+            ]);
+        }
+        if ($request->filled('service_id')) {
+            $deptQuery->where('attendances.service_id', $request->input('service_id'));
+        }
+        
+        $deptDistributionRaw = $deptQuery->select('departments.name as label', DB::raw('COUNT(attendances.id) as count'))
+            ->groupBy('departments.name')
+            ->get();
+
+        $deptChartData = [
+            'labels' => $deptDistributionRaw->pluck('label')->toArray(),
+            'data' => $deptDistributionRaw->pluck('count')->toArray()
+        ];
+
+        // Fetch distribution for Groups
+        $groupQuery = Attendance::query()
+            ->join('members', 'attendances.member_id', '=', 'members.id')
+            ->whereNotNull('members.church_group')
+            ->where('members.church_group', '!=', '');
+            
+        if ($request->filled(['start_date', 'end_date'])) {
+            $groupQuery->whereBetween('attendances.check_in_time', [
+                $request->input('start_date') . ' 00:00:00',
+                $request->input('end_date') . ' 23:59:59'
+            ]);
+        }
+        if ($request->filled('service_id')) {
+            $groupQuery->where('attendances.service_id', $request->input('service_id'));
+        }
+        
+        $groupDistributionRaw = $groupQuery->select('members.church_group as label', DB::raw('COUNT(attendances.id) as count'))
+            ->groupBy('members.church_group')
+            ->get();
+
+        $groupChartData = [
+            'labels' => $groupDistributionRaw->pluck('label')->toArray(),
+            'data' => $groupDistributionRaw->pluck('count')->toArray()
+        ];
+
         return view('attendance.report', compact(
             'services',
+            'formDepartments',
+            'formGroups',
             'totalAttendance',
             'averageAttendance',
             'peakAttendance',
             'growthRate',
             'attendanceRecords',
-            'chartData'
+            'chartData',
+            'deptChartData',
+            'groupChartData'
         ));
     }
 
@@ -310,7 +428,21 @@ class AttendanceController extends Controller
     public function showQrCode($serviceId)
     {
         if ($serviceId === 'current') {
-            $service = Service::whereDate('date', today())->orderBy('start_time', 'asc')->first();
+            // Find today's recurring service or one-time service
+            $service = Service::where(function($q) {
+                $q->where(function($subQ) {
+                    $subQ->where('is_recurring', true)
+                         ->where('day_of_week', today()->dayOfWeek);
+                })
+                ->orWhere(function($subQ) {
+                    $subQ->where('is_recurring', false)
+                         ->whereDate('date', today());
+                });
+            })
+            ->where('status', 'active')
+            ->orderBy('start_time', 'asc')
+            ->first();
+            
             if (!$service) {
                 return redirect()->route('attendance.dashboard')->with('error', 'No active service found for today.');
             }
@@ -633,7 +765,12 @@ class AttendanceController extends Controller
      */
     protected function getQrExpiryTime(Service $service)
     {
-        return $service->start_time->addMinutes(config('attendance.qr_expiry_after', 15));
+        // Expire the QR code at the end time of the service, or default to 2 hours from start if end_time is not set
+        if ($service->end_time) {
+            return $service->end_time;
+        }
+        
+        return $service->start_time->addHours(2);
     }
 
     /**
