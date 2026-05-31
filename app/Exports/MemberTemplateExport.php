@@ -12,6 +12,13 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths, WithTitle
 {
+    protected $isYouthChurch;
+
+    public function __construct()
+    {
+        $this->isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+    }
+
     public function array(): array
     {
         return [
@@ -32,7 +39,7 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
                 'Lagos',
                 'Ikeja',
                 '123 Main St, Ikeja',
-                'Software Engineer',
+                $this->isYouthChurch ? 'Student' : 'Software Engineer',
                 'Men Fellowship',
                 'CHOIR',
                 'YES',
@@ -62,7 +69,7 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
             'STATE OF RESIDENCE *',
             'CITY OF RESIDENCE *',
             'STREET NO AND NAME (eg: 2, Korogboji) *',
-            'PROFESSION/OCCUPATION *',
+            $this->isYouthChurch ? 'VOCATION/OCCUPATION *' : 'PROFESSION/OCCUPATION *',
             'GROUP IN CHURCH',
             'DEPARTMENT IN CHURCH *',
             'ARE YOU BAPTIZED ? *',
@@ -127,6 +134,6 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
 
     public function title(): string
     {
-        return 'Adult Member Import Template';
+        return $this->isYouthChurch ? 'Youth Member Import Template' : 'Adult Member Import Template';
     }
 }

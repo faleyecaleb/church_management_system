@@ -20,36 +20,38 @@
                 <x-validation-errors />
 
                 <div class="space-y-8">
-                    <!-- Profile Photo -->
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-semibold text-gray-900">Profile Photo</h3>
-                                <p class="mt-1 text-sm text-gray-500">Upload a profile photo for the member.</p>
-                            </div>
-                            <div class="flex items-center space-x-6">
-                                <div class="h-32 w-32 rounded-full ring-4 ring-indigo-50 overflow-hidden bg-gray-100">
-                                    <div class="h-32 w-32 rounded-full bg-gray-200 flex items-center justify-center">
-                                        <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
+                    @if(!auth()->user()->church || auth()->user()->church->type !== 'youth')
+                        <!-- Profile Photo -->
+                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900">Profile Photo</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Upload a profile photo for the member.</p>
                                 </div>
-                                <div class="flex-1">
-                                    <label class="block">
-                                        <span class="sr-only">Choose profile photo</span>
-                                        <input type="file" name="profile_photo" id="profile_photo" accept="image/*"
-                                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6
-                                                      file:rounded-full file:border-0 file:text-sm file:font-semibold
-                                                      file:bg-gradient-to-r file:from-indigo-600 file:to-purple-600 file:text-white
-                                                      hover:file:bg-gradient-to-r hover:file:from-indigo-700 hover:file:to-purple-700
-                                                      focus:outline-none">
-                                    </label>
-                                    <p class="mt-2 text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                                <div class="flex items-center space-x-6">
+                                    <div class="h-32 w-32 rounded-full ring-4 ring-indigo-50 overflow-hidden bg-gray-100">
+                                        <div class="h-32 w-32 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block">
+                                            <span class="sr-only">Choose profile photo</span>
+                                            <input type="file" name="profile_photo" id="profile_photo" accept="image/*"
+                                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6
+                                                          file:rounded-full file:border-0 file:text-sm file:font-semibold
+                                                          file:bg-gradient-to-r file:from-indigo-600 file:to-purple-600 file:text-white
+                                                          hover:file:bg-gradient-to-r hover:file:from-indigo-700 hover:file:to-purple-700
+                                                          focus:outline-none">
+                                        </label>
+                                        <p class="mt-2 text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
 
                     <!-- Personal Information -->
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
@@ -199,11 +201,24 @@
                         </div>
 
                         <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                            <div class="sm:col-span-3">
-                                <label for="profession" class="block text-sm font-medium text-gray-700">Profession / Occupation *</label>
-                                <input type="text" name="profession" id="profession" value="{{ old('profession', $member->profession) }}" required
-                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                            </div>
+                            @if(auth()->user()->church && auth()->user()->church->type === 'youth')
+                                <div class="sm:col-span-3">
+                                    <label for="profession" class="block text-sm font-medium text-gray-700">Vocation / Occupation *</label>
+                                    <select name="profession" id="profession" required
+                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        <option value="">Select Vocation</option>
+                                        <option value="Student" {{ old('profession', $member->profession) == 'Student' ? 'selected' : '' }}>Student</option>
+                                        <option value="Working Student" {{ old('profession', $member->profession) == 'Working Student' ? 'selected' : '' }}>Working Student</option>
+                                        <option value="Working Class" {{ old('profession', $member->profession) == 'Working Class' ? 'selected' : '' }}>Working Class</option>
+                                    </select>
+                                </div>
+                            @else
+                                <div class="sm:col-span-3">
+                                    <label for="profession" class="block text-sm font-medium text-gray-700">Profession / Occupation *</label>
+                                    <input type="text" name="profession" id="profession" value="{{ old('profession', $member->profession) }}" required
+                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            @endif
 
                             <div class="sm:col-span-3">
                                 <label for="church_group" class="block text-sm font-medium text-gray-700">Group in Church</label>
@@ -221,64 +236,105 @@
                                 <select name="department" id="department" required
                                         class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                     <option value="">Select Department</option>
-                                    @foreach(['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'] as $dept)
-                                        <option value="{{ $dept }}" {{ old('department', $member->departments->first()?->department?->name) == $dept ? 'selected' : '' }}>{{ $dept }}</option>
-                                    @endforeach
+                                    @if(auth()->user()->church && auth()->user()->church->type === 'youth')
+                                        @foreach(['CHOIR', 'EVANGELISM', 'AESTHETICS', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'MEDIA', 'PROTOCOL', 'PRAYER', 'NONE'] as $dept)
+                                            <option value="{{ $dept }}" {{ old('department', $member->departments->first()?->department?->name) == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                                        @endforeach
+                                    @else
+                                        @foreach(['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'] as $dept)
+                                            <option value="{{ $dept }}" {{ old('department', $member->departments->first()?->department?->name) == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
 
-                            <div class="sm:col-span-2">
-                                <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? *</label>
-                                <select name="is_baptized" id="is_baptized" required
-                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                    <option value="">Select Option</option>
-                                    <option value="YES" {{ old('is_baptized', $member->is_baptized) == 'YES' ? 'selected' : '' }}>YES</option>
-                                    <option value="NO" {{ old('is_baptized', $member->is_baptized) == 'NO' ? 'selected' : '' }}>NO</option>
-                                    <option value="MAYBE" {{ old('is_baptized', $member->is_baptized) == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
-                                </select>
-                            </div>
+                            @if(!auth()->user()->church || auth()->user()->church->type !== 'youth')
+                                <div class="sm:col-span-2">
+                                    <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? *</label>
+                                    <select name="is_baptized" id="is_baptized" required
+                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        <option value="">Select Option</option>
+                                        <option value="YES" {{ old('is_baptized', $member->is_baptized) == 'YES' ? 'selected' : '' }}>YES</option>
+                                        <option value="NO" {{ old('is_baptized', $member->is_baptized) == 'NO' ? 'selected' : '' }}>NO</option>
+                                        <option value="MAYBE" {{ old('is_baptized', $member->is_baptized) == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
+                                    </select>
+                                </div>
 
-                            <div class="sm:col-span-2">
-                                <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
-                                <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place', $member->baptism_year_and_place) }}"
-                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                            </div>
+                                <div class="sm:col-span-2">
+                                    <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
+                                    <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place', $member->baptism_year_and_place) }}"
+                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
 
-                            <div class="sm:col-span-2">
-                                <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
-                                <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name', $member->baptism_church_name) }}"
-                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                            </div>
+                                <div class="sm:col-span-2">
+                                    <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
+                                    <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name', $member->baptism_church_name) }}"
+                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            @endif
+
+                            @if(auth()->user()->church && auth()->user()->church->type === 'youth')
+                                <!-- Youth Specific Baptism Fields -->
+                                <div class="sm:col-span-3">
+                                    <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you baptized? *</label>
+                                    <select name="is_baptized" id="is_baptized" required
+                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            onchange="document.getElementById('baptism_details_div').classList.toggle('hidden', this.value !== '1' && this.value !== 'YES')">
+                                        <option value="">Select Status</option>
+                                        <option value="1" {{ old('is_baptized', $member->is_baptized) == '1' || old('is_baptized', $member->is_baptized) == 'YES' ? 'selected' : '' }}>Yes</option>
+                                        <option value="0" {{ old('is_baptized', $member->is_baptized) == '0' || old('is_baptized', $member->is_baptized) == 'NO' ? 'selected' : '' }}>No</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="baptism_details_div" class="sm:col-span-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 {{ (old('is_baptized', $member->is_baptized) == '1' || old('is_baptized', $member->is_baptized) == 'YES') ? '' : 'hidden' }} p-4 bg-indigo-50 rounded-lg">
+                                    <div class="sm:col-span-3">
+                                        <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">Year and Place of Baptism</label>
+                                        <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place', $member->baptism_year_and_place) }}" placeholder="e.g., 2018 at Lagos"
+                                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <div class="sm:col-span-3">
+                                        <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Church Name (If not CAC Hosanna)</label>
+                                        <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name', $member->baptism_church_name) }}"
+                                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                </div>
+                            @endif
 
                             <div class="sm:col-span-6">
                                 <label for="spiritual_gifts" class="block text-sm font-medium text-gray-700">Spiritual Gifts</label>
                                 <textarea name="spiritual_gifts" id="spiritual_gifts" rows="3"
-                                          class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">{{ old('spiritual_gifts', $member->spiritual_gifts) }}</textarea>
+                                          class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                          placeholder="e.g., Teaching, Prophecy, Giving, etc.">{{ old('spiritual_gifts', $member->spiritual_gifts) }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- System Information -->
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-xl font-semibold text-gray-900">System Information</h3>
-                                <p class="mt-1 text-sm text-gray-500">Roles and account status.</p>
+                    @if(!auth()->user()->church || auth()->user()->church->type !== 'youth')
+                        <!-- System Information -->
+                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900">System Information</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Roles and account status.</p>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                            <div class="sm:col-span-3">
-                                <label for="membership_status" class="block text-sm font-medium text-gray-700">Membership status</label>
-                                <select id="membership_status" name="membership_status"
-                                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                    <option value="active" {{ old('membership_status', $member->membership_status) == 'active' ? 'selected' : '' }}>Active</option>
-                                    <option value="inactive" {{ old('membership_status', $member->membership_status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                    <option value="suspended" {{ old('membership_status', $member->membership_status) == 'suspended' ? 'selected' : '' }}>Suspended</option>
-                                </select>
+                            <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                <div class="sm:col-span-3">
+                                    <label for="membership_status" class="block text-sm font-medium text-gray-700">Membership status</label>
+                                    <select id="membership_status" name="membership_status"
+                                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                        <option value="active" {{ old('membership_status', $member->membership_status) == 'active' ? 'selected' : '' }}>Active</option>
+                                        <option value="inactive" {{ old('membership_status', $member->membership_status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                        <option value="suspended" {{ old('membership_status', $member->membership_status) == 'suspended' ? 'selected' : '' }}>Suspended</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <!-- Hidden defaults for Youth Church -->
+                        <input type="hidden" name="membership_status" value="{{ $member->membership_status ?? 'active' }}">
+                    @endif
                 </div>
 
                 <div class="pt-5 border-t border-gray-200">

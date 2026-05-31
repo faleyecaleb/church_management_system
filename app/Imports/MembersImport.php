@@ -173,7 +173,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             'state_of_residence' => ['state_of_residence', 'state_residence'],
             'city_of_residence' => ['city_of_residence', 'city_residence'],
             'address' => ['street_no_and_name_eg_2_korogboji', 'street_no_and_name', 'address', 'street'],
-            'profession' => ['profession_occupation', 'profession', 'occupation'],
+            'profession' => ['vocation_occupation', 'vocation', 'profession_occupation', 'profession', 'occupation'],
             'church_group' => ['group_in_church', 'church_group', 'group'],
             'department' => ['department_in_church', 'department', 'departments', 'ministry'],
             'is_baptized' => ['are_you_baptized', 'is_baptized', 'baptized'],
