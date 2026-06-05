@@ -35,9 +35,30 @@ use App\Http\Controllers\PublicComplaintController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\MembershipStatusController;
 
+// Public Landing Page and Frontend Routes
+Route::get('/', function () {
+    return view('frontend.home');
+})->name('home');
+
+Route::get('/about', function () {
+    return view('frontend.about');
+})->name('about');
+
+Route::get('/ministries', function () {
+    return view('frontend.ministries');
+})->name('ministries');
+
+Route::get('/events', function () {
+    return view('frontend.events');
+})->name('events');
+
+Route::get('/ministers', function () {
+    return view('frontend.ministers');
+})->name('ministers');
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [AuthController::class, 'login'])->name('admin.login');
 });
 
