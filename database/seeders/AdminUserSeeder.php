@@ -15,7 +15,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         // Check if admin user already exists
-        if (User::where('email', 'admin@church.com')->exists()) {
+        if (User::where('email', 'hosanna@admin.com')->exists()) {
             $this->command->info('Admin user already exists!');
             return;
         }
@@ -24,7 +24,7 @@ class AdminUserSeeder extends Seeder
 
         $admin = User::create([
             'name' => 'Admin User',
-            'email' => 'admin@church.com',
+            'email' => 'hosanna@admin.com',
             'password' => Hash::make('admin123'), // Change this password in production
             'role' => 'admin',
             'email_verified_at' => now(),
@@ -33,7 +33,7 @@ class AdminUserSeeder extends Seeder
         // $admin->assignRole($adminRole);
 
         $this->command->info('Admin user created successfully!');
-        $this->command->info('Email: admin@church.com');
+        $this->command->info('Email: hosanna@admin.com');
         $this->command->info('Password: admin123');
         $this->command->warn('Please change the password after first login.');
     }
