@@ -85,9 +85,15 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         // Normalize column names (handle different naming conventions)
         $normalizedRow = $this->normalizeColumnNames($row);
 
-        // Force phone to be a string
+        // Force phone and birth_day to be a string
         if (isset($normalizedRow['phone'])) {
             $normalizedRow['phone'] = (string) $normalizedRow['phone'];
+        }
+        if (isset($normalizedRow['birth_day'])) {
+            $normalizedRow['birth_day'] = (string) $normalizedRow['birth_day'];
+        }
+        if (isset($normalizedRow['baptism_year_and_place'])) {
+            $normalizedRow['baptism_year_and_place'] = (string) $normalizedRow['baptism_year_and_place'];
         }
 
         $validator = Validator::make($normalizedRow, [
@@ -158,7 +164,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         $normalized = [];
         $columnMapping = [
             'email' => ['email', 'email_address', 'e_mail'],
-            'last_name' => ['lastname_surname', 'last_name', 'surname', 'lastname', 'family_name'],
+            'last_name' => ['lastnamesurname', 'lastname_surname', 'last_name', 'surname', 'lastname', 'family_name'],
             'first_name' => ['firstname', 'first_name', 'given_name'],
             'other_names' => ['others', 'other_names', 'middle_name'],
             'birth_day' => ['day_of_birth', 'birth_day', 'day'],
@@ -173,7 +179,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             'state_of_residence' => ['state_of_residence', 'state_residence'],
             'city_of_residence' => ['city_of_residence', 'city_residence'],
             'address' => ['street_no_and_name_eg_2_korogboji', 'street_no_and_name', 'address', 'street'],
-            'profession' => ['vocation_occupation', 'vocation', 'profession_occupation', 'profession', 'occupation'],
+            'profession' => ['professionoccupation', 'vocation_occupation', 'vocation', 'profession_occupation', 'profession', 'occupation'],
             'church_group' => ['group_in_church', 'church_group', 'group'],
             'department' => ['department_in_church', 'department', 'departments', 'ministry'],
             'is_baptized' => ['are_you_baptized', 'is_baptized', 'baptized'],
