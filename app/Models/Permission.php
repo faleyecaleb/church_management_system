@@ -13,7 +13,6 @@ class Permission extends Model
         'name',
         'slug',
         'description',
-        'category',
         'module',
         'is_active'
     ];
@@ -113,7 +112,6 @@ class Permission extends Model
                     'slug' => "{$moduleSlug}.{$actionSlug}",
                     'description' => "Ability to {$actionSlug} in {$moduleName}",
                     'module' => $moduleSlug,
-                    'category' => $moduleSlug,
                     'is_active' => true
                 ];
             }
@@ -125,7 +123,6 @@ class Permission extends Model
             'slug' => 'dashboard.access',
             'description' => 'Ability to access the dashboard',
             'module' => 'dashboard',
-            'category' => 'dashboard',
             'is_active' => true
         ];
 
@@ -134,7 +131,6 @@ class Permission extends Model
             'slug' => 'reports.generate',
             'description' => 'Ability to generate system reports',
             'module' => 'reports',
-            'category' => 'reports',
             'is_active' => true
         ];
 

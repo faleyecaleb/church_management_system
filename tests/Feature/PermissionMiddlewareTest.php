@@ -65,14 +65,12 @@ class PermissionMiddlewareTest extends TestCase
             'level' => 50,
         ]);
 
-        $permission = new Permission([
+        $permission = Permission::create([
             'name' => 'Test Permission',
             'slug' => 'test-permission',
             'module' => 'test',
             'is_active' => true,
         ]);
-        $permission->category = 'test';
-        $permission->save();
 
         $role->permissions()->attach($permission->id);
 
