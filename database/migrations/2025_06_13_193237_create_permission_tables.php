@@ -19,84 +19,106 @@ return new class extends Migration
             throw new \Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
 
-        Schema::create($tableNames['permissions'], function (Blueprint $table) use ($columnNames) {
-            $table->bigIncrements('id'); // permission id
-            $table->string('name', 125); // For example: 'edit articles'
-            $table->string('guard_name', 125); // For example: 'web'
-            $table->timestamps();
+        if (!Schema::hasTable($tableNames['permissions'])) {
+            Schema::create($tableNames['permissions'], function (Blueprint $table) use ($columnNames) {
+                $table->bigIncrements('id'); // permission id
+                $table->string('name', 125); // For example: 'edit articles'
+                $table->string('guard_name', 125); // For example: 'web'
+                $table->timestamps();
 
-            $table->unique(['name', 'guard_name']);
-        });
-
-        Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
-            $table->bigIncrements('id'); // role id
-            if ($teams || config('permission.testing')) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
-                $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
-            }
-            $table->string('name', 125); // For example: 'admin' or 'moderator'
-            $table->string('guard_name', 125); // For example: 'web'
-            $table->timestamps();
-
-            if ($teams || config('permission.testing')) {
-                $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
-            } else {
                 $table->unique(['name', 'guard_name']);
-            }
-        });
+            });
+        } else {
+            Schema::table($tableNames['permissions'], function (Blueprint $table) {
+                if (!Schema::hasColumn('permissions', 'guard_name')) {
+                    $table->string('guard_name', 125)->default('web')->nullable();
+                }
+            });
+        }
 
-        Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
-            $table->unsignedBigInteger(config('permission.column_names.model_morph_key'));
-            $table->string('model_type', 125);
-            $table->foreignId('permission_id')
-                ->constrained($tableNames['permissions'])
-                ->cascadeOnDelete();
-            if ($teams || config('permission.testing')) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
-                $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
-            }
+        if (!Schema::hasTable($tableNames['roles'])) {
+            Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
+                $table->bigIncrements('id'); // role id
+                if ($teams || config('permission.testing')) {
+                    $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
+                    $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
+                }
+                $table->string('name', 125); // For example: 'admin' or 'moderator'
+                $table->string('guard_name', 125); // For example: 'web'
+                $table->timestamps();
 
-            $table->index([config('permission.column_names.model_morph_key'), 'model_type', ]);
+                if ($teams || config('permission.testing')) {
+                    $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
+                } else {
+                    $table->unique(['name', 'guard_name']);
+                }
+            });
+        } else {
+            Schema::table($tableNames['roles'], function (Blueprint $table) {
+                if (!Schema::hasColumn('roles', 'guard_name')) {
+                    $table->string('guard_name', 125)->default('web')->nullable();
+                }
+            });
+        }
 
-            $table->primary([
-                'permission_id',
-                config('permission.column_names.model_morph_key'),
-                'model_type',
-            ],
-            'model_has_permissions_permission_model_type_primary');
-        });
+        if (!Schema::hasTable($tableNames['model_has_permissions'])) {
+            Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
+                $table->unsignedBigInteger(config('permission.column_names.model_morph_key'));
+                $table->string('model_type', 125);
+                $table->foreignId('permission_id')
+                    ->constrained($tableNames['permissions'])
+                    ->cascadeOnDelete();
+                if ($teams || config('permission.testing')) {
+                    $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
+                    $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
+                }
 
-        Schema::create($tableNames['model_has_roles'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
-            $table->unsignedBigInteger(config('permission.column_names.model_morph_key'));
-            $table->string('model_type', 125);
-            $table->foreignId('role_id')
-                ->constrained($tableNames['roles'])
-                ->cascadeOnDelete();
-            if ($teams || config('permission.testing')) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
-                $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
-            }
+                $table->index([config('permission.column_names.model_morph_key'), 'model_type', ]);
 
-            $table->index([config('permission.column_names.model_morph_key'), 'model_type', ]);
+                $table->primary([
+                    'permission_id',
+                    config('permission.column_names.model_morph_key'),
+                    'model_type',
+                ],
+                'model_has_permissions_permission_model_type_primary');
+            });
+        }
 
-            $table->primary([
-                'role_id',
-                config('permission.column_names.model_morph_key'),
-                'model_type',
-            ],
-            'model_has_roles_role_model_type_primary');
-        });
+        if (!Schema::hasTable($tableNames['model_has_roles'])) {
+            Schema::create($tableNames['model_has_roles'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
+                $table->unsignedBigInteger(config('permission.column_names.model_morph_key'));
+                $table->string('model_type', 125);
+                $table->foreignId('role_id')
+                    ->constrained($tableNames['roles'])
+                    ->cascadeOnDelete();
+                if ($teams || config('permission.testing')) {
+                    $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
+                    $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
+                }
 
-        Schema::create($tableNames['role_has_permissions'], function (Blueprint $table) use ($tableNames) {
-            $table->foreignId('permission_id')
-                ->constrained($tableNames['permissions'])
-                ->cascadeOnDelete();
-            $table->foreignId('role_id')
-                ->constrained($tableNames['roles'])
-                ->cascadeOnDelete();
+                $table->index([config('permission.column_names.model_morph_key'), 'model_type', ]);
 
-            $table->primary(['permission_id', 'role_id'], 'role_has_permissions_permission_id_role_id_primary');
-        });
+                $table->primary([
+                    'role_id',
+                    config('permission.column_names.model_morph_key'),
+                    'model_type',
+                ],
+                'model_has_roles_role_model_type_primary');
+            });
+        }
+
+        if (!Schema::hasTable($tableNames['role_has_permissions'])) {
+            Schema::create($tableNames['role_has_permissions'], function (Blueprint $table) use ($tableNames) {
+                $table->foreignId('permission_id')
+                    ->constrained($tableNames['permissions'])
+                    ->cascadeOnDelete();
+                $table->foreignId('role_id')
+                    ->constrained($tableNames['roles'])
+                    ->cascadeOnDelete();
+
+                $table->primary(['permission_id', 'role_id'], 'role_has_permissions_permission_id_role_id_primary');
+            });
+        }
 
         app('cache')
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)

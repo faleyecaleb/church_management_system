@@ -16,13 +16,17 @@ return new class extends Migration
         if (Schema::hasTable('budgets')) {
             $columns = Schema::getColumnListing('budgets');
             
-            Schema::table('budgets', function (Blueprint $table) use ($columns) {
-                // If allocated_amount exists but amount doesn't, rename it
-                if (in_array('allocated_amount', $columns) && !in_array('amount', $columns)) {
+            // 1. Handle renaming first in a separate block (critical for SQLite compatibility)
+            if (in_array('allocated_amount', $columns) && !in_array('amount', $columns)) {
+                Schema::table('budgets', function (Blueprint $table) {
                     $table->renameColumn('allocated_amount', 'amount');
-                }
-                
-                // Add missing columns if they don't exist
+                });
+                // Refresh columns listing after rename
+                $columns = Schema::getColumnListing('budgets');
+            }
+            
+            // 2. Add missing columns in a separate block if they don't exist
+            Schema::table('budgets', function (Blueprint $table) use ($columns) {
                 if (!in_array('name', $columns)) {
                     $table->string('name')->after('id')->default('Budget Item');
                 }
@@ -42,10 +46,14 @@ return new class extends Migration
             });
             
             // Update any records that might have null names
+            $concatExpr = DB::getDriverName() === 'sqlite' 
+                ? "category || ' - ' || department" 
+                : "CONCAT(category, ' - ', department)";
+
             DB::table('budgets')
                 ->whereNull('name')
                 ->orWhere('name', '')
-                ->update(['name' => DB::raw("CONCAT(category, ' - ', department)")]);
+                ->update(['name' => DB::raw($concatExpr)]);
         }
         
         // Also ensure expenses table has budget_id column

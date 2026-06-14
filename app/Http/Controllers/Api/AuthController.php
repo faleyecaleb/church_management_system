@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,25 +31,42 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        // 1. Try to authenticate as admin/staff (User) first
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $user = User::where('email', $request->email)->firstOrFail();
+            $token = $user->createToken('API Token')->plainTextToken;
+
             return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
+                'success' => true,
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => $user,
+                    'token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ]);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('API Token')->plainTextToken;
+        // 2. Fallback: Try to authenticate as a church Member
+        $member = Member::where('email', $request->email)->first();
+        if ($member && Hash::check($request->password, $member->password)) {
+            $token = $member->createToken('API Token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => $member,
+                    'token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ]);
+        }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-                'token_type' => 'Bearer'
-            ]
-        ]);
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
     }
 
     /**

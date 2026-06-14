@@ -15,8 +15,8 @@ class AttendanceController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:attendance.view')->only(['index', 'show', 'report', 'getStats', 'dashboard']);
-        $this->middleware('permission:attendance.create')->only(['create', 'store', 'checkIn', 'showQrCode', 'processQrCode', 'mobileCheckIn', 'checkInMultiple', 'checkInMember']);
+        $this->middleware('permission:attendance.view')->only(['show', 'report', 'getStats', 'dashboard']);
+        $this->middleware('permission:attendance.create')->only(['create', 'store', 'checkIn', 'showQrCode', 'mobileCheckIn', 'checkInMultiple', 'checkInMember']);
         $this->middleware('permission:attendance.update')->only(['edit', 'update', 'checkOutMember', 'checkOutAll']);
         $this->middleware('permission:attendance.delete')->only('destroy');
         $this->middleware('permission:attendance.view_worker')->only('workerAttendance');
@@ -30,7 +30,7 @@ class AttendanceController extends Controller
         // Apply filters
         if ($request->filled('date')) {
             $date = $request->input('date');
-            $query->whereDate('check_in_time', $date);
+            $query->whereDate('attendance_date', $date);
         }
 
         if ($request->filled('service_id')) {
@@ -41,7 +41,38 @@ class AttendanceController extends Controller
             $query->where('check_in_method', $request->input('check_in_method'));
         }
 
+        // Filter by logged-in member or verify admin permissions
+        $user = auth()->user();
+        if ($user instanceof \App\Models\Member) {
+            $query->where('member_id', $user->id);
+        } else {
+            // It is an admin/staff User. Ensure they have the permission!
+            if (!$user->can('attendance.view')) {
+                if ($request->expectsJson() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized. Permission required: attendance.view'
+                    ], 403);
+                }
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         $attendances = $query->paginate(20);
+
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $attendances->items(),
+                'pagination' => [
+                    'total' => $attendances->total(),
+                    'per_page' => $attendances->perPage(),
+                    'current_page' => $attendances->currentPage(),
+                    'last_page' => $attendances->lastPage(),
+                ]
+            ]);
+        }
+
         $services = Service::active()->get();
 
         return view('attendance.index', compact('attendances', 'services'));    
@@ -486,7 +517,8 @@ class AttendanceController extends Controller
             }
 
             // Get the authenticated member
-            $member = auth()->user()->member;
+            $user = auth()->user();
+            $member = $user instanceof \App\Models\Member ? $user : $user->member;
 
             if (!$member) {
                 throw new \Exception('No member profile found.');
@@ -516,7 +548,7 @@ class AttendanceController extends Controller
                     'check_in_method' => 'qr',
                     'check_in_location' => $request->ip(),
                     'location_verified' => config('attendance.require_geofencing'),
-                    'checked_in_by' => auth()->id(),
+                    'checked_in_by' => auth()->user() instanceof \App\Models\User ? auth()->id() : null,
                     'is_present' => true,
                     'is_absent' => false,
                     'status' => 'present',

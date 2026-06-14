@@ -70,4 +70,67 @@ class CounsellingBookingController extends Controller
             'status' => $booking->status
         ]);
     }
+
+    /**
+     * Get counselling bookings for the authenticated member.
+     */
+    public function apiIndex(Request $request)
+    {
+        $user = auth()->user();
+        $member = $user instanceof \App\Models\Member ? $user : $user->member;
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No member profile found.'
+            ], 404);
+        }
+
+        $bookings = CounsellingBooking::where('member_id', $member->id)
+            ->orderBy('requested_date', 'desc')
+            ->orderBy('requested_time', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $bookings
+        ]);
+    }
+
+    /**
+     * Store a new counselling booking via API.
+     */
+    public function apiStore(Request $request)
+    {
+        $user = auth()->user();
+        $member = $user instanceof \App\Models\Member ? $user : $user->member;
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No member profile found.'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'requested_date' => 'required|date|after_or_equal:today',
+            'requested_time' => 'required|string', // Expecting 'H:i' format
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $booking = CounsellingBooking::create([
+            'member_id' => $member->id,
+            'church_id' => $member->church_id,
+            'requested_date' => $validated['requested_date'],
+            'requested_time' => $validated['requested_time'],
+            'reason' => $validated['reason'],
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Counselling booking submitted successfully. Pending PA approval!',
+            'data' => $booking
+        ], 201);
+    }
 }

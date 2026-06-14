@@ -62,6 +62,18 @@ class Member extends Authenticatable
         'remember_token',
     ];
 
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::creating(function ($member) {
+            if (empty($member->password)) {
+                $member->password = \Illuminate\Support\Facades\Hash::make(strtolower($member->last_name));
+            }
+        });
+    }
+
     // Relationships
     public function attendances()
     {

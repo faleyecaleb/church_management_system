@@ -84,6 +84,24 @@ return new class extends Migration
      */
     private function foreignKeyExists($table, $name): bool
     {
+        if (class_exists(\Illuminate\Support\Facades\Schema::class) && method_exists(\Illuminate\Support\Facades\Schema::class, 'getForeignKeys')) {
+            try {
+                $foreignKeys = \Illuminate\Support\Facades\Schema::getForeignKeys($table);
+                foreach ($foreignKeys as $fk) {
+                    if (($fk['name'] ?? '') === $name) {
+                        return true;
+                    }
+                }
+                return false;
+            } catch (\Exception $e) {
+                // Fall through to other checks if getForeignKeys fails
+            }
+        }
+
+        if (DB::getDriverName() === 'sqlite') {
+            return false;
+        }
+
         $foreignKeys = DB::select("
             SELECT CONSTRAINT_NAME 
             FROM information_schema.KEY_COLUMN_USAGE 

@@ -3,8 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\MemberController;
-use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\CounsellingBookingController;
 use App\Http\Middleware\RateLimitMiddleware;
 
 /*
@@ -38,6 +39,11 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('attendance', AttendanceController::class);
         Route::post('/attendance/bulk', [AttendanceController::class, 'bulkStore']);
         Route::get('/attendance/stats', [AttendanceController::class, 'stats']);
+        Route::post('/attendance/scan/{service}', [AttendanceController::class, 'processQrCode']);
+
+        // Counselling Booking routes
+        Route::get('/counselling', [CounsellingBookingController::class, 'apiIndex']);
+        Route::post('/counselling', [CounsellingBookingController::class, 'apiStore']);
     });
 });
 
