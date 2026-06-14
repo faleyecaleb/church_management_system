@@ -147,6 +147,24 @@
                 transform: translateY(0);
             }
         }
+
+        .toggle-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+            transition: color 0.3s ease;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            outline: none;
+        }
+        
+        .input-group input:focus ~ .toggle-icon {
+            color: #6366F1;
+        }
         
         @media (max-width: 640px) {
             .login-container {
@@ -225,10 +243,13 @@
                     name="password" 
                     type="password" 
                     required 
-                    class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300" 
+                    class="w-full px-4 py-3 pl-12 pr-12 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300" 
                     placeholder="Enter your password"
                 >
                 <i class="fas fa-lock input-icon"></i>
+                <button type="button" id="toggle-password" class="toggle-icon focus:outline-none" tabindex="-1">
+                    <i class="fas fa-eye" id="eye-icon"></i>
+                </button>
             </div>
             
             <!-- Remember Me & Forgot Password -->
@@ -266,9 +287,32 @@
         <!-- Footer -->
         <div class="text-center pt-6 border-t border-gray-200">
             <p class="text-xs text-gray-500">
-                © {{ date('Y') }} CAC Hosanna Chapel. All rights reserved.
+                 {{ date('Y') }} CAC Hosanna Chapel. All rights reserved.
             </p>
         </div>
-    </div>
-</body>
+        </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const togglePasswordBtn = document.getElementById('toggle-password');
+            const eyeIcon = document.getElementById('eye-icon');
+
+            togglePasswordBtn.addEventListener('click', function() {
+                // Toggle input type attribute
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+                // Swap font-awesome eye icon classes
+                if (isPassword) {
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                } else {
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
+                }
+            });
+        });
+        </script>
+        </body>
 </html>

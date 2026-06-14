@@ -103,4 +103,34 @@ class PermissionMiddlewareTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('accessed');
     }
+
+    /**
+     * Test that the default admin role gets service.create permission and can access the guarded route.
+     */
+    public function test_admin_role_gets_default_service_permissions(): void
+    {
+        // Seed default permissions and roles
+        Permission::createDefaultPermissions();
+        Role::createDefaultRoles();
+        Permission::assignDefaultPermissions();
+
+        // Create an admin user (will automatically trigger role attachment in boot)
+        $user = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        // Verify the user has the service.create permission
+        $this->assertTrue($user->hasPermission('service.create'));
+
+        // Register a temporary route with service.create permission
+        Route::middleware(['web', 'permission:service.create'])
+            ->get('/_test/service-create-guarded', function () {
+                return 'accessed';
+            });
+
+        // Verify the user can access this route
+        $response = $this->actingAs($user)->get('/_test/service-create-guarded');
+        $response->assertStatus(200);
+        $response->assertSee('accessed');
+    }
 }
