@@ -85,15 +85,19 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         // Normalize column names (handle different naming conventions)
         $normalizedRow = $this->normalizeColumnNames($row);
 
-        // Force phone and birth_day to be a string
-        if (isset($normalizedRow['phone'])) {
-            $normalizedRow['phone'] = (string) $normalizedRow['phone'];
-        }
-        if (isset($normalizedRow['birth_day'])) {
-            $normalizedRow['birth_day'] = (string) $normalizedRow['birth_day'];
-        }
-        if (isset($normalizedRow['baptism_year_and_place'])) {
-            $normalizedRow['baptism_year_and_place'] = (string) $normalizedRow['baptism_year_and_place'];
+        // Force all expected string columns to be strings to prevent Excel's auto-casting numeric conversions from failing validation
+        $stringFields = [
+            'last_name', 'first_name', 'other_names', 'birth_day', 'birth_month', 'gender',
+            'emergency_contact_details', 'marital_status', 'partner_name', 'phone',
+            'state_of_origin', 'lga_of_origin', 'state_of_residence', 'city_of_residence',
+            'address', 'profession', 'church_group', 'department', 'is_baptized',
+            'baptism_year_and_place', 'baptism_church_name', 'spiritual_gifts'
+        ];
+
+        foreach ($stringFields as $field) {
+            if (isset($normalizedRow[$field]) && !is_array($normalizedRow[$field])) {
+                $normalizedRow[$field] = (string) $normalizedRow[$field];
+            }
         }
 
         $validator = Validator::make($normalizedRow, [
