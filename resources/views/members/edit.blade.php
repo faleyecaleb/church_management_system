@@ -232,20 +232,28 @@
                             </div>
 
                             <div class="sm:col-span-6">
-                                <label for="department" class="block text-sm font-medium text-gray-700">Department in Church *</label>
-                                <select name="department" id="department" required
-                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                    <option value="">Select Department</option>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Departments in Church * <span class="text-xs font-normal text-gray-500">(Select all that apply)</span></label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-xl bg-gray-50/50">
                                     @if(auth()->user()->church && auth()->user()->church->type === 'youth')
                                         @foreach(['CHOIR', 'EVANGELISM', 'AESTHETICS', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'MEDIA', 'PROTOCOL', 'PRAYER', 'NONE'] as $dept)
-                                            <option value="{{ $dept }}" {{ old('department', $member->departments->first()?->department?->name) == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                                            <label class="inline-flex items-center space-x-3 p-2 bg-white rounded-lg border border-gray-100 hover:border-indigo-500 hover:shadow-sm transition-all duration-200 cursor-pointer">
+                                                <input type="checkbox" name="departments[]" value="{{ $dept }}" 
+                                                       {{ is_array(old('departments', $member->department_names)) && in_array($dept, old('departments', $member->department_names)) ? 'checked' : '' }}
+                                                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-colors duration-200">
+                                                <span class="text-sm font-medium text-gray-700">{{ $dept }}</span>
+                                            </label>
                                         @endforeach
                                     @else
                                         @foreach(['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'] as $dept)
-                                            <option value="{{ $dept }}" {{ old('department', $member->departments->first()?->department?->name) == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                                            <label class="inline-flex items-center space-x-3 p-2 bg-white rounded-lg border border-gray-100 hover:border-indigo-500 hover:shadow-sm transition-all duration-200 cursor-pointer">
+                                                <input type="checkbox" name="departments[]" value="{{ $dept }}" 
+                                                       {{ is_array(old('departments', $member->department_names)) && in_array($dept, old('departments', $member->department_names)) ? 'checked' : '' }}
+                                                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-colors duration-200">
+                                                <span class="text-sm font-medium text-gray-700">{{ $dept }}</span>
+                                            </label>
                                         @endforeach
                                     @endif
-                                </select>
+                                </div>
                             </div>
 
                             @if(!auth()->user()->church || auth()->user()->church->type !== 'youth')

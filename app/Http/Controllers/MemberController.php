@@ -115,7 +115,8 @@ class MemberController extends Controller
                 'city_of_residence' => 'required|string|max:255',
                 'profession' => 'required|string|max:255',
                 'church_group' => 'nullable|string|max:255',
-                'department' => 'required|string|max:255',
+                'departments' => 'required|array|min:1',
+                'departments.*' => 'string|max:255',
                 'is_baptized' => 'required|string',
                 'baptism_year_and_place' => 'nullable|string|max:255',
                 'baptism_church_name' => 'nullable|string|max:255',
@@ -135,8 +136,8 @@ class MemberController extends Controller
                 $validated['profile_photo'] = $path;
             }
             
-            $departmentName = $validated['department'];
-            unset($validated['department']);
+            $departmentNames = $validated['departments'];
+            unset($validated['departments']);
             
             $validated['gender'] = strtolower($validated['gender']);
             $validated['membership_status'] = $validated['membership_status'] ?? 'active';
@@ -144,12 +145,15 @@ class MemberController extends Controller
             DB::beginTransaction();
             $member = Member::create($validated);
 
-            // Find or create department by name
-            $department = \App\Models\Department::firstOrCreate(
-                ['name' => $departmentName],
-                ['is_active' => true, 'description' => $departmentName . ' Department']
-            );
-            $member->departments()->create(['department_id' => $department->id]);
+            // Sync department associations
+            $member->departments()->delete();
+            foreach ($departmentNames as $deptName) {
+                $department = \App\Models\Department::firstOrCreate(
+                    ['name' => $deptName],
+                    ['is_active' => true, 'description' => $deptName . ' Department']
+                );
+                $member->departments()->create(['department_id' => $department->id]);
+            }
 
             if ($request->filled('roles')) {
                 $member->roles()->sync($request->input('roles'));
@@ -202,7 +206,8 @@ class MemberController extends Controller
             'city_of_residence' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
             'church_group' => 'nullable|string|max:255',
-            'department' => 'required|string|max:255',
+            'departments' => 'required|array|min:1',
+            'departments.*' => 'string|max:255',
             'is_baptized' => 'required|string',
             'baptism_year_and_place' => 'nullable|string|max:255',
             'baptism_church_name' => 'nullable|string|max:255',
@@ -226,8 +231,8 @@ class MemberController extends Controller
                 $validated['profile_photo'] = $path;
             }
 
-        $departmentName = $validated['department'];
-        unset($validated['department']);
+        $departmentNames = $validated['departments'];
+        unset($validated['departments']);
         
         $validated['gender'] = strtolower($validated['gender']);
 
@@ -235,11 +240,13 @@ class MemberController extends Controller
 
         // Update department associations
         $member->departments()->delete();
-        $department = \App\Models\Department::firstOrCreate(
-            ['name' => $departmentName],
-            ['is_active' => true, 'description' => $departmentName . ' Department']
-        );
-        $member->departments()->create(['department_id' => $department->id]);
+        foreach ($departmentNames as $deptName) {
+            $department = \App\Models\Department::firstOrCreate(
+                ['name' => $deptName],
+                ['is_active' => true, 'description' => $deptName . ' Department']
+            );
+            $member->departments()->create(['department_id' => $department->id]);
+        }
 
         if ($request->filled('roles')) {
             $member->roles()->sync($request->input('roles'));
