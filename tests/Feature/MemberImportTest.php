@@ -234,4 +234,28 @@ class MemberImportTest extends TestCase
         $this->assertContains('other_name', $responseData['headers']);
         $this->assertContains('day_of_birth', $responseData['headers']);
     }
+
+    /**
+     * Test that guest users see Portal Login on the landing page.
+     */
+    public function test_guest_sees_portal_login_on_landing_page(): void
+    {
+        $response = $this->get(route('home'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Portal Login');
+        $response->assertDontSee('Dashboard');
+    }
+
+    /**
+     * Test that authenticated users see Dashboard on the landing page.
+     */
+    public function test_authenticated_user_sees_dashboard_on_landing_page(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('home'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Dashboard');
+        $response->assertDontSee('Portal Login');
+    }
 }

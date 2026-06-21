@@ -74,9 +74,15 @@
                 </div>
                 
                 <div class="hidden md:flex items-center">
-                    <a href="{{ route('login') }}" class="px-6 py-2.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white text-sm font-semibold hover:bg-white hover:text-indigo-900 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
-                        Portal Login
-                    </a>
+                    @auth
+                        <a href="{{ route('admin.dashboard') }}" class="px-6 py-2.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white text-sm font-semibold hover:bg-white hover:text-indigo-900 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="px-6 py-2.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white text-sm font-semibold hover:bg-white hover:text-indigo-900 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
+                            Portal Login
+                        </a>
+                    @endauth
                 </div>
 
                 <!-- Mobile menu button -->
@@ -105,9 +111,15 @@
                 <a href="{{ route('ministries') }}" class="block px-3 py-2.5 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors {{ Route::is('ministries') ? 'bg-white/10' : '' }}">Ministries</a>
                 
                 <div class="pt-4 border-t border-white/10">
-                    <a href="{{ route('login') }}" class="block w-full text-center px-4 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md transition-all duration-300">
-                        Portal Login
-                    </a>
+                    @auth
+                        <a href="{{ route('admin.dashboard') }}" class="block w-full text-center px-4 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md transition-all duration-300">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="block w-full text-center px-4 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md transition-all duration-300">
+                            Portal Login
+                        </a>
+                    @endauth
                 </div>
             </div>
         </div>
