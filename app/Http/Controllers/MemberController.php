@@ -19,7 +19,7 @@ class MemberController extends Controller
         $this->middleware('permission:member.view')->only(['index', 'show']);
         $this->middleware('permission:member.create')->only(['create', 'store']);
         $this->middleware('permission:member.update')->only(['edit', 'update']);
-        $this->middleware('permission:member.delete')->only('destroy');
+        $this->middleware('permission:member.delete')->only(['destroy', 'bulkDelete']);
     }
 
     public function index(Request $request)
@@ -343,5 +343,87 @@ class MemberController extends Controller
             'message' => 'Profile updated successfully!',
             'data' => $member
         ]);
+    }
+
+    /**
+     * Delete members in bulk (by ID selection or filters).
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'delete_type' => 'required|in:selected,filtered',
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'exists:members,id'
+        ]);
+
+        $deleteType = $request->input('delete_type');
+
+        DB::beginTransaction();
+
+        try {
+            if ($deleteType === 'selected') {
+                $memberIds = $request->input('member_ids', []);
+                if (empty($memberIds)) {
+                    return back()->with('error', 'No members selected for deletion.');
+                }
+                
+                $count = Member::whereIn('id', $memberIds)->count();
+                Member::whereIn('id', $memberIds)->delete();
+                
+                DB::commit();
+                return back()->with('success', "Successfully deleted {$count} selected members.");
+            } else {
+                // Filtered delete
+                $query = Member::query();
+
+                // Apply the exact same filters as the index page
+                if ($request->filled('search')) {
+                    $search = $request->input('search');
+                    $query->where(function ($q) use ($search) {
+                        $q->where('first_name', 'like', "%{$search}%")
+                          ->orWhere('last_name', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%");
+                    });
+                }
+
+                if ($request->filled('status')) {
+                    $query->where('membership_status', $request->input('status'));
+                }
+
+                if ($request->filled('member_type')) {
+                    $query->where('member_type', $request->input('member_type'));
+                }
+
+                if ($request->filled('department')) {
+                    $query->whereHas('departments', function ($q) use ($request) {
+                        $q->whereHas('department', function ($subQ) use ($request) {
+                            $subQ->where('name', $request->input('department'));
+                        });
+                    });
+                }
+
+                if ($request->filled('church_group')) {
+                    $query->where('church_group', $request->input('church_group'));
+                }
+
+                if ($request->filled('gender')) {
+                    $query->where('gender', $request->input('gender'));
+                }
+
+                $count = $query->count();
+                if ($count === 0) {
+                    DB::rollBack();
+                    return back()->with('error', 'No members found matching current filters.');
+                }
+
+                $query->delete();
+
+                DB::commit();
+                return back()->with('success', "Successfully deleted all {$count} members matching the current filters.");
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Bulk deletion failed: ' . $e->getMessage());
+        }
     }
 }

@@ -246,6 +246,7 @@ Route::post('members/export/stats', [App\Http\Controllers\MemberExportController
     ->name('members.export.stats');
 
 // Member Management Routes
+Route::post('members/bulk-delete', [MemberController::class, 'bulkDelete'])->name('members.bulk-delete');
 Route::resource('members', MemberController::class);
     // Member Management Routes
     Route::post('members/{member}/promote', [MemberController::class, 'promote'])->name('members.promote');

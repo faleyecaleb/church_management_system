@@ -640,11 +640,67 @@
             </form>
         </div>
 
+        <!-- Bulk Actions Panel -->
+        @if($members->count() > 0 && auth()->user()->hasPermission('member.delete'))
+            <div class="glass rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <label class="inline-flex items-center text-white cursor-pointer select-none">
+                        <input type="checkbox" id="selectAllCheckbox" class="rounded border-white/20 bg-white/5 text-red-600 focus:ring-red-500 focus:ring-offset-slate-900 w-5 h-5 mr-3 transition-all duration-300">
+                        <span class="font-medium text-sm sm:text-base">Select All on Page</span>
+                    </label>
+                    <span id="selectedCountBadge" class="hidden px-3 py-1 text-xs font-bold rounded-full bg-red-500/20 text-red-300 border border-red-500/30">
+                        0 selected
+                    </span>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+                    <!-- Delete Selected Button -->
+                    <button type="button" id="deleteSelectedBtn" class="glass-button glass rounded-xl px-5 py-2.5 text-red-400 hover:text-white hover:bg-red-600 border border-red-500/20 hover:border-red-600 text-sm font-semibold inline-flex items-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete Selected
+                    </button>
+
+                    <!-- Delete Filtered Button -->
+                    <button type="button" id="deleteFilteredBtn" class="glass-button glass rounded-xl px-5 py-2.5 text-orange-400 hover:text-white hover:bg-orange-600 border border-orange-500/20 hover:border-orange-600 text-sm font-semibold inline-flex items-center transition-all duration-300">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete All Filtered
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hidden forms for bulk delete submission -->
+            <form id="bulkDeleteForm" action="{{ route('members.bulk-delete') }}" method="POST" class="hidden">
+                @csrf
+                <input type="hidden" name="delete_type" id="bulkDeleteType">
+                <div id="bulkDeleteMemberIdsContainer"></div>
+                
+                <!-- Carry forward current request filters for filtered deletion -->
+                @foreach(request()->except(['page', '_token']) as $key => $value)
+                    @if(is_array($value))
+                        @foreach($value as $val)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $val }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
+            </form>
+        @endif
+
         <!-- Members Grid -->
         @if($members->count() > 0)
             <div class="members-grid">
                 @foreach($members as $member)
                 <div class="member-card glass rounded-2xl p-6">
+                    <!-- Checkbox Selection -->
+                    @if(auth()->user()->hasPermission('member.delete'))
+                        <input type="checkbox" class="member-select-checkbox absolute top-4 left-4 h-5 w-5 rounded border-white/20 bg-white/5 text-red-600 focus:ring-red-500 focus:ring-offset-slate-900 transition-all duration-300 cursor-pointer z-20" value="{{ $member->id }}"/>
+                    @endif
+
                     <!-- Profile Photo -->
                     <div class="profile-photo-wrapper mb-4">
                         <img class="profile-photo" 
@@ -742,4 +798,95 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const deleteFilteredBtn = document.getElementById('deleteFilteredBtn');
+    const selectedCountBadge = document.getElementById('selectedCountBadge');
+    const memberCheckboxes = document.querySelectorAll('.member-select-checkbox');
+    const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+    const bulkDeleteType = document.getElementById('bulkDeleteType');
+    const bulkDeleteMemberIdsContainer = document.getElementById('bulkDeleteMemberIdsContainer');
+
+    function updateBulkActionsState() {
+        const checkedCount = document.querySelectorAll('.member-select-checkbox:checked').length;
+        
+        // Update badge
+        if (checkedCount > 0) {
+            selectedCountBadge.textContent = `${checkedCount} selected`;
+            selectedCountBadge.classList.remove('hidden');
+            deleteSelectedBtn.removeAttribute('disabled');
+        } else {
+            selectedCountBadge.classList.add('hidden');
+            deleteSelectedBtn.setAttribute('disabled', 'true');
+        }
+        
+        // Update master select-all checkbox state
+        if (checkedCount === memberCheckboxes.length && memberCheckboxes.length > 0) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCount > 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
+
+    // Toggle all checkboxes when Select All is clicked
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            memberCheckboxes.forEach(cb => {
+                cb.checked = selectAllCheckbox.checked;
+            });
+            updateBulkActionsState();
+        });
+    }
+
+    // Individual checkbox change
+    memberCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateBulkActionsState);
+    });
+
+    // Handle Delete Selected
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.member-select-checkbox:checked');
+            if (checkedBoxes.length === 0) return;
+
+            if (confirm(`Are you sure you want to permanently delete the ${checkedBoxes.length} selected members? This action CANNOT be undone.`)) {
+                // Populate selected IDs into form
+                bulkDeleteType.value = 'selected';
+                bulkDeleteMemberIdsContainer.innerHTML = '';
+                
+                checkedBoxes.forEach(cb => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'member_ids[]';
+                    hiddenInput.value = cb.value;
+                    bulkDeleteMemberIdsContainer.appendChild(hiddenInput);
+                });
+
+                bulkDeleteForm.submit();
+            }
+        });
+    }
+
+    // Handle Delete Filtered
+    if (deleteFilteredBtn) {
+        deleteFilteredBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to permanently delete ALL members matching the current filters? This action CANNOT be undone and will delete members across all pages that match these criteria.')) {
+                bulkDeleteType.value = 'filtered';
+                bulkDeleteMemberIdsContainer.innerHTML = '';
+                bulkDeleteForm.submit();
+            }
+        });
+    }
+});
+</script>
+@endpush
 @endsection
