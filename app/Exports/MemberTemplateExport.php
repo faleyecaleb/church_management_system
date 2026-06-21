@@ -53,28 +53,28 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
     public function headings(): array
     {
         return [
-            'Email *',
-            'LASTNAME/SURNAME *',
-            'FIRSTNAME *',
-            'OTHERS',
-            'DAY OF BIRTH *',
-            'MONTH OF BIRTH *',
-            'GENDER *',
+            'EMAIL',
+            'SURNAME',
+            'FIRSTNAME',
+            'OTHER NAME',
+            'DAY OF BIRTH',
+            'MONTH OF BIRTH',
+            'GENDER',
             'EMERGENCY CONTACT NAME & PHONE NUMBER',
-            'MARITAL STATUS *',
-            'NAME OF PARTNER (If married)',
-            'PHONE NUMBER (primary) *',
-            'STATE OF ORIGIN *',
-            'LOCAL GOVERNMENT OF ORIGIN *',
-            'STATE OF RESIDENCE *',
-            'CITY OF RESIDENCE *',
-            'STREET NO AND NAME (eg: 2, Korogboji) *',
-            $this->isYouthChurch ? 'VOCATION/OCCUPATION *' : 'PROFESSION/OCCUPATION *',
+            'MARITAL STATUS',
+            'NAME OF PARTNER (if married)',
+            'PHONE NUMBER (primary)',
+            'STATE OF ORIGIN',
+            'LOCAL GOVERNMENT',
+            'STATE OF RESIDENCE',
+            'CITY OF RESIDENCE',
+            'STREET NAME & NUMBER',
+            'PROFESSION/OCCUPATION',
             'GROUP IN CHURCH',
-            'DEPARTMENT IN CHURCH *',
-            'ARE YOU BAPTIZED ? *',
-            'WHAT YEAR AND WHERE ?',
-            'NAME OF THE CHURCH',
+            'DEPARTMENT IN CHURCH',
+            'BAPTIZED',
+            'LOCATION & YEAR OF BAPTISM',
+            'CHURCH OF BAPTISM',
             'SPIRITUAL GIFTS'
         ];
     }
@@ -106,29 +106,29 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
     public function columnWidths(): array
     {
         return [
-            'A' => 25, // Email
-            'B' => 20, // Last Name
-            'C' => 20, // First Name
-            'D' => 20, // Others
-            'E' => 15, // Day of Birth
-            'F' => 15, // Month of Birth
-            'G' => 15, // Gender
-            'H' => 40, // Emergency Contact
-            'I' => 20, // Marital Status
-            'J' => 25, // Name of Partner
-            'K' => 20, // Phone
-            'L' => 20, // State of Origin
-            'M' => 25, // LGA
-            'N' => 20, // State of Res
-            'O' => 20, // City of Res
-            'P' => 35, // Street No
-            'Q' => 25, // Profession
-            'R' => 20, // Group in Church
-            'S' => 25, // Department
-            'T' => 20, // Baptized
-            'U' => 25, // Year & Where
-            'V' => 25, // Name of Church
-            'W' => 30, // Spiritual Gifts
+            'A' => 25, // EMAIL
+            'B' => 20, // SURNAME
+            'C' => 20, // FIRSTNAME
+            'D' => 20, // OTHER NAME
+            'E' => 15, // DAY OF BIRTH
+            'F' => 15, // MONTH OF BIRTH
+            'G' => 15, // GENDER
+            'H' => 40, // EMERGENCY CONTACT NAME & PHONE NUMBER
+            'I' => 20, // MARITAL STATUS
+            'J' => 25, // NAME OF PARTNER (if married)
+            'K' => 20, // PHONE NUMBER (primary)
+            'L' => 20, // STATE OF ORIGIN
+            'M' => 25, // LOCAL GOVERNMENT
+            'N' => 20, // STATE OF RESIDENCE
+            'O' => 20, // CITY OF RESIDENCE
+            'P' => 35, // STREET NAME & NUMBER
+            'Q' => 25, // PROFESSION/OCCUPATION
+            'R' => 20, // GROUP IN CHURCH
+            'S' => 25, // DEPARTMENT IN CHURCH
+            'T' => 20, // BAPTIZED
+            'U' => 25, // LOCATION & YEAR OF BAPTISM
+            'V' => 25, // CHURCH OF BAPTISM
+            'W' => 30, // SPIRITUAL GIFTS
         ];
     }
 

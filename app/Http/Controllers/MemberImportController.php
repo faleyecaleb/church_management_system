@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Member;
-use App\Models\MemberDepartment;
 use App\Imports\MembersImport;
 use App\Exports\MemberTemplateExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MemberImportController extends Controller
@@ -39,11 +34,59 @@ class MemberImportController extends Controller
             'Content-Disposition' => 'attachment; filename="member_import_template.csv"',
         ];
 
+        $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+
         $sampleData = [
-            ['first_name', 'last_name', 'email', 'phone', 'address', 'date_of_birth', 'baptism_date', 'membership_status', 'gender', 'departments'],
-            ['John', 'Doe', 'john.doe@example.com', '+1234567890', '123 Main St, City', '1990-01-15', '2010-05-20', 'active', 'male', 'choir,youth'],
-            ['Jane', 'Smith', 'jane.smith@example.com', '+1234567891', '456 Oak Ave, City', '1985-03-22', '2008-12-10', 'active', 'female', 'women_ministry'],
-            ['Michael', 'Johnson', 'michael.j@example.com', '+1234567892', '789 Pine St, City', '1975-07-08', '2005-09-15', 'active', 'male', 'men_ministry,ushering'],
+            [
+                'EMAIL',
+                'SURNAME',
+                'FIRSTNAME',
+                'OTHER NAME',
+                'DAY OF BIRTH',
+                'MONTH OF BIRTH',
+                'GENDER',
+                'EMERGENCY CONTACT NAME & PHONE NUMBER',
+                'MARITAL STATUS',
+                'NAME OF PARTNER (if married)',
+                'PHONE NUMBER (primary)',
+                'STATE OF ORIGIN',
+                'LOCAL GOVERNMENT',
+                'STATE OF RESIDENCE',
+                'CITY OF RESIDENCE',
+                'STREET NAME & NUMBER',
+                'PROFESSION/OCCUPATION',
+                'GROUP IN CHURCH',
+                'DEPARTMENT IN CHURCH',
+                'BAPTIZED',
+                'LOCATION & YEAR OF BAPTISM',
+                'CHURCH OF BAPTISM',
+                'SPIRITUAL GIFTS'
+            ],
+            [
+                'john.doe@example.com',
+                'Doe',
+                'John',
+                'David',
+                '15',
+                'January',
+                'MALE',
+                'Jane Doe: 09012345678',
+                'MARRIED',
+                'Jane Doe',
+                '08012345678',
+                'Lagos',
+                'Ikeja',
+                'Lagos',
+                'Ikeja',
+                '123 Main St, Ikeja',
+                $isYouthChurch ? 'Student' : 'Software Engineer',
+                'Men Fellowship',
+                'CHOIR',
+                'YES',
+                '2010 - Lagos',
+                'RCCG',
+                'Teaching, Healing'
+            ]
         ];
 
         $callback = function() use ($sampleData) {
@@ -66,7 +109,7 @@ class MemberImportController extends Controller
     }
 
     /**
-     * Process the CSV import
+     * Process the import file (CSV or Excel)
      */
     public function import(Request $request)
     {
@@ -86,21 +129,7 @@ class MemberImportController extends Controller
             $skipDuplicates = $request->boolean('skip_duplicates');
             $updateExisting = $request->boolean('update_existing');
 
-            $fileExtension = $file->getClientOriginalExtension();
-
-            if (in_array($fileExtension, ['xlsx', 'xls'])) {
-                // Handle Excel files
-                $results = $this->processExcelImport($file, $skipDuplicates, $updateExisting);
-            } else {
-                // Handle CSV files
-                $csvData = $this->parseCsvFile($file);
-
-                if (empty($csvData)) {
-                    return back()->with('error', 'The file appears to be empty or invalid.');
-                }
-
-                $results = $this->processImport($csvData, $skipDuplicates, $updateExisting);
-            }
+            $results = $this->processExcelImport($file, $skipDuplicates, $updateExisting);
 
             return back()->with('success',
                 "Import completed! " .
@@ -116,235 +145,7 @@ class MemberImportController extends Controller
     }
 
     /**
-     * Parse CSV file and return data array
-     */
-    private function parseCsvFile($file)
-    {
-        $csvData = [];
-        $headers = [];
-
-        if (($handle = fopen($file->getPathname(), 'r')) !== false) {
-            $rowIndex = 0;
-
-            while (($row = fgetcsv($handle, 1000, ',')) !== false) {
-                // Skip empty lines
-                if (empty(array_filter($row))) {
-                    continue;
-                }
-
-                if ($rowIndex === 0) {
-                    // First row contains headers
-                    $headers = array_map(function($header) {
-                        // Remove BOM and trim
-                        $clean = preg_replace('/[\xEF\xBB\xBF]/', '', $header);
-                        return strtolower(trim($clean));
-                    }, $row);
-                } else {
-                    // Data rows
-                    if (count($row) === count($headers)) {
-                        $csvData[] = array_combine($headers, array_map('trim', $row));
-                    }
-                }
-                $rowIndex++;
-            }
-
-            fclose($handle);
-        }
-
-        return $csvData;
-    }
-
-    /**
-     * Process the import data
-     */
-    private function processImport($csvData, $skipDuplicates, $updateExisting)
-    {
-        $results = [
-            'created' => 0,
-            'updated' => 0,
-            'skipped' => 0,
-            'errors' => 0,
-            'details' => []
-        ];
-
-        DB::beginTransaction();
-
-        try {
-            foreach ($csvData as $index => $row) {
-                $rowNumber = $index + 2; // +2 because we skip header and array is 0-indexed
-
-                try {
-                    $memberData = $this->validateAndPrepareData($row, $rowNumber);
-
-                    if (!$memberData) {
-                        $results['errors']++;
-                        continue;
-                    }
-
-                    // Check if member already exists
-                    $existingMember = Member::where('email', $memberData['email'])->first();
-
-                    if ($existingMember) {
-                        if ($updateExisting) {
-                            $this->updateMember($existingMember, $memberData, $row);
-                            $results['updated']++;
-                            $results['details'][] = "Row {$rowNumber}: Updated {$memberData['first_name']} {$memberData['last_name']}";
-                        } elseif ($skipDuplicates) {
-                            $results['skipped']++;
-                            $results['details'][] = "Row {$rowNumber}: Skipped {$memberData['first_name']} {$memberData['last_name']} (duplicate email)";
-                        } else {
-                            $results['errors']++;
-                            $results['details'][] = "Row {$rowNumber}: Error - Email {$memberData['email']} already exists";
-                        }
-                    } else {
-                        $member = $this->createMember($memberData, $row);
-                        $results['created']++;
-                        $results['details'][] = "Row {$rowNumber}: Created {$memberData['first_name']} {$memberData['last_name']}";
-                    }
-
-                } catch (\Exception $e) {
-                    $results['errors']++;
-                    $results['details'][] = "Row {$rowNumber}: Error - " . $e->getMessage();
-                }
-            }
-
-            DB::commit();
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-
-        return $results;
-    }
-
-    /**
-     * Validate and prepare member data
-     */
-    private function validateAndPrepareData($row, $rowNumber)
-    {
-        // Force phone to be a string (CSV readers sometimes parse unquoted numbers as ints/floats)
-        if (isset($row['phone'])) {
-            $row['phone'] = (string) $row['phone'];
-        }
-
-        $validator = Validator::make($row, [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'date_of_birth' => 'nullable|date',
-            'baptism_date' => 'nullable|date',
-            'membership_status' => 'nullable|in:active,inactive,pending',
-            'gender' => 'nullable|in:male,female,other',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = implode(', ', $validator->errors()->all());
-            throw new \Exception("Validation failed: {$errors}");
-        }
-
-        return [
-            'first_name' => $row['first_name'],
-            'last_name' => $row['last_name'],
-            'email' => strtolower(trim($row['email'])),
-            'phone' => $row['phone'] ?? null,
-            'address' => $row['address'] ?? null,
-            'date_of_birth' => !empty($row['date_of_birth']) ? Carbon::parse($row['date_of_birth']) : null,
-            'baptism_date' => !empty($row['baptism_date']) ? Carbon::parse($row['baptism_date']) : null,
-            'membership_status' => $row['membership_status'] ?? 'active',
-            'gender' => $row['gender'] ?? null,
-        ];
-    }
-
-    /**
-     * Create a new member
-     */
-    private function createMember($memberData, $row)
-    {
-        // Set default password to lowercase last name
-        if (empty($memberData['password'])) {
-            $memberData['password'] = \Illuminate\Support\Facades\Hash::make(strtolower(trim($memberData['last_name'])));
-        }
-
-        $member = Member::create($memberData);
-
-        // Handle departments
-        if (!empty($row['departments'])) {
-            $this->assignDepartments($member, $row['departments']);
-        }
-
-        $this->syncUserAccount($memberData);
-
-        return $member;
-    }
-
-    /**
-     * Update an existing member
-     */
-    private function updateMember($member, $memberData, $row)
-    {
-        $member->update($memberData);
-
-        // Handle departments - remove existing and add new ones
-        if (!empty($row['departments'])) {
-            $member->departments()->delete();
-            $this->assignDepartments($member, $row['departments']);
-        }
-
-        $this->syncUserAccount(array_merge($memberData, ['password' => $member->password]));
-
-        return $member;
-    }
-
-    /**
-     * Assign departments to a member
-     */
-    private function assignDepartments($member, $departmentsString)
-    {
-        $departments = array_map('trim', explode(',', $departmentsString));
-
-        foreach ($departments as $department) {
-            if (!empty($department)) {
-                MemberDepartment::create([
-                    'member_id' => $member->id,
-                    'department' => $department
-                ]);
-            }
-        }
-    }
-
-    /**
-     * Sync member data with the users table for future login access
-     */
-    private function syncUserAccount($memberData)
-    {
-        $user = \App\Models\User::firstOrNew(['email' => $memberData['email']]);
-
-        // Only update if they are a regular member or a brand new account
-        // This prevents accidentally converting an admin into a member if their email is in the CSV
-        if (!$user->exists || $user->role === 'member') {
-            $user->name = $memberData['first_name'] . ' ' . $memberData['last_name'];
-
-            if (!$user->exists) {
-                $user->password = $memberData['password']; // Set password only on creation
-                $user->role = 'member';
-                if (auth()->check()) {
-                    $user->church_id = auth()->user()->church_id;
-                }
-            }
-            $user->save();
-
-            // Attach dynamic member role
-            $memberRole = \App\Models\Role::where('slug', 'member')->first();
-            if ($memberRole) {
-                $user->roles()->syncWithoutDetaching([$memberRole->id]);
-            }
-        }
-    }
-    /**
-     * Preview CSV data before import
+     * Preview CSV or Excel data before import
      */
     public function preview(Request $request)
     {
@@ -362,20 +163,7 @@ class MemberImportController extends Controller
 
         try {
             $file = $request->file('import_file');
-            $fileExtension = $file->getClientOriginalExtension();
-
-            if (in_array($fileExtension, ['xlsx', 'xls'])) {
-                // Handle Excel files
-                $previewData = $this->previewExcelFile($file);
-            } else {
-                // Handle CSV files
-                $csvData = $this->parseCsvFile($file);
-                $previewData = [
-                    'total_rows' => count($csvData),
-                    'preview_data' => array_slice($csvData, 0, 10),
-                    'headers' => !empty($csvData) ? array_keys($csvData[0]) : []
-                ];
-            }
+            $previewData = $this->previewExcelFile($file);
 
             return response()->json([
                 'success' => true,
@@ -393,7 +181,7 @@ class MemberImportController extends Controller
     }
 
     /**
-     * Process Excel import using Laravel Excel
+     * Process import using Laravel Excel
      */
     private function processExcelImport($file, $skipDuplicates, $updateExisting)
     {
@@ -412,20 +200,20 @@ class MemberImportController extends Controller
     }
 
     /**
-     * Preview Excel file data
+     * Preview file data using Laravel Excel
      */
     private function previewExcelFile($file)
     {
         $data = Excel::toArray(new MembersImport(), $file);
 
         if (empty($data) || empty($data[0])) {
-            throw new \Exception('Excel file appears to be empty or invalid.');
+            throw new \Exception('The import file appears to be empty or invalid.');
         }
 
         $rows = $data[0]; // Get first sheet
 
         if (empty($rows)) {
-            throw new \Exception('No data found in the Excel file.');
+            throw new \Exception('No data found in the file.');
         }
 
         // Since MembersImport implements WithHeadingRow, $rows are already associative arrays
