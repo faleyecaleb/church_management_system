@@ -11,8 +11,10 @@ class CounsellingBookingController extends Controller
 {
     public function __construct()
     {
-        // Both Super Admin and PA can view the dashboard
-        $this->middleware('auth');
+        if (!request()->is('api/*')) {
+            // Both Super Admin and PA can view the dashboard
+            $this->middleware('auth');
+        }
     }
 
     /**

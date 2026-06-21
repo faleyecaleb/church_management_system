@@ -14,12 +14,14 @@ class AttendanceController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:attendance.view')->only(['show', 'report', 'getStats', 'dashboard']);
-        $this->middleware('permission:attendance.create')->only(['create', 'store', 'checkIn', 'showQrCode', 'mobileCheckIn', 'checkInMultiple', 'checkInMember']);
-        $this->middleware('permission:attendance.update')->only(['edit', 'update', 'checkOutMember', 'checkOutAll']);
-        $this->middleware('permission:attendance.delete')->only('destroy');
-        $this->middleware('permission:attendance.view_worker')->only('workerAttendance');
+        if (!request()->is('api/*')) {
+            $this->middleware('auth');
+            $this->middleware('permission:attendance.view')->only(['show', 'report', 'getStats', 'dashboard']);
+            $this->middleware('permission:attendance.create')->only(['create', 'store', 'checkIn', 'showQrCode', 'mobileCheckIn', 'checkInMultiple', 'checkInMember']);
+            $this->middleware('permission:attendance.update')->only(['edit', 'update', 'checkOutMember', 'checkOutAll']);
+            $this->middleware('permission:attendance.delete')->only('destroy');
+            $this->middleware('permission:attendance.view_worker')->only('workerAttendance');
+        }
     }
 
     public function index(Request $request)

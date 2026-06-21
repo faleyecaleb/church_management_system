@@ -13,11 +13,13 @@ class SmsMessageController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:communication.view')->only(['index', 'show', 'report']);
-        $this->middleware('permission:communication.create')->only(['create', 'store', 'send', 'schedule']);
-        $this->middleware('permission:communication.update')->only(['edit', 'update']);
-        $this->middleware('permission:communication.delete')->only(['destroy', 'cancel']);
+        if (!request()->is('api/*')) {
+            $this->middleware('auth');
+            $this->middleware('permission:communication.view')->only(['index', 'show', 'report']);
+            $this->middleware('permission:communication.create')->only(['create', 'store', 'send', 'schedule']);
+            $this->middleware('permission:communication.update')->only(['edit', 'update']);
+            $this->middleware('permission:communication.delete')->only(['destroy', 'cancel']);
+        }
     }
 
     public function index(Request $request)

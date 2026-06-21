@@ -15,11 +15,13 @@ class MemberController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:member.view')->only(['index', 'show']);
-        $this->middleware('permission:member.create')->only(['create', 'store']);
-        $this->middleware('permission:member.update')->only(['edit', 'update']);
-        $this->middleware('permission:member.delete')->only(['destroy', 'bulkDelete']);
+        if (!request()->is('api/*')) {
+            $this->middleware('auth');
+            $this->middleware('permission:member.view')->only(['index', 'show']);
+            $this->middleware('permission:member.create')->only(['create', 'store']);
+            $this->middleware('permission:member.update')->only(['edit', 'update']);
+            $this->middleware('permission:member.delete')->only(['destroy', 'bulkDelete']);
+        }
     }
 
     public function index(Request $request)
