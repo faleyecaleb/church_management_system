@@ -99,6 +99,8 @@ class MemberController extends Controller
     public function store(Request $request)
     {
         try {
+            $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+
             $validated = $request->validate([
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
@@ -119,7 +121,7 @@ class MemberController extends Controller
                 'church_group' => 'nullable|string|max:255',
                 'departments' => 'required|array|min:1',
                 'departments.*' => 'string|max:255',
-                'is_baptized' => 'required|string',
+                'is_baptized' => $isYouthChurch ? 'nullable|string' : 'required|string',
                 'baptism_year_and_place' => 'nullable|string|max:255',
                 'baptism_church_name' => 'nullable|string|max:255',
                 'spiritual_gifts' => 'nullable|string',
@@ -190,6 +192,8 @@ class MemberController extends Controller
 
     public function update(Request $request, Member $member)
     {
+        $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -210,7 +214,7 @@ class MemberController extends Controller
             'church_group' => 'nullable|string|max:255',
             'departments' => 'required|array|min:1',
             'departments.*' => 'string|max:255',
-            'is_baptized' => 'required|string',
+            'is_baptized' => $isYouthChurch ? 'nullable|string' : 'required|string',
             'baptism_year_and_place' => 'nullable|string|max:255',
             'baptism_church_name' => 'nullable|string|max:255',
             'spiritual_gifts' => 'nullable|string',

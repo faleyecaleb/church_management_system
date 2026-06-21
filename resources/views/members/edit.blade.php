@@ -256,57 +256,32 @@
                                 </div>
                             </div>
 
-                            @if(!auth()->user()->church || auth()->user()->church->type !== 'youth')
-                                <div class="sm:col-span-2">
-                                    <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? *</label>
-                                    <select name="is_baptized" id="is_baptized" required
-                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                        <option value="">Select Option</option>
-                                        <option value="YES" {{ old('is_baptized', $member->is_baptized) == 'YES' ? 'selected' : '' }}>YES</option>
-                                        <option value="NO" {{ old('is_baptized', $member->is_baptized) == 'NO' ? 'selected' : '' }}>NO</option>
-                                        <option value="MAYBE" {{ old('is_baptized', $member->is_baptized) == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
-                                    </select>
-                                </div>
+                            @php
+                                $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+                            @endphp
 
-                                <div class="sm:col-span-2">
-                                    <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
-                                    <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place', $member->baptism_year_and_place) }}"
-                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
+                            <div class="sm:col-span-2">
+                                <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? {{ $isYouthChurch ? '' : '*' }}</label>
+                                <select name="is_baptized" id="is_baptized" {{ $isYouthChurch ? '' : 'required' }}
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Option</option>
+                                    <option value="YES" {{ old('is_baptized', $member->is_baptized) == 'YES' || old('is_baptized', $member->is_baptized) == '1' ? 'selected' : '' }}>YES</option>
+                                    <option value="NO" {{ old('is_baptized', $member->is_baptized) == 'NO' || old('is_baptized', $member->is_baptized) == '0' ? 'selected' : '' }}>NO</option>
+                                    <option value="MAYBE" {{ old('is_baptized', $member->is_baptized) == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
+                                </select>
+                            </div>
 
-                                <div class="sm:col-span-2">
-                                    <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
-                                    <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name', $member->baptism_church_name) }}"
-                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
-                            @endif
+                            <div class="sm:col-span-2">
+                                <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
+                                <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place', $member->baptism_year_and_place) }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
 
-                            @if(auth()->user()->church && auth()->user()->church->type === 'youth')
-                                <!-- Youth Specific Baptism Fields -->
-                                <div class="sm:col-span-3">
-                                    <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you baptized? *</label>
-                                    <select name="is_baptized" id="is_baptized" required
-                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            onchange="document.getElementById('baptism_details_div').classList.toggle('hidden', this.value !== '1' && this.value !== 'YES')">
-                                        <option value="">Select Status</option>
-                                        <option value="1" {{ old('is_baptized', $member->is_baptized) == '1' || old('is_baptized', $member->is_baptized) == 'YES' ? 'selected' : '' }}>Yes</option>
-                                        <option value="0" {{ old('is_baptized', $member->is_baptized) == '0' || old('is_baptized', $member->is_baptized) == 'NO' ? 'selected' : '' }}>No</option>
-                                    </select>
-                                </div>
-                                
-                                <div id="baptism_details_div" class="sm:col-span-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 {{ (old('is_baptized', $member->is_baptized) == '1' || old('is_baptized', $member->is_baptized) == 'YES') ? '' : 'hidden' }} p-4 bg-indigo-50 rounded-lg">
-                                    <div class="sm:col-span-3">
-                                        <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">Year and Place of Baptism</label>
-                                        <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place', $member->baptism_year_and_place) }}" placeholder="e.g., 2018 at Lagos"
-                                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                    </div>
-                                    <div class="sm:col-span-3">
-                                        <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Church Name (If not CAC Hosanna)</label>
-                                        <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name', $member->baptism_church_name) }}"
-                                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                    </div>
-                                </div>
-                            @endif
+                            <div class="sm:col-span-2">
+                                <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
+                                <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name', $member->baptism_church_name) }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
 
                             <div class="sm:col-span-6">
                                 <label for="spiritual_gifts" class="block text-sm font-medium text-gray-700">Spiritual Gifts</label>

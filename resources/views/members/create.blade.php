@@ -257,37 +257,39 @@
                                 </div>
                             </div>
 
-                            @if(!auth()->user()->church || auth()->user()->church->type !== 'youth')
-                                <div class="sm:col-span-2">
-                                    <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? *</label>
-                                    <select name="is_baptized" id="is_baptized" required
-                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                        <option value="">Select Option</option>
-                                        <option value="YES" {{ old('is_baptized') == 'YES' ? 'selected' : '' }}>YES</option>
-                                        <option value="NO" {{ old('is_baptized') == 'NO' ? 'selected' : '' }}>NO</option>
-                                        <option value="MAYBE" {{ old('is_baptized') == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
-                                    </select>
-                                </div>
+                            @php
+                                $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+                            @endphp
 
-                                <div class="sm:col-span-2">
-                                    <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
-                                    <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place') }}"
-                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
+                            <div class="sm:col-span-2">
+                                <label for="is_baptized" class="block text-sm font-medium text-gray-700">Are you Baptized? {{ $isYouthChurch ? '' : '*' }}</label>
+                                <select name="is_baptized" id="is_baptized" {{ $isYouthChurch ? '' : 'required' }}
+                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select Option</option>
+                                    <option value="YES" {{ old('is_baptized') == 'YES' ? 'selected' : '' }}>YES</option>
+                                    <option value="NO" {{ old('is_baptized') == 'NO' ? 'selected' : '' }}>NO</option>
+                                    <option value="MAYBE" {{ old('is_baptized') == 'MAYBE' ? 'selected' : '' }}>MAYBE</option>
+                                </select>
+                            </div>
 
-                                <div class="sm:col-span-2">
-                                    <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
-                                    <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name') }}"
-                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
+                            <div class="sm:col-span-2">
+                                <label for="baptism_year_and_place" class="block text-sm font-medium text-gray-700">What Year and Where? (If baptized)</label>
+                                <input type="text" name="baptism_year_and_place" id="baptism_year_and_place" value="{{ old('baptism_year_and_place') }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
 
-                                <div class="sm:col-span-6">
-                                    <label for="spiritual_gifts" class="block text-sm font-medium text-gray-700">Spiritual Gifts</label>
-                                    <textarea name="spiritual_gifts" id="spiritual_gifts" rows="3"
-                                              class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                              placeholder="e.g., Teaching, Prophecy, Giving, etc.">{{ old('spiritual_gifts') }}</textarea>
-                                </div>
-                            @endif
+                            <div class="sm:col-span-2">
+                                <label for="baptism_church_name" class="block text-sm font-medium text-gray-700">Name of the Church</label>
+                                <input type="text" name="baptism_church_name" id="baptism_church_name" value="{{ old('baptism_church_name') }}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="sm:col-span-6">
+                                <label for="spiritual_gifts" class="block text-sm font-medium text-gray-700">Spiritual Gifts</label>
+                                <textarea name="spiritual_gifts" id="spiritual_gifts" rows="3"
+                                          class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                          placeholder="e.g., Teaching, Prophecy, Giving, etc.">{{ old('spiritual_gifts') }}</textarea>
+                            </div>
                         </div>
                     </div>
 
