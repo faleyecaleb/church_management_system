@@ -104,10 +104,20 @@ class MemberExportController extends Controller
     public function exportExcel(Request $request)
     {
         try {
+            $filters = $request->only([
+                'membership_status', 'gender', 'department', 
+                'date_from', 'date_to', 'search'
+            ]);
+
+            // Remove empty filters
+            $filters = array_filter($filters, function($value) {
+                return !empty($value);
+            });
+
             $timestamp = now()->format('Y-m-d_H-i-s');
             $filename = "members_export_{$timestamp}.xlsx";
             
-            $export = new MembersExport([], 'xlsx');
+            $export = new MembersExport($filters, 'xlsx');
             
             return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::XLSX);
             
@@ -120,32 +130,56 @@ class MemberExportController extends Controller
             
             $csvData = [];
             $csvData[] = [
-                'ID',
-                'First Name',
-                'Last Name',
-                'Email',
-                'Phone',
-                'Gender',
-                'Date of Birth',
-                'Address',
-                'Membership Status',
-                'Departments',
-                'Member Since'
+                'EMAIL',
+                'SURNAME',
+                'FIRSTNAME',
+                'OTHER NAME',
+                'DAY OF BIRTH',
+                'MONTH OF BIRTH',
+                'GENDER',
+                'EMERGENCY CONTACT NAME & PHONE NUMBER',
+                'MARITAL STATUS',
+                'NAME OF PARTNER (if married)',
+                'PHONE NUMBER (primary)',
+                'STATE OF ORIGIN',
+                'LOCAL GOVERNMENT',
+                'STATE OF RESIDENCE',
+                'CITY OF RESIDENCE',
+                'STREET NAME & NUMBER',
+                'PROFESSION/OCCUPATION',
+                'GROUP IN CHURCH',
+                'DEPARTMENT IN CHURCH',
+                'BAPTIZED',
+                'LOCATION & YEAR OF BAPTISM',
+                'CHURCH OF BAPTISM',
+                'SPIRITUAL GIFTS'
             ];
             
             foreach ($members as $member) {
                 $csvData[] = [
-                    $member->id,
-                    $member->first_name,
-                    $member->last_name,
                     $member->email,
+                    $member->last_name,
+                    $member->first_name,
+                    $member->other_names,
+                    $member->birth_day,
+                    $member->birth_month,
+                    $member->gender ? strtoupper($member->gender) : '',
+                    $member->emergency_contact_details,
+                    $member->marital_status ? strtoupper($member->marital_status) : '',
+                    $member->partner_name,
                     $member->phone,
-                    $member->gender,
-                    $member->date_of_birth,
+                    $member->state_of_origin,
+                    $member->lga_of_origin,
+                    $member->state_of_residence,
+                    $member->city_of_residence,
                     $member->address,
-                    $member->membership_status,
+                    $member->profession,
+                    $member->church_group,
                     $member->departments->pluck('department')->join(', '),
-                    $member->created_at->format('Y-m-d')
+                    $member->is_baptized ? strtoupper($member->is_baptized) : '',
+                    $member->baptism_year_and_place,
+                    $member->baptism_church_name,
+                    $member->spiritual_gifts
                 ];
             }
             
@@ -163,6 +197,34 @@ class MemberExportController extends Controller
             };
             
             return response()->stream($callback, 200, $headers);
+        }
+    }
+
+    /**
+     * Export members to CSV format
+     */
+    public function exportCsv(Request $request)
+    {
+        try {
+            $filters = $request->only([
+                'membership_status', 'gender', 'department', 
+                'date_from', 'date_to', 'search'
+            ]);
+
+            // Remove empty filters
+            $filters = array_filter($filters, function($value) {
+                return !empty($value);
+            });
+
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "members_export_{$timestamp}.csv";
+            
+            $export = new MembersExport($filters, 'csv');
+            
+            return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::CSV);
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'CSV Export failed: ' . $e->getMessage());
         }
     }
 

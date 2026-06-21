@@ -258,4 +258,64 @@ class MemberImportTest extends TestCase
         $response->assertSee('Dashboard');
         $response->assertDontSee('Portal Login');
     }
+
+    /**
+     * Test that member export contains the exact same 23 headings as the import template.
+     */
+    public function test_export_contains_exact_import_template_headers(): void
+    {
+        // Add member.view permission to user role (needed to trigger export)
+        $permission = Permission::firstOrCreate(
+            ['slug' => 'member.view'],
+            [
+                'name' => 'View Members',
+                'module' => 'members',
+                'is_active' => true
+            ]
+        );
+
+        $adminRole = Role::where('slug', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->permissions()->syncWithoutDetaching([$permission->id]);
+        }
+
+        // Trigger CSV export
+        $response = $this->actingAs($this->user)->get(route('members.export.csv'));
+
+        $response->assertStatus(200);
+        $filePath = $response->getFile()->getPathname();
+        $content = file_get_contents($filePath);
+        $lines = explode("\n", trim($content));
+        
+        $this->assertNotEmpty($lines);
+        $headers = str_getcsv($lines[0]);
+
+        $expectedHeaders = [
+            'EMAIL',
+            'SURNAME',
+            'FIRSTNAME',
+            'OTHER NAME',
+            'DAY OF BIRTH',
+            'MONTH OF BIRTH',
+            'GENDER',
+            'EMERGENCY CONTACT NAME & PHONE NUMBER',
+            'MARITAL STATUS',
+            'NAME OF PARTNER (if married)',
+            'PHONE NUMBER (primary)',
+            'STATE OF ORIGIN',
+            'LOCAL GOVERNMENT',
+            'STATE OF RESIDENCE',
+            'CITY OF RESIDENCE',
+            'STREET NAME & NUMBER',
+            'PROFESSION/OCCUPATION',
+            'GROUP IN CHURCH',
+            'DEPARTMENT IN CHURCH',
+            'BAPTIZED',
+            'LOCATION & YEAR OF BAPTISM',
+            'CHURCH OF BAPTISM',
+            'SPIRITUAL GIFTS'
+        ];
+
+        $this->assertEquals($expectedHeaders, $headers);
+    }
 }

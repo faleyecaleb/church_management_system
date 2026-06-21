@@ -71,42 +71,58 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
     public function headings(): array
     {
         return [
-            'ID',
-            'First Name',
-            'Last Name',
-            'Full Name',
-            'Email',
-            'Phone',
-            'Address',
-            'Date of Birth',
-            'Age',
-            'Baptism Date',
-            'Membership Status',
-            'Gender',
-            'Departments',
-            'Member Since',
-            'Last Updated'
+            'EMAIL',
+            'SURNAME',
+            'FIRSTNAME',
+            'OTHER NAME',
+            'DAY OF BIRTH',
+            'MONTH OF BIRTH',
+            'GENDER',
+            'EMERGENCY CONTACT NAME & PHONE NUMBER',
+            'MARITAL STATUS',
+            'NAME OF PARTNER (if married)',
+            'PHONE NUMBER (primary)',
+            'STATE OF ORIGIN',
+            'LOCAL GOVERNMENT',
+            'STATE OF RESIDENCE',
+            'CITY OF RESIDENCE',
+            'STREET NAME & NUMBER',
+            'PROFESSION/OCCUPATION',
+            'GROUP IN CHURCH',
+            'DEPARTMENT IN CHURCH',
+            'BAPTIZED',
+            'LOCATION & YEAR OF BAPTISM',
+            'CHURCH OF BAPTISM',
+            'SPIRITUAL GIFTS'
         ];
     }
 
     public function map($member): array
     {
         return [
-            $member->id,
-            $member->first_name,
-            $member->last_name,
-            $member->full_name,
             $member->email,
+            $member->last_name,
+            $member->first_name,
+            $member->other_names,
+            $member->birth_day,
+            $member->birth_month,
+            $member->gender ? strtoupper($member->gender) : '',
+            $member->emergency_contact_details,
+            $member->marital_status ? strtoupper($member->marital_status) : '',
+            $member->partner_name,
             $member->phone,
+            $member->state_of_origin,
+            $member->lga_of_origin,
+            $member->state_of_residence,
+            $member->city_of_residence,
             $member->address,
-            $member->date_of_birth ? $member->date_of_birth->format('Y-m-d') : '',
-            $member->date_of_birth ? $member->date_of_birth->age : '',
-            $member->baptism_date ? $member->baptism_date->format('Y-m-d') : '',
-            ucfirst($member->membership_status),
-            ucfirst($member->gender ?? ''),
+            $member->profession,
+            $member->church_group,
             $member->departments->pluck('department')->join(', '),
-            $member->created_at->format('Y-m-d'),
-            $member->updated_at->format('Y-m-d H:i:s')
+            $member->is_baptized ? strtoupper($member->is_baptized) : '',
+            $member->baptism_year_and_place,
+            $member->baptism_church_name,
+            $member->spiritual_gifts
         ];
     }
 
@@ -141,21 +157,29 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
     public function columnWidths(): array
     {
         return [
-            'A' => 8,  // ID
-            'B' => 15, // First Name
-            'C' => 15, // Last Name
-            'D' => 25, // Full Name
-            'E' => 30, // Email
-            'F' => 15, // Phone
-            'G' => 35, // Address
-            'H' => 15, // Date of Birth
-            'I' => 8,  // Age
-            'J' => 15, // Baptism Date
-            'K' => 18, // Membership Status
-            'L' => 10, // Gender
-            'M' => 30, // Departments
-            'N' => 15, // Member Since
-            'O' => 20, // Last Updated
+            'A' => 25, // EMAIL
+            'B' => 20, // SURNAME
+            'C' => 20, // FIRSTNAME
+            'D' => 20, // OTHER NAME
+            'E' => 15, // DAY OF BIRTH
+            'F' => 15, // MONTH OF BIRTH
+            'G' => 15, // GENDER
+            'H' => 40, // EMERGENCY CONTACT NAME & PHONE NUMBER
+            'I' => 20, // MARITAL STATUS
+            'J' => 25, // NAME OF PARTNER (if married)
+            'K' => 20, // PHONE NUMBER (primary)
+            'L' => 20, // STATE OF ORIGIN
+            'M' => 25, // LOCAL GOVERNMENT
+            'N' => 20, // STATE OF RESIDENCE
+            'O' => 20, // CITY OF RESIDENCE
+            'P' => 35, // STREET NAME & NUMBER
+            'Q' => 25, // PROFESSION/OCCUPATION
+            'R' => 20, // GROUP IN CHURCH
+            'S' => 25, // DEPARTMENT IN CHURCH
+            'T' => 20, // BAPTIZED
+            'U' => 25, // LOCATION & YEAR OF BAPTISM
+            'V' => 25, // CHURCH OF BAPTISM
+            'W' => 30, // SPIRITUAL GIFTS
         ];
     }
 
