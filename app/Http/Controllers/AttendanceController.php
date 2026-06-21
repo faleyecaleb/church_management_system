@@ -45,8 +45,15 @@ class AttendanceController extends Controller
 
         // Filter by logged-in member or verify admin permissions
         $user = auth()->user();
+        $member = null;
         if ($user instanceof \App\Models\Member) {
-            $query->where('member_id', $user->id);
+            $member = $user;
+        } elseif ($user && request()->is('api/*')) {
+            $member = \App\Models\Member::where('email', $user->email)->first();
+        }
+
+        if ($member) {
+            $query->where('member_id', $member->id);
         } else {
             // It is an admin/staff User. Ensure they have the permission!
             if (!$user->can('attendance.view')) {
@@ -520,7 +527,12 @@ class AttendanceController extends Controller
 
             // Get the authenticated member
             $user = auth()->user();
-            $member = $user instanceof \App\Models\Member ? $user : $user->member;
+            $member = null;
+            if ($user instanceof \App\Models\Member) {
+                $member = $user;
+            } elseif ($user) {
+                $member = \App\Models\Member::where('email', $user->email)->first();
+            }
 
             if (!$member) {
                 throw new \Exception('No member profile found.');

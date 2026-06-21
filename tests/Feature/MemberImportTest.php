@@ -318,4 +318,182 @@ class MemberImportTest extends TestCase
 
         $this->assertEquals($expectedHeaders, $headers);
     }
+
+    /**
+     * Test that bulk deleting selected members by ID works correctly.
+     */
+    public function test_bulk_delete_selected_members(): void
+    {
+        // Ensure member.delete permission is created and assigned
+        $permission = Permission::firstOrCreate(
+            ['slug' => 'member.delete'],
+            [
+                'name' => 'Delete Members',
+                'module' => 'members',
+                'is_active' => true
+            ]
+        );
+
+        $adminRole = Role::where('slug', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->permissions()->syncWithoutDetaching([$permission->id]);
+        }
+
+        // Create some members using forceCreate to set church_id
+        $member1 = Member::forceCreate([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'm1@example.com',
+            'phone' => '08011111111',
+            'address' => '123 Main St',
+            'gender' => 'male',
+            'membership_status' => 'active',
+            'church_id' => $this->user->church_id,
+            'unique_id' => 'MEM-2026-1001',
+        ]);
+        $member2 = Member::forceCreate([
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'email' => 'm2@example.com',
+            'phone' => '08022222222',
+            'address' => '456 Oak Ave',
+            'gender' => 'female',
+            'membership_status' => 'active',
+            'church_id' => $this->user->church_id,
+            'unique_id' => 'MEM-2026-1002',
+        ]);
+        $member3 = Member::forceCreate([
+            'first_name' => 'Bob',
+            'last_name' => 'Smith',
+            'email' => 'm3@example.com',
+            'phone' => '08033333333',
+            'address' => '789 Pine St',
+            'gender' => 'male',
+            'membership_status' => 'inactive',
+            'church_id' => $this->user->church_id,
+            'unique_id' => 'MEM-2026-1003',
+        ]);
+
+        // Call bulk delete for m1 and m2
+        $response = $this->actingAs($this->user)->post(route('members.bulk-delete'), [
+            'delete_type' => 'selected',
+            'member_ids' => [$member1->id, $member2->id]
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        // Assert member 1 and 2 are soft deleted, but 3 remains
+        $this->assertNotNull(Member::withoutGlobalScopes()->onlyTrashed()->find($member1->id));
+        $this->assertNotNull(Member::withoutGlobalScopes()->onlyTrashed()->find($member2->id));
+        $this->assertNotNull(Member::withoutGlobalScopes()->whereNull('deleted_at')->find($member3->id));
+    }
+
+    /**
+     * Test that bulk deleting members matching active filters works correctly.
+     */
+    public function test_bulk_delete_filtered_members(): void
+    {
+        // Ensure member.delete permission is created and assigned
+        $permission = Permission::firstOrCreate(
+            ['slug' => 'member.delete'],
+            [
+                'name' => 'Delete Members',
+                'module' => 'members',
+                'is_active' => true
+            ]
+        );
+
+        $adminRole = Role::where('slug', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->permissions()->syncWithoutDetaching([$permission->id]);
+        }
+
+        // Create some members with status using forceCreate
+        $activeMember = Member::forceCreate([
+            'first_name' => 'John',
+            'last_name' => 'Active',
+            'email' => 'active@example.com',
+            'phone' => '08011111111',
+            'address' => '123 Main St',
+            'gender' => 'male',
+            'membership_status' => 'active',
+            'church_id' => $this->user->church_id,
+            'unique_id' => 'MEM-2026-2001',
+        ]);
+        $inactiveMember1 = Member::forceCreate([
+            'first_name' => 'Jane',
+            'last_name' => 'Inactive',
+            'email' => 'inactive1@example.com',
+            'phone' => '08022222222',
+            'address' => '456 Oak Ave',
+            'gender' => 'female',
+            'membership_status' => 'inactive',
+            'church_id' => $this->user->church_id,
+            'unique_id' => 'MEM-2026-2002',
+        ]);
+        $inactiveMember2 = Member::forceCreate([
+            'first_name' => 'Bob',
+            'last_name' => 'Inactive',
+            'email' => 'inactive2@example.com',
+            'phone' => '08033333333',
+            'address' => '789 Pine St',
+            'gender' => 'male',
+            'membership_status' => 'inactive',
+            'church_id' => $this->user->church_id,
+            'unique_id' => 'MEM-2026-2003',
+        ]);
+
+        // Call bulk delete for filter status = 'inactive'
+        $response = $this->actingAs($this->user)->post(route('members.bulk-delete'), [
+            'delete_type' => 'filtered',
+            'status' => 'inactive'
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        // Assert inactive members are deleted, but active one remains
+        $this->assertNotNull(Member::withoutGlobalScopes()->onlyTrashed()->find($inactiveMember1->id));
+        $this->assertNotNull(Member::withoutGlobalScopes()->onlyTrashed()->find($inactiveMember2->id));
+        $this->assertNotNull(Member::withoutGlobalScopes()->whereNull('deleted_at')->find($activeMember->id));
+    }
+
+    /**
+     * Test that creating a youth church member succeeds without the baptism field.
+     */
+    public function test_create_youth_church_member_succeeds_without_baptism(): void
+    {
+        // Change our user's church type to youth
+        $this->user->church->update(['type' => 'youth']);
+
+        $response = $this->actingAs($this->user)->post(route('members.store'), [
+            'first_name' => 'Youth',
+            'last_name' => 'Member',
+            'email' => 'youth.member@example.com',
+            'phone' => '08099999999',
+            'address' => '789 Youth St',
+            'birth_day' => '12',
+            'birth_month' => 'September',
+            'gender' => 'female',
+            'marital_status' => 'SINGLE',
+            'state_of_origin' => 'Lagos',
+            'lga_of_origin' => 'Ikeja',
+            'state_of_residence' => 'Lagos',
+            'city_of_residence' => 'Ikeja',
+            'profession' => 'Student',
+            'departments' => ['CHOIR']
+            // 'is_baptized' is omitted!
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        $member = Member::withoutGlobalScopes()->where('email', 'youth.member@example.com')->first();
+        $this->assertNotNull($member);
+        $this->assertNull($member->is_baptized);
+    }
 }

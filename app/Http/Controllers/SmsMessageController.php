@@ -298,7 +298,12 @@ class SmsMessageController extends Controller
     public function apiIndex(Request $request)
     {
         $user = auth()->user();
-        $member = $user instanceof \App\Models\Member ? $user : $user->member;
+        $member = null;
+        if ($user instanceof \App\Models\Member) {
+            $member = $user;
+        } elseif ($user) {
+            $member = \App\Models\Member::where('email', $user->email)->first();
+        }
 
         if (!$member) {
             return response()->json([
