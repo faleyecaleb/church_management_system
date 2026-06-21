@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CounsellingBookingController;
+use App\Http\Controllers\SmsMessageController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Middleware\RateLimitMiddleware;
 
 /*
@@ -31,9 +33,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::post('/user/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/user/push-token', [AuthController::class, 'savePushToken']);
         
         // Member routes
         Route::apiResource('members', MemberController::class);
+        Route::put('/user/profile', [MemberController::class, 'apiUpdate']);
         
         // Attendance routes
         Route::apiResource('attendance', AttendanceController::class);
@@ -41,9 +46,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/attendance/stats', [AttendanceController::class, 'stats']);
         Route::post('/attendance/scan/{service}', [AttendanceController::class, 'processQrCode']);
 
+        // Service routes
+        Route::get('/services', [ServiceController::class, 'apiIndex']);
+
         // Counselling Booking routes
         Route::get('/counselling', [CounsellingBookingController::class, 'apiIndex']);
         Route::post('/counselling', [CounsellingBookingController::class, 'apiStore']);
+
+        // Announcements (Communication Hub) routes
+        Route::get('/announcements', [SmsMessageController::class, 'apiIndex']);
     });
 });
 

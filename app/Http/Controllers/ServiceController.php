@@ -304,4 +304,42 @@ class ServiceController extends Controller
             ], 500); 
         }
     }
+
+    /**
+     * Get active/upcoming services via API.
+     */
+    public function apiIndex(Request $request)
+    {
+        $query = Service::active();
+
+        // Apply month and year filtering if provided
+        if ($request->has('month') && $request->has('year')) {
+            $month = (int) $request->input('month');
+            $year = (int) $request->input('year');
+
+            $query->where(function ($q) use ($month, $year) {
+                // One-time services falling in the selected month/year
+                $q->where(function ($subQ) use ($month, $year) {
+                    $subQ->where('is_recurring', false)
+                         ->whereMonth('date', $month)
+                         ->whereYear('date', $year);
+                })
+                // Recurring services (always active!)
+                ->orWhere('is_recurring', true);
+            });
+        }
+
+        $services = $query->get();
+
+        // Apply limit capping if requested (e.g. top 3 for dashboard)
+        if ($request->has('limit')) {
+            $limit = (int) $request->input('limit');
+            $services = $services->take($limit);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $services->values()->toArray()
+        ]);
+    }
 }

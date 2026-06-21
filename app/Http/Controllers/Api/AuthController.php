@@ -87,9 +87,14 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
+        $user = $request->user();
+        if ($user instanceof \App\Models\Member) {
+            $user->load(['departments.department', 'church']);
+        }
+        
         return response()->json([
             'success' => true,
-            'data' => $request->user()
+            'data' => $user
         ]);
     }
 
@@ -114,5 +119,64 @@ class AuthController extends Controller
                 'token_type' => 'Bearer'
             ]
         ]);
+    }
+
+    /**
+     * Change password for the authenticated user/member.
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The provided current password does not match our records.'
+            ], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully!'
+        ]);
+    }
+
+    /**
+     * Save the Expo push token for the authenticated member.
+     */
+    public function savePushToken(Request $request)
+    {
+        $request->validate([
+            'expo_push_token' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        // Check if the user is a Member, since only members use the mobile app and have push notifications.
+        if ($user instanceof \App\Models\Member) {
+            $user->update([
+                'expo_push_token' => $request->expo_push_token
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Expo push token saved successfully.',
+                'data' => $user
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Push tokens can only be saved for member accounts.'
+        ], 400);
     }
 }

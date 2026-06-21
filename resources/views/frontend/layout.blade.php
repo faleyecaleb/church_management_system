@@ -81,11 +81,33 @@
 
                 <!-- Mobile menu button -->
                 <div class="md:hidden flex items-center">
-                    <button class="text-white hover:text-indigo-200 focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button id="mobile-menu-btn" class="text-white hover:text-indigo-200 focus:outline-none z-50 relative">
+                        <!-- Hamburger Icon -->
+                        <svg id="hamburger-icon" class="h-6 w-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
+                        <!-- Close (X) Icon -->
+                        <svg id="close-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Drawer (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 w-full glass-nav shadow-lg transition-all duration-300 overflow-hidden">
+            <div class="px-4 pt-2 pb-6 space-y-2 border-t border-white/5">
+                <a href="{{ route('home') }}" class="block px-3 py-2.5 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors {{ Route::is('home') ? 'bg-white/10' : '' }}">Home</a>
+                <a href="{{ route('about') }}" class="block px-3 py-2.5 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors {{ Route::is('about') ? 'bg-white/10' : '' }}">About Us</a>
+                <a href="{{ route('events') }}" class="block px-3 py-2.5 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors {{ Route::is('events') ? 'bg-white/10' : '' }}">Events</a>
+                <a href="{{ route('ministers') }}" class="block px-3 py-2.5 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors {{ Route::is('ministers') ? 'bg-white/10' : '' }}">Our Ministers</a>
+                <a href="{{ route('ministries') }}" class="block px-3 py-2.5 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors {{ Route::is('ministries') ? 'bg-white/10' : '' }}">Ministries</a>
+                
+                <div class="pt-4 border-t border-white/10">
+                    <a href="{{ route('login') }}" class="block w-full text-center px-4 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md transition-all duration-300">
+                        Portal Login
+                    </a>
                 </div>
             </div>
         </div>
@@ -180,8 +202,65 @@
                         navbar.classList.remove('bg-transparent', 'py-6');
                         navbar.classList.add('py-4');
                     } else {
-                        navbar.classList.remove('glass-nav', 'py-4');
-                        navbar.classList.add('bg-transparent', 'py-6');
+                        // Only remove glass-nav if mobile menu is closed
+                        const mobileMenu = document.getElementById('mobile-menu');
+                        if (!mobileMenu || mobileMenu.classList.contains('hidden')) {
+                            navbar.classList.remove('glass-nav', 'py-4');
+                            navbar.classList.add('bg-transparent', 'py-6');
+                        } else {
+                            navbar.classList.remove('py-6');
+                            navbar.classList.add('py-4');
+                        }
+                    }
+                });
+            }
+
+            // Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    const isCollapsed = mobileMenu.classList.contains('hidden');
+                    if (isCollapsed) {
+                        // Open Mobile Menu Drawer
+                        mobileMenu.classList.remove('hidden');
+                        hamburgerIcon.classList.add('hidden');
+                        closeIcon.classList.remove('hidden');
+                        
+                        // Force background glass-nav if at top of transparent home page
+                        if (isHome && window.scrollY <= 50) {
+                            navbar.classList.add('glass-nav');
+                            navbar.classList.remove('bg-transparent', 'py-6');
+                            navbar.classList.add('py-4');
+                        }
+                    } else {
+                        // Close Mobile Menu Drawer
+                        mobileMenu.classList.add('hidden');
+                        hamburgerIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                        
+                        // Restore transparency if at top of home page
+                        if (isHome && window.scrollY <= 50) {
+                            navbar.classList.remove('glass-nav', 'py-4');
+                            navbar.classList.add('bg-transparent', 'py-6');
+                        }
+                    }
+                });
+
+                // Clean up when expanding to desktop viewport
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768) { // 768px is the 'md' Tailwind breakpoint
+                        mobileMenu.classList.add('hidden');
+                        hamburgerIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                        
+                        if (isHome && window.scrollY <= 50) {
+                            navbar.classList.remove('glass-nav', 'py-4');
+                            navbar.classList.add('bg-transparent', 'py-6');
+                        }
                     }
                 });
             }

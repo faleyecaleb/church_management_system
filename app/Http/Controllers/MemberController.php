@@ -303,4 +303,45 @@ class MemberController extends Controller
 
         return redirect()->back()->with('success', 'Member promoted to Main Member successfully.');
     }
+
+    /**
+     * Update member profile via API.
+     */
+    public function apiUpdate(Request $request)
+    {
+        $user = auth()->user();
+        $member = $user instanceof \App\Models\Member ? $user : $user->member;
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No member profile found.'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'city_of_residence' => 'nullable|string|max:255',
+            'state_of_residence' => 'nullable|string|max:255',
+            'profession' => 'nullable|string|max:255',
+            'custom_fields' => 'nullable|array',
+        ]);
+
+        // Filter out nulls so we only update the fields provided in the payload
+        $fieldsToUpdate = array_filter($validated, function ($val) {
+            return !is_null($val);
+        });
+
+        $member->update($fieldsToUpdate);
+
+        // Reload relationships to return the fully-hydrated user payload
+        $member->load(['departments.department', 'church']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully!',
+            'data' => $member
+        ]);
+    }
 }

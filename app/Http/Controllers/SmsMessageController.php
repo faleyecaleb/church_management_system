@@ -289,4 +289,142 @@ class SmsMessageController extends Controller
             'endDate'
         ));
     }
+
+    /**
+     * Get announcements (sent SMS messages and Notifications) for the authenticated member via API.
+     */
+    public function apiIndex(Request $request)
+    {
+        $user = auth()->user();
+        $member = $user instanceof \App\Models\Member ? $user : $user->member;
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No member profile found.'
+            ], 404);
+        }
+
+        // --- 1. FETCH APPLICABLE SMS MESSAGES ---
+        $departments = $member->departments()
+            ->with('department')
+            ->get()
+            ->map(function ($md) {
+                return $md->department ? strtolower($md->department->name) : null;
+            })
+            ->filter()
+            ->toArray();
+
+        $smsQuery = SmsMessage::where('status', 'sent')
+            ->where(function ($q) use ($member, $departments) {
+                $q->where('recipient_group', 'all')
+                  ->orWhere('recipient_group', 'members')
+                  ->orWhereIn(DB::raw('LOWER(recipient_group)'), $departments)
+                  ->orWhereJsonContains('recipient_ids', $member->id);
+            });
+
+        $smsMessages = $smsQuery->get()->map(function ($msg) {
+            return [
+                'id' => 'sms_' . $msg->id,
+                'source' => 'sms',
+                'type' => 'announcement',
+                'sender' => 'Church Administration',
+                'title' => $msg->title ?: 'Church Update',
+                'content' => $msg->content,
+                'created_at' => $msg->created_at->toIso8601String(),
+            ];
+        });
+
+        // --- 2. FETCH APPLICABLE NOTIFICATIONS ---
+        $notifications = \App\Models\Notification::whereIn('status', ['sent', 'pending', 'scheduled'])
+            ->where(function ($q) use ($member) {
+                // Direct notifications to the member
+                $q->where(function ($subQ) use ($member) {
+                    $subQ->where('recipient_type', 'App\\Models\\Member')
+                         ->where('recipient_id', $member->id);
+                })
+                // Global announcements (recipient_id is null)
+                ->orWhereNull('recipient_id');
+            })
+            ->get()
+            ->map(function ($notif) {
+                // Determine sender dynamically based on type
+                $sender = 'CAC Hosanna Admin';
+                if ($notif->type === 'followup') {
+                    $sender = 'Pastoral Team';
+                } elseif ($notif->type === 'birthday' || $notif->type === 'anniversary') {
+                    $sender = 'Hosanna Celebrations';
+                }
+
+                return [
+                    'id' => 'notif_' . $notif->id,
+                    'source' => 'notification',
+                    'type' => $notif->type ?: 'general',
+                    'sender' => $sender,
+                    'title' => $notif->title ?: 'New Notification',
+                    'content' => $notif->message,
+                    'created_at' => $notif->created_at->toIso8601String(),
+                ];
+            });
+
+        // --- 3. FETCH SERVICE ASSIGNMENTS (ORDER OF SERVICE) ---
+        $fullName = strtolower($member->first_name . ' ' . $member->last_name);
+        $firstName = strtolower($member->first_name);
+        $lastName = strtolower($member->last_name);
+
+        $assignments = \App\Models\OrderOfService::with('service')
+            ->where(function ($q) use ($fullName, $firstName, $lastName) {
+                $q->whereRaw('LOWER(leader) = ?', [$fullName])
+                  ->orWhereRaw('LOWER(leader) = ?', [$firstName])
+                  ->orWhereRaw('LOWER(leader) = ?', [$lastName]);
+            })
+            ->get()
+            ->map(function ($item) {
+                $timeStr = $item->start_time ? \Carbon\Carbon::parse($item->start_time)->format('h:i A') : 'Time not set';
+                $serviceName = $item->service ? $item->service->name : 'Upcoming Service';
+                
+                return [
+                    'id' => 'assignment_' . $item->id,
+                    'source' => 'notification',
+                    'type' => 'assignment',
+                    'sender' => 'Pastoral Scheduler',
+                    'title' => 'Service Assignment: ' . $item->program,
+                    'content' => "You have been scheduled to lead the \"{$item->program}\" during the \"{$serviceName}\".\nScheduled Time: {$timeStr}.",
+                    'created_at' => $item->created_at->toIso8601String(),
+                ];
+            });
+
+        // --- 4. MERGE AND SORT AND PAGINATE ---
+        $merged = collect($smsMessages)
+            ->merge($notifications)
+            ->merge($assignments)
+            ->sortByDesc('created_at')
+            ->values();
+
+        // Strategy A: Return only a limited subset (e.g. latest 5 for dashboard)
+        if ($request->has('limit')) {
+            $limit = (int) $request->input('limit');
+            return response()->json([
+                'success' => true,
+                'data' => $merged->take($limit)->toArray()
+            ]);
+        }
+
+        // Strategy B: Return manually paginated slice of merged collection
+        $perPage = 15;
+        $page = (int) $request->input('page', 1);
+        $total = $merged->count();
+        $sliced = $merged->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $sliced->toArray(),
+            'pagination' => [
+                'total' => $total,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => (int) ceil($total / $perPage),
+            ]
+        ]);
+    }
 }

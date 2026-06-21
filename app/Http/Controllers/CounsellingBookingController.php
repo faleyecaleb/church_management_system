@@ -62,6 +62,25 @@ class CounsellingBookingController extends Controller
             'admin_notes' => $request->admin_notes
         ]);
 
+        // Dispatch Expo Push Notification if member has a device token registered
+        try {
+            $member = $booking->member;
+            if ($member) {
+                $statusLabel = ucfirst($booking->status);
+                $title = "Counselling Booking: {$statusLabel}";
+                $body = "Your counselling request has been marked as {$booking->status}. Reason: " . substr($booking->reason, 0, 40) . "...";
+                
+                $expoService = new \App\Services\ExpoNotificationService();
+                $expoService->notifyMember($member, $title, $body, [
+                    'booking_id' => $booking->id,
+                    'status' => $booking->status,
+                    'type' => 'counselling_booking_update'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to dispatch push notification for counselling booking update: ' . $e->getMessage());
+        }
+
         // TODO: Phase 5 - Send Email Notification to the Member here
 
         return response()->json([

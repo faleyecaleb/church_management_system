@@ -34,6 +34,7 @@ class Member extends Authenticatable
         'membership_status',
         'profile_photo',
         'custom_fields',
+        'expo_push_token',
         'gender',
         'member_type',
         'marital_status',
@@ -70,6 +71,11 @@ class Member extends Authenticatable
         static::creating(function ($member) {
             if (empty($member->password)) {
                 $member->password = \Illuminate\Support\Facades\Hash::make(strtolower($member->last_name));
+            }
+            if (empty($member->unique_id)) {
+                $year = now()->year;
+                $random = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member->unique_id = "MEM-{$year}-{$random}";
             }
         });
     }
