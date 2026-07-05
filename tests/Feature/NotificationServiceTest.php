@@ -95,4 +95,61 @@ class NotificationServiceTest extends TestCase
                 $request['title'] === 'Upcoming Member Birthday';
         });
     }
+
+    public function test_birthday_board_page_access_for_super_admin()
+    {
+        $superAdmin = User::forceCreate([
+            'name' => 'Senior Pastor',
+            'email' => 'senior_pastor@hosanna',
+            'password' => bcrypt('password123'),
+            'role' => 'super_admin',
+        ]);
+
+        $response = $this->actingAs($superAdmin)->get(route('members.birthdays'));
+
+        $response->assertStatus(200);
+        $response->assertViewIs('members.birthdays');
+    }
+
+    public function test_birthday_board_page_displays_correct_birthdays()
+    {
+        $superAdmin = User::forceCreate([
+            'name' => 'Senior Pastor',
+            'email' => 'senior_pastor@hosanna',
+            'password' => bcrypt('password123'),
+            'role' => 'super_admin',
+        ]);
+
+        // Create members with birthdays today, tomorrow, and yesterday
+        $todayMember = Member::forceCreate([
+            'first_name' => 'Today',
+            'last_name' => 'Celebrant',
+            'email' => 'today@example.com',
+            'password' => bcrypt('password'),
+            'date_of_birth' => now()->format('Y-m-d'),
+        ]);
+
+        $tomorrowMember = Member::forceCreate([
+            'first_name' => 'Tomorrow',
+            'last_name' => 'Celebrant',
+            'email' => 'tomorrow@example.com',
+            'password' => bcrypt('password'),
+            'date_of_birth' => now()->addDay()->format('Y-m-d'),
+        ]);
+
+        $yesterdayMember = Member::forceCreate([
+            'first_name' => 'Yesterday',
+            'last_name' => 'Celebrant',
+            'email' => 'yesterday@example.com',
+            'password' => bcrypt('password'),
+            'date_of_birth' => now()->subDay()->format('Y-m-d'),
+        ]);
+
+        $response = $this->actingAs($superAdmin)->get(route('members.birthdays'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Today Celebrant');
+        $response->assertSee('Tomorrow Celebrant');
+        $response->assertSee('Yesterday Celebrant');
+    }
 }

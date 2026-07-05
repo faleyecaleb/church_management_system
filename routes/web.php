@@ -245,6 +245,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('members.export.stats');
 
     // Member Management Routes
+    Route::get('members/birthdays', [MemberController::class, 'birthdays'])->name('members.birthdays');
     Route::post('members/bulk-delete', [MemberController::class, 'bulkDelete'])->name('members.bulk-delete');
     Route::resource('members', MemberController::class);
     // Member Management Routes

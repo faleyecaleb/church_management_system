@@ -65,5 +65,26 @@ class ChurchLeadershipSeeder extends Seeder
         } else {
             $this->command->error("Adult Church not found. Unable to create adult church curate account.");
         }
+
+        // 3. Seed Church PA Account
+        $paEmail = 'church_pa@hosanna.com';
+        $paUser = User::firstOrCreate(
+            ['email' => $paEmail],
+            [
+                'name' => 'Church PA',
+                'password' => Hash::make('password123'),
+                'role' => 'pa',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $paRole = Role::findBySlug('pa');
+        if ($paRole) {
+            $paUser->roles()->sync([$paRole->id]);
+        }
+
+        $this->command->info("Church PA account created successfully!");
+        $this->command->info("Email: {$paEmail}");
+        $this->command->info("Password: password123");
     }
 }

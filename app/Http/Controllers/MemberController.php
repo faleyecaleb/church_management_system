@@ -15,11 +15,35 @@ class MemberController extends Controller
     {
         if (! request()->is('api/*')) {
             $this->middleware('auth');
-            $this->middleware('permission:member.view')->only(['index', 'show']);
+            $this->middleware('permission:member.view')->only(['index', 'show', 'birthdays']);
             $this->middleware('permission:member.create')->only(['create', 'store']);
             $this->middleware('permission:member.update')->only(['edit', 'update']);
             $this->middleware('permission:member.delete')->only(['destroy', 'bulkDelete']);
         }
+    }
+
+    public function birthdays()
+    {
+        $today = now();
+        $tomorrow = now()->addDay();
+        $yesterday = now()->subDay();
+
+        $todayBirthdays = Member::whereNotNull('date_of_birth')
+            ->whereMonth('date_of_birth', $today->month)
+            ->whereDay('date_of_birth', $today->day)
+            ->get();
+
+        $tomorrowBirthdays = Member::whereNotNull('date_of_birth')
+            ->whereMonth('date_of_birth', $tomorrow->month)
+            ->whereDay('date_of_birth', $tomorrow->day)
+            ->get();
+
+        $yesterdayBirthdays = Member::whereNotNull('date_of_birth')
+            ->whereMonth('date_of_birth', $yesterday->month)
+            ->whereDay('date_of_birth', $yesterday->day)
+            ->get();
+
+        return view('members.birthdays', compact('todayBirthdays', 'tomorrowBirthdays', 'yesterdayBirthdays'));
     }
 
     public function index(Request $request)
