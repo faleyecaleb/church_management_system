@@ -78,11 +78,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Name</p>
-                                <p class="mt-1">{{ $notification->recipient->full_name ?? $notification->recipient->name }}</p>
+                                <p class="mt-1">{{ $notification->recipient ? ($notification->recipient->full_name ?? $notification->recipient->name) : 'All Members (Broadcast)' }}</p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Type</p>
-                                <p class="mt-1">{{ class_basename($notification->recipient_type) }}</p>
+                                <p class="mt-1">{{ $notification->recipient_type ? class_basename($notification->recipient_type) : 'Global Announcement' }}</p>
                             </div>
                         </div>
                     </div>

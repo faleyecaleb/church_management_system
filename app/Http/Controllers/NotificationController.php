@@ -92,7 +92,9 @@ class NotificationController extends Controller
             ]),
             'title' => 'required|string|max:255',
             'message' => 'required|string',
-            'recipient_id' => 'required|exists:members,id',
+            'selection_type' => 'required|in:broadcast,target',
+            'recipient_ids' => 'required_if:selection_type,target|array',
+            'recipient_ids.*' => 'exists:members,id',
             'scheduled_at' => 'nullable|date|after:now',
             'data' => 'nullable|array',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -106,29 +108,57 @@ class NotificationController extends Controller
                 $imagePath = $request->file('image')->store('notifications/images', 'public');
             }
 
-            $notification = new Notification([
-                'type' => $validated['type'],
-                'title' => $validated['title'],
-                'message' => $validated['message'],
-                'image_url' => $imagePath,
-                'recipient_id' => $validated['recipient_id'],
-                'recipient_type' => Member::class,
-                'data' => $validated['data'] ?? null,
-                'status' => $request->has('scheduled_at')
-                    ? Notification::STATUS_SCHEDULED
-                    : Notification::STATUS_PENDING,
-            ]);
-            if ($request->has('scheduled_at')) {
-                $notification->scheduled_at = Carbon::parse($validated['scheduled_at']);
-            }
+            $status = $request->has('scheduled_at') && !empty($validated['scheduled_at'])
+                ? Notification::STATUS_SCHEDULED
+                : Notification::STATUS_PENDING;
 
-            $notification->save();
+            $scheduledAt = $request->has('scheduled_at') && $validated['scheduled_at']
+                ? Carbon::parse($validated['scheduled_at'])
+                : null;
+
+            if ($request->input('selection_type') === 'broadcast') {
+                // Create single Global/Broadcast Notification (recipient_id = null)
+                $notification = Notification::create([
+                    'type' => $validated['type'],
+                    'title' => $validated['title'],
+                    'message' => $validated['message'],
+                    'image_url' => $imagePath,
+                    'recipient_id' => null,
+                    'recipient_type' => Member::class,
+                    'data' => $validated['data'] ?? null,
+                    'status' => $status,
+                    'scheduled_at' => $scheduleDate ?? $scheduled_at ?? $scheduled_at = null,
+                ]);
+                if ($scheduled_at = $validated['scheduled_at'] ?? null) {
+                    $notification->scheduled_at = Carbon::parse($scheduled_at);
+                    $notification->save();
+                }
+            } else {
+                // Create targeted notifications for each selected recipient
+                $recipientIds = $validated['recipient_ids'] ?? [];
+                foreach ($memberIds = array_unique($recipientIds) as $recipientId) {
+                    $notification = Notification::create([
+                        'type' => $validated['type'],
+                        'title' => $validated['title'],
+                        'message' => $validated['message'],
+                        'image_url' => $imagePath,
+                        'recipient_id' => $recipientId,
+                        'recipient_type' => Member::class,
+                        'data' => $validated['data'] ?? null,
+                        'status' => $status,
+                    ]);
+                    if ($scheduledAt) {
+                        $notification->scheduled_at = $scheduledAt;
+                        $notification->save();
+                    }
+                }
+            }
 
             DB::commit();
 
             return redirect()
                 ->route('notifications.index')
-                ->with('success', 'Notification created successfully.');
+                ->with('success', 'Notification(s) created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
