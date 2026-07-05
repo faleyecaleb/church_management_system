@@ -474,22 +474,39 @@ class AttendanceController extends Controller
     public function showQrCode($serviceId)
     {
         if ($serviceId === 'current') {
-            // Find today's recurring service or one-time service
-            $service = Service::where(function ($q) {
+            // Get all of today's active services
+            $services = Service::where(function ($q) {
                 $q->where(function ($subQ) {
                     $subQ->where('is_recurring', true)
                         ->where('day_of_week', today()->dayOfWeek);
                 })
                     ->orWhere(function ($subQ) {
                         $subQ->where('is_recurring', false)
-                            ->whereDate('date', today());
+                            ->whereDate('start_date', today()); // Fix: renamed 'date' to 'start_date'
                     });
             })
                 ->where('status', 'active')
-                ->orderBy('start_time', 'asc')
-                ->first();
+                ->get();
 
-            if (! $service) {
+            // 1. Find the service whose check-in window is active right now
+            $service = $services->first(function ($s) {
+                return $s->isCheckInAllowed();
+            });
+
+            // 2. If no service is running right now, get the next upcoming one today
+            if (!$service) {
+                $nowStr = now()->format('H:i:s');
+                $service = $services->where('start_time', '>=', $nowStr)
+                                    ->sortBy('start_time')
+                                    ->first();
+            }
+
+            // 3. Ultimate fallback: get the first service of today
+            if (!$service) {
+                $service = $services->sortBy('start_time')->first();
+            }
+
+            if (!$service) {
                 return redirect()->route('attendance.dashboard')->with('error', 'No active service found for today.');
             }
         } else {

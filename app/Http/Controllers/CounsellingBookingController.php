@@ -63,14 +63,30 @@ class CounsellingBookingController extends Controller
             'admin_notes' => $request->admin_notes,
         ]);
 
-        // Dispatch Expo Push Notification if member has a device token registered
+        // Dispatch Expo Push Notification and save database notification
         try {
             $member = $booking->member;
             if ($member) {
                 $statusLabel = ucfirst($booking->status);
                 $title = "Counselling Booking: {$statusLabel}";
-                $body = "Your counselling request has been marked as {$booking->status}. Reason: ".substr($booking->reason, 0, 40).'...';
+                
+                // Use PA's notes for body if provided, otherwise generic status message
+                $body = $booking->admin_notes 
+                    ? "Your booking request has been {$booking->status}. Note: {$booking->admin_notes}" 
+                    : "Your booking request has been {$booking->status}.";
 
+                // 1. Create a database notification record so it appears in the Notification Feed on the mobile app
+                \App\Models\Notification::create([
+                    'type' => 'custom',
+                    'title' => $title,
+                    'message' => $body,
+                    'recipient_id' => $member->id,
+                    'recipient_type' => \App\Models\Member::class,
+                    'status' => \App\Models\Notification::STATUS_SENT,
+                    'sent_at' => now(),
+                ]);
+
+                // 2. Dispatch real-time push notification
                 $expoService = new \App\Services\ExpoNotificationService;
                 $expoService->notifyMember($member, $title, $body, [
                     'booking_id' => $booking->id,
@@ -79,7 +95,7 @@ class CounsellingBookingController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to dispatch push notification for counselling booking update: '.$e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to process notifications for counselling booking update: '.$e->getMessage());
         }
 
         // TODO: Phase 5 - Send Email Notification to the Member here
