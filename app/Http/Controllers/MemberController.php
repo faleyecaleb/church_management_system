@@ -81,12 +81,13 @@ class MemberController extends Controller
                 break;
         }
 
+        $activeCount = (clone $query)->where('membership_status', 'active')->count();
         $members = $query->with('departments.department')->paginate(20);
         
         $formDepartments = ['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'];
         $formGroups = ['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'];
 
-        return view('members.index', compact('members', 'formDepartments', 'formGroups'));
+        return view('members.index', compact('members', 'formDepartments', 'formGroups', 'activeCount'));
     }
 
     public function create()
@@ -100,12 +101,13 @@ class MemberController extends Controller
     {
         try {
             $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+            $isChildrenChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'children';
 
             $validated = $request->validate([
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'other_names' => 'nullable|string|max:255',
-                'email' => 'required|email|unique:members,email',
+                'email' => $isChildrenChurch ? 'nullable|email|unique:members,email' : 'required|email|unique:members,email',
                 'phone' => 'required|string|max:20',
                 'address' => 'required|string|max:500',
                 'birth_day' => 'required|string|max:2',
@@ -193,12 +195,17 @@ class MemberController extends Controller
     public function update(Request $request, Member $member)
     {
         $isYouthChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'youth';
+        $isChildrenChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'children';
 
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'other_names' => 'nullable|string|max:255',
-            'email' => ['required', 'email', Rule::unique('members')->ignore($member->id)],
+            'email' => [
+                $isChildrenChurch ? 'nullable' : 'required',
+                'email',
+                Rule::unique('members')->ignore($member->id)
+            ],
             'phone' => 'required|string|max:20',
             'address' => 'required|string|max:500',
             'birth_day' => 'required|string|max:2',

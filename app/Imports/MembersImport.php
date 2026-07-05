@@ -49,8 +49,11 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
                     continue;
                 }
 
-                // Check if member already exists
-                $existingMember = Member::where('email', $memberData['email'])->first();
+                // Check if member already exists (only if email is provided)
+                $existingMember = null;
+                if (!empty($memberData['email'])) {
+                    $existingMember = Member::where('email', $memberData['email'])->first();
+                }
 
                 if ($existingMember) {
                     if ($this->updateExisting) {
@@ -100,8 +103,10 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             }
         }
 
+        $isChildrenChurch = auth()->check() && auth()->user()->church && auth()->user()->church->type === 'children';
+
         $validator = Validator::make($normalizedRow, [
-            'email' => 'required|email|max:255',
+            'email' => $isChildrenChurch ? 'nullable|email|max:255' : 'required|email|max:255',
             'last_name' => 'required|string|max:255',
             'first_name' => 'required|string|max:255',
             'other_names' => 'nullable|string|max:255',
@@ -132,7 +137,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         }
 
         return [
-            'email' => strtolower(trim($normalizedRow['email'])),
+            'email' => isset($normalizedRow['email']) && !empty(trim($normalizedRow['email'])) ? strtolower(trim($normalizedRow['email'])) : null,
             'last_name' => $normalizedRow['last_name'],
             'first_name' => $normalizedRow['first_name'],
             'other_names' => $normalizedRow['other_names'] ?? null,

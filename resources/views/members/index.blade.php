@@ -501,7 +501,7 @@
                     </div>
                     <div class="flex-1">
                         <p class="text-sm font-medium text-gray-300 mb-1">Active Members</p>
-                        <p class="text-4xl font-bold text-white">{{ $members->where('membership_status', 'active')->count() }}</p>
+                        <p class="text-4xl font-bold text-white">{{ $activeCount }}</p>
                     </div>
                 </div>
             </div>

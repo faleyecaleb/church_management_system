@@ -496,4 +496,162 @@ class MemberImportTest extends TestCase
         $this->assertNotNull($member);
         $this->assertNull($member->is_baptized);
     }
+
+    /**
+     * Test that the members index page receives and renders the correct global active count.
+     */
+    public function test_index_page_returns_correct_global_active_members_count(): void
+    {
+        // Add member.view permission to user role (needed to access index)
+        $permission = Permission::firstOrCreate(
+            ['slug' => 'member.view'],
+            [
+                'name' => 'View Members',
+                'module' => 'members',
+                'is_active' => true
+            ]
+        );
+
+        $adminRole = Role::where('slug', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->permissions()->syncWithoutDetaching([$permission->id]);
+        }
+
+        // Create 2 active members and 1 inactive member
+        Member::forceCreate([
+            'first_name' => 'Active',
+            'last_name' => 'One',
+            'email' => 'active1@example.com',
+            'phone' => '08011111111',
+            'address' => '1 Main St',
+            'birth_day' => '1',
+            'birth_month' => 'January',
+            'gender' => 'male',
+            'marital_status' => 'SINGLE',
+            'church_id' => $this->user->church_id,
+            'membership_status' => 'active',
+            'unique_id' => 'MEM-2026-9001',
+        ]);
+        Member::forceCreate([
+            'first_name' => 'Active',
+            'last_name' => 'Two',
+            'email' => 'active2@example.com',
+            'phone' => '08022222222',
+            'address' => '2 Main St',
+            'birth_day' => '2',
+            'birth_month' => 'February',
+            'gender' => 'female',
+            'marital_status' => 'SINGLE',
+            'church_id' => $this->user->church_id,
+            'membership_status' => 'active',
+            'unique_id' => 'MEM-2026-9002',
+        ]);
+        Member::forceCreate([
+            'first_name' => 'Inactive',
+            'last_name' => 'Three',
+            'email' => 'inactive3@example.com',
+            'phone' => '08033333333',
+            'address' => '3 Main St',
+            'birth_day' => '3',
+            'birth_month' => 'March',
+            'gender' => 'male',
+            'marital_status' => 'SINGLE',
+            'church_id' => $this->user->church_id,
+            'membership_status' => 'inactive',
+            'unique_id' => 'MEM-2026-9003',
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('members.index'));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('activeCount', 2);
+    }
+
+    /**
+     * Test that creating a children church member without an email succeeds and auto-generates a unique email.
+     */
+    public function test_create_children_church_member_auto_generates_email(): void
+    {
+        // Change our user's church type to children
+        $this->user->church->update(['type' => 'children']);
+
+        $response = $this->actingAs($this->user)->post(route('members.store'), [
+            'first_name' => 'Timmy',
+            'last_name' => 'Child',
+            'email' => '', // Leave email empty!
+            'phone' => '08099999998',
+            'address' => '789 Children Lane',
+            'birth_day' => '5',
+            'birth_month' => 'October',
+            'gender' => 'male',
+            'marital_status' => 'SINGLE',
+            'state_of_origin' => 'Lagos',
+            'lga_of_origin' => 'Ikeja',
+            'state_of_residence' => 'Lagos',
+            'city_of_residence' => 'Ikeja',
+            'profession' => 'Student',
+            'is_baptized' => 'NO',
+            'departments' => ['NONE']
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        $member = Member::withoutGlobalScopes()->where('first_name', 'Timmy')->where('last_name', 'Child')->first();
+        $this->assertNotNull($member);
+        $this->assertNotEmpty($member->email);
+        $this->assertStringContainsString('timmy.child.child.', $member->email);
+        $this->assertStringEndsWith('@hosanna-children.com', $member->email);
+    }
+
+    /**
+     * Test that importing children church members with blank emails succeeds and auto-generates unique emails.
+     */
+    public function test_import_children_church_members_auto_generates_emails(): void
+    {
+        $this->user->church->update(['type' => 'children']);
+
+        $headers = [
+            'EMAIL', 'SURNAME', 'FIRSTNAME', 'OTHER NAME', 'DAY OF BIRTH', 'MONTH OF BIRTH',
+            'GENDER', 'EMERGENCY CONTACT NAME & PHONE NUMBER', 'MARITAL STATUS', 'NAME OF PARTNER (if married)',
+            'PHONE NUMBER (primary)', 'STATE OF ORIGIN', 'LOCAL GOVERNMENT', 'STATE OF RESIDENCE',
+            'CITY OF RESIDENCE', 'STREET NAME & NUMBER', 'PROFESSION/OCCUPATION', 'GROUP IN CHURCH',
+            'DEPARTMENT IN CHURCH', 'BAPTIZED', 'LOCATION & YEAR OF BAPTISM', 'CHURCH OF BAPTISM', 'SPIRITUAL GIFTS'
+        ];
+
+        // Omit email for the imported child row
+        $row = [
+            '', 'Child', 'Billy', 'Joe', '10', 'November',
+            'MALE', 'Parent: 08011111111', 'SINGLE', '',
+            '08022222222', 'Enugu', 'Nsukka', 'Lagos',
+            'Ikeja', '45 Allen Ave, Ikeja', 'Student', 'None',
+            'NONE', 'NO', '', '', ''
+        ];
+
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, $headers);
+        fputcsv($stream, $row);
+        rewind($stream);
+        $csvContent = stream_get_contents($stream);
+        fclose($stream);
+
+        $file = UploadedFile::fake()->createWithContent('children_import.csv', $csvContent);
+
+        $response = $this->actingAs($this->user)->post(route('members.import'), [
+            'import_file' => $file,
+            'skip_duplicates' => true,
+            'update_existing' => false
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        $member = Member::withoutGlobalScopes()->where('first_name', 'Billy')->where('last_name', 'Child')->first();
+        $this->assertNotNull($member);
+        $this->assertNotEmpty($member->email);
+        $this->assertStringContainsString('billy.child.child.', $member->email);
+        $this->assertStringEndsWith('@hosanna-children.com', $member->email);
+    }
 }

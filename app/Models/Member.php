@@ -77,6 +77,20 @@ class Member extends Authenticatable
                 $random = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
                 $member->unique_id = "MEM-{$year}-{$random}";
             }
+
+            // Check if member belongs to a children church and auto-generate email if empty
+            $churchId = $member->church_id ?? (auth()->check() ? auth()->user()->church_id : null);
+            $isChild = false;
+            if ($churchId) {
+                $isChild = \App\Models\Church::where('id', $churchId)->where('type', 'children')->exists();
+            }
+            if ($isChild && empty($member->email)) {
+                $year = now()->year;
+                $random = str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+                $safeFirstName = preg_replace('/[^a-z0-9]/', '', strtolower($member->first_name));
+                $safeLastName = preg_replace('/[^a-z0-9]/', '', strtolower($member->last_name));
+                $member->email = "{$safeFirstName}.{$safeLastName}.child.{$year}.{$random}@hosanna-children.com";
+            }
         });
     }
 
