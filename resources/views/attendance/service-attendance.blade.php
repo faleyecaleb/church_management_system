@@ -33,7 +33,7 @@
                     <option value="">Choose a service...</option>
                     @foreach($services as $service)
                         <option value="{{ $service->id }}" {{ request('service_id') == $service->id ? 'selected' : '' }}>
-                            {{ $service->name }} ({{ $service->is_recurring ? $service->day_of_week_name . 's' : (optional($service->date)->format('M j, Y') ?? 'One-time') }})
+                            {{ $service->name }} ({{ $service->is_recurring ? $service->day_of_week_name . 's' : (optional($service->start_date)->format('M j, Y') ?? 'One-time') }})
                         </option>
                     @endforeach
                 </select>

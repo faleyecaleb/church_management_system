@@ -229,12 +229,12 @@ class AttendanceMarkingController extends Controller
                     $query->where('is_recurring', 1)
                         ->orWhere(function ($subQuery) use ($year, $month) {
                             $subQuery->where('is_recurring', 0)
-                                ->whereYear('date', $year)
-                                ->whereMonth('date', $month);
+                                ->whereYear('start_date', $year)
+                                ->whereMonth('start_date', $month);
                         });
                 })
                 ->orderBy('is_recurring', 'desc')
-                ->orderBy('date', 'asc')
+                ->orderBy('start_date', 'asc')
                 ->orderBy('day_of_week')
                 ->orderBy('start_time')
                 ->get()
