@@ -52,6 +52,7 @@ class DonationController extends Controller
     public function create()
     {
         $members = Member::orderBy('first_name')->get();
+
         return view('donations.create', compact('members'));
     }
 
@@ -67,7 +68,7 @@ class DonationController extends Controller
             'notes' => 'nullable|string',
             'is_recurring' => 'boolean',
             'recurring_frequency' => 'required_if:is_recurring,true|string',
-            'next_payment_date' => 'required_if:is_recurring,true|date|after:donation_date'
+            'next_payment_date' => 'required_if:is_recurring,true|date|after:donation_date',
         ]);
 
         $donation = Donation::create($validated);
@@ -84,12 +85,14 @@ class DonationController extends Controller
     public function show(Donation $donation)
     {
         $donation->load('member');
+
         return view('donations.show', compact('donation'));
     }
 
     public function edit(Donation $donation)
     {
         $members = Member::orderBy('first_name')->get();
+
         return view('donations.edit', compact('donation', 'members'));
     }
 
@@ -105,7 +108,7 @@ class DonationController extends Controller
             'notes' => 'nullable|string',
             'is_recurring' => 'boolean',
             'recurring_frequency' => 'required_if:is_recurring,true|string',
-            'next_payment_date' => 'required_if:is_recurring,true|date|after:donation_date'
+            'next_payment_date' => 'required_if:is_recurring,true|date|after:donation_date',
         ]);
 
         $donation->update($validated);
@@ -166,7 +169,7 @@ class DonationController extends Controller
                 ->where('next_payment_date', '>=', now())
                 ->count(),
             'total_amount' => Donation::where('is_recurring', true)
-                ->sum('amount')
+                ->sum('amount'),
         ];
 
         return view('donations.report', compact(

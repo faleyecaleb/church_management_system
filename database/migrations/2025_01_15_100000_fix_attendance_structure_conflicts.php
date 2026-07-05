@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -15,35 +15,35 @@ return new class extends Migration
         // First, let's standardize the attendance table structure
         Schema::table('attendances', function (Blueprint $table) {
             // Add attendance_date column if it doesn't exist
-            if (!Schema::hasColumn('attendances', 'attendance_date')) {
+            if (! Schema::hasColumn('attendances', 'attendance_date')) {
                 $table->date('attendance_date')->nullable()->after('service_id');
             }
-            
+
             // Ensure all necessary columns exist with proper types
-            if (!Schema::hasColumn('attendances', 'status')) {
+            if (! Schema::hasColumn('attendances', 'status')) {
                 $table->enum('status', ['present', 'absent', 'late'])->default('present')->after('attendance_date');
             }
-            
+
             // Add proper foreign key constraints if they don't exist
-            if (!$this->foreignKeyExists('attendances', 'attendances_member_id_foreign')) {
+            if (! $this->foreignKeyExists('attendances', 'attendances_member_id_foreign')) {
                 $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
             }
-            
-            if (!$this->foreignKeyExists('attendances', 'attendances_service_id_foreign')) {
+
+            if (! $this->foreignKeyExists('attendances', 'attendances_service_id_foreign')) {
                 $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
             }
-            
-            if (!$this->foreignKeyExists('attendances', 'attendances_checked_in_by_foreign')) {
+
+            if (! $this->foreignKeyExists('attendances', 'attendances_checked_in_by_foreign')) {
                 $table->foreign('checked_in_by')->references('id')->on('users')->onDelete('set null');
             }
         });
 
         // Populate attendance_date from check_in_time for existing records
-        DB::statement("
+        DB::statement('
             UPDATE attendances 
             SET attendance_date = DATE(check_in_time) 
             WHERE attendance_date IS NULL AND check_in_time IS NOT NULL
-        ");
+        ');
 
         // Make attendance_date not nullable after populating data
         Schema::table('attendances', function (Blueprint $table) {
@@ -67,12 +67,12 @@ return new class extends Migration
             if ($this->foreignKeyExists('attendances', 'attendances_checked_in_by_foreign')) {
                 $table->dropForeign('attendances_checked_in_by_foreign');
             }
-            
+
             // Remove attendance_date column
             if (Schema::hasColumn('attendances', 'attendance_date')) {
                 $table->dropColumn('attendance_date');
             }
-            
+
             if (Schema::hasColumn('attendances', 'status')) {
                 $table->dropColumn('status');
             }
@@ -92,6 +92,7 @@ return new class extends Migration
                         return true;
                     }
                 }
+
                 return false;
             } catch (\Exception $e) {
                 // Fall through to other checks if getForeignKeys fails
@@ -102,14 +103,14 @@ return new class extends Migration
             return false;
         }
 
-        $foreignKeys = DB::select("
+        $foreignKeys = DB::select('
             SELECT CONSTRAINT_NAME 
             FROM information_schema.KEY_COLUMN_USAGE 
             WHERE TABLE_SCHEMA = DATABASE() 
             AND TABLE_NAME = ? 
             AND CONSTRAINT_NAME = ?
-        ", [$table, $name]);
-        
+        ', [$table, $name]);
+
         return count($foreignKeys) > 0;
     }
 };

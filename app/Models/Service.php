@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Service extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -23,17 +21,19 @@ class Service extends Model
         'end_time',
         'location',
         'is_recurring',
-        'date',
+        'start_date',
+        'end_date',
         'capacity',
         'status', // active, cancelled, etc.
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'is_recurring' => 'boolean',
-        'date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     protected $appends = ['day_of_week_name'];
@@ -90,9 +90,10 @@ class Service extends Model
      */
     public function getRemainingCapacityAttribute()
     {
-        if (!$this->capacity) {
+        if (! $this->capacity) {
             return null;
         }
+
         return max(0, $this->capacity - $this->attendance_count);
     }
 
@@ -125,7 +126,7 @@ class Service extends Model
      */
     public function getNextOccurrenceAttribute()
     {
-        if (!$this->is_recurring) {
+        if (! $this->is_recurring) {
             return null;
         }
 
@@ -158,17 +159,17 @@ class Service extends Model
         }
 
         $now = now();
-        
+
         // Ensure we are comparing today's date with the service's start and end times
-        $serviceTime = \Carbon\Carbon::parse($now->format('Y-m-d') . ' ' . $this->start_time->format('H:i:s'));
-        
-        $endTime = $this->end_time 
-            ? \Carbon\Carbon::parse($now->format('Y-m-d') . ' ' . $this->end_time->format('H:i:s'))
+        $serviceTime = \Carbon\Carbon::parse($now->format('Y-m-d').' '.$this->start_time->format('H:i:s'));
+
+        $endTime = $this->end_time
+            ? \Carbon\Carbon::parse($now->format('Y-m-d').' '.$this->end_time->format('H:i:s'))
             : $serviceTime->copy()->addHours(4); // Default to 4 hours if end time is missing
 
         // Allow check-in 2 hours before the service starts, and until the service ends.
         return $now->between(
-            $serviceTime->copy()->subHours(2), 
+            $serviceTime->copy()->subHours(2),
             $endTime
         );
     }

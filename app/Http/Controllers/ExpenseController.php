@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Expense;
 use App\Models\Budget;
+use App\Models\Expense;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class ExpenseController extends Controller
 {
@@ -54,6 +54,7 @@ class ExpenseController extends Controller
     public function create()
     {
         $budgets = Budget::active()->get();
+
         return view('expenses.create', compact('budgets'));
     }
 
@@ -70,7 +71,7 @@ class ExpenseController extends Controller
             'receipt' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
             'notes' => 'nullable|string',
             'vendor' => 'nullable|string',
-            'invoice_number' => 'nullable|string'
+            'invoice_number' => 'nullable|string',
         ]);
 
         if ($request->hasFile('receipt')) {
@@ -95,12 +96,14 @@ class ExpenseController extends Controller
     public function show(Expense $expense)
     {
         $expense->load('budget');
+
         return view('expenses.show', compact('expense'));
     }
 
     public function edit(Expense $expense)
     {
         $budgets = Budget::active()->get();
+
         return view('expenses.edit', compact('expense', 'budgets'));
     }
 
@@ -117,7 +120,7 @@ class ExpenseController extends Controller
             'receipt' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
             'notes' => 'nullable|string',
             'vendor' => 'nullable|string',
-            'invoice_number' => 'nullable|string'
+            'invoice_number' => 'nullable|string',
         ]);
 
         if ($request->hasFile('receipt')) {
@@ -177,7 +180,7 @@ class ExpenseController extends Controller
         }
 
         $validated = $request->validate([
-            'rejection_reason' => 'required|string'
+            'rejection_reason' => 'required|string',
         ]);
 
         $expense->reject($validated['rejection_reason']);
@@ -224,7 +227,7 @@ class ExpenseController extends Controller
                     'allocated' => $budget->amount,
                     'used' => $budget->expenses->sum('amount'),
                     'remaining' => $budget->remaining_amount,
-                    'utilization_rate' => $budget->utilization_percentage
+                    'utilization_rate' => $budget->utilization_percentage,
                 ];
             });
 

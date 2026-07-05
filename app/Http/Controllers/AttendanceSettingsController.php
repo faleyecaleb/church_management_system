@@ -20,7 +20,6 @@ class AttendanceSettingsController extends Controller
     /**
      * Update the attendance settings.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request)
@@ -77,16 +76,16 @@ class AttendanceSettingsController extends Controller
 
             // Update existing variables
             foreach ($contentArray as $lineNum => $line) {
-                if (strpos($line, $key . '=') === 0) {
-                    $contentArray[$lineNum] = $key . '=' . $value;
+                if (strpos($line, $key.'=') === 0) {
+                    $contentArray[$lineNum] = $key.'='.$value;
                     $updated = true;
                     break;
                 }
             }
 
             // Add new variables
-            if (!$updated) {
-                $contentArray[] = $key . '=' . $value;
+            if (! $updated) {
+                $contentArray[] = $key.'='.$value;
             }
         }
 

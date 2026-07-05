@@ -17,12 +17,12 @@ return new class extends Migration
 
             // Add new columns
             $table->foreignId('service_id')->after('member_id')
-                  ->constrained()
-                  ->onDelete('cascade');
+                ->constrained()
+                ->onDelete('cascade');
             $table->string('check_in_location')->nullable()->after('check_in_method');
             $table->foreignId('checked_in_by')->nullable()->after('check_in_location')
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->constrained('users')
+                ->nullOnDelete();
             $table->softDeletes();
 
             // Add indexes
@@ -50,7 +50,7 @@ return new class extends Migration
                 'service_id',
                 'check_in_location',
                 'checked_in_by',
-                'deleted_at'
+                'deleted_at',
             ]);
 
             // Restore the old service_type column

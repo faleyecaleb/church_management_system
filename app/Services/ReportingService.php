@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Models\Attendance;
+use App\Models\Donation;
 use App\Models\Member;
 use App\Models\Message;
-use App\Models\Donation;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class ReportingService
@@ -26,7 +25,7 @@ class ReportingService
             'messages' => $this->getMessageStats(),
             'donations' => $this->getDonationStats(),
             'growth' => $this->getGrowthMetrics(),
-            'engagement' => $this->getEngagementMetrics()
+            'engagement' => $this->getEngagementMetrics(),
         ];
     }
 
@@ -53,9 +52,9 @@ class ReportingService
             'new_members_this_month' => $newMembersQuery->count(),
             'demographics' => [
                 'age_groups' => $this->calculateAgeGroups($activeMembers),
-                'gender_distribution' => $this->calculateGenderDistribution($activeMembers)
+                'gender_distribution' => $this->calculateGenderDistribution($activeMembers),
             ],
-            'membership_duration' => $this->calculateMembershipDuration($activeMembers)
+            'membership_duration' => $this->calculateMembershipDuration($activeMembers),
         ];
     }
 
@@ -68,14 +67,14 @@ class ReportingService
         $attendanceQuery = Attendance::query();
         // Use attendance_date if available; otherwise fallback to check_in_time
         $dateColumn = 'attendance_date';
-        if (!\Schema::hasColumn('attendances', 'attendance_date')) {
+        if (! \Schema::hasColumn('attendances', 'attendance_date')) {
             $dateColumn = 'check_in_time';
         }
         $attendanceQuery->where($dateColumn, '>=', $start);
 
         // Build daily totals
         $daily = $attendanceQuery->clone()
-            ->selectRaw(($dateColumn === 'attendance_date' ? "$dateColumn" : "DATE($dateColumn)") . ' as day, COUNT(*) as total')
+            ->selectRaw(($dateColumn === 'attendance_date' ? "$dateColumn" : "DATE($dateColumn)").' as day, COUNT(*) as total')
             ->groupBy('day')
             ->orderBy('day')
             ->get();
@@ -92,7 +91,7 @@ class ReportingService
             'average_attendance' => $totals->count() ? round($totals->avg()) : 0,
             'highest_attendance' => $totals->max() ?? 0,
             'lowest_attendance' => $totals->min() ?? 0,
-            'attendance_trend' => $daily->map(fn($r) => ['day' => (string)$r->day, 'total' => (int)$r->total])->values(),
+            'attendance_trend' => $daily->map(fn ($r) => ['day' => (string) $r->day, 'total' => (int) $r->total])->values(),
             'service_comparison' => $serviceComparison,
         ];
     }
@@ -116,14 +115,14 @@ class ReportingService
             'by_type' => [
                 'sms' => $messages->where('type', 'sms')->count(),
                 'prayer' => $messages->where('type', 'prayer')->count(),
-                'internal' => $messages->where('type', 'internal')->count()
+                'internal' => $messages->where('type', 'internal')->count(),
             ],
             'delivery_stats' => [
                 'delivered' => $messages->where('status', 'delivered')->count(),
                 'failed' => $messages->where('status', 'failed')->count(),
-                'pending' => $messages->where('status', 'pending')->count()
+                'pending' => $messages->where('status', 'pending')->count(),
             ],
-            'engagement_rate' => $this->calculateMessageEngagementRate($messages)
+            'engagement_rate' => $this->calculateMessageEngagementRate($messages),
         ];
     }
 
@@ -147,7 +146,7 @@ class ReportingService
             'donor_count' => $donations->whereNotNull('member_id')->unique('member_id')->count(),
             'by_category' => $this->calculateDonationsByCategory($donations),
             'trend' => $this->calculateDonationTrend(),
-            'campaign_performance' => $this->calculateCampaignPerformance()
+            'campaign_performance' => $this->calculateCampaignPerformance(),
         ];
     }
 
@@ -166,7 +165,7 @@ class ReportingService
             'year_over_year_growth' => $this->calculateGrowthPercentage($lastYearMembers, $currentYearMembers),
             'monthly_growth_rate' => $this->calculateMonthlyGrowthRate(),
             'retention_rate' => $this->calculateRetentionRate(),
-            'conversion_rate' => $this->calculateConversionRate()
+            'conversion_rate' => $this->calculateConversionRate(),
         ];
     }
 
@@ -180,7 +179,7 @@ class ReportingService
             'giving_participation' => $this->calculateGivingParticipation(),
             'ministry_involvement' => $this->calculateMinistryInvolvement(),
             'event_participation' => $this->calculateEventParticipation(),
-            'communication_engagement' => $this->calculateCommunicationEngagement()
+            'communication_engagement' => $this->calculateCommunicationEngagement(),
         ];
     }
 
@@ -194,7 +193,7 @@ class ReportingService
             '19-30' => 0,
             '31-50' => 0,
             '51-70' => 0,
-            '70+' => 0
+            '70+' => 0,
         ];
 
         foreach ($members as $member) {
@@ -228,7 +227,7 @@ class ReportingService
         return [
             'male' => $members->where('gender', 'male')->count(),
             'female' => $members->where('gender', 'female')->count(),
-            'other' => $members->where('gender', 'other')->count()
+            'other' => $members->where('gender', 'other')->count(),
         ];
     }
 
@@ -241,7 +240,7 @@ class ReportingService
             '<1 year' => 0,
             '1-5 years' => 0,
             '5-10 years' => 0,
-            '>10 years' => 0
+            '>10 years' => 0,
         ];
 
         foreach ($members as $member) {
@@ -269,7 +268,10 @@ class ReportingService
      */
     protected function calculateGrowthPercentage($old, $new)
     {
-        if ($old == 0) return 100;
+        if ($old == 0) {
+            return 100;
+        }
+
         return round((($new - $old) / $old) * 100, 2);
     }
 
@@ -278,13 +280,14 @@ class ReportingService
      */
     protected function calculateMonthlyGrowthRate()
     {
-        $months = collect(range(1, 12))->map(function($month) {
+        $months = collect(range(1, 12))->map(function ($month) {
             $date = Carbon::create(null, $month, 1);
+
             return [
                 'month' => $date->format('M'),
                 'count' => Member::whereMonth('created_at', $month)
                     ->whereYear('created_at', now()->year)
-                    ->count()
+                    ->count(),
             ];
         });
 
@@ -299,8 +302,11 @@ class ReportingService
     protected function calculateMessageEngagementRate($messages)
     {
         $total = $messages->count();
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
         $delivered = $messages->where('status', 'delivered')->count();
+
         return round(($delivered / max($total, 1)) * 100, 2);
     }
 
@@ -317,8 +323,10 @@ class ReportingService
     {
         // Use campaign as a proxy for category if no category column exists
         return $donations
-            ->groupBy(function($d){ return $d->campaign ?? 'Uncategorized'; })
-            ->map(fn($g) => $g->sum('amount'));
+            ->groupBy(function ($d) {
+                return $d->campaign ?? 'Uncategorized';
+            })
+            ->map(fn ($g) => $g->sum('amount'));
     }
 
     protected function calculateCampaignPerformance()
@@ -332,17 +340,23 @@ class ReportingService
     protected function calculateRetentionRate()
     {
         $total = Member::count();
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
         $retained = Member::where('created_at', '<=', now()->subYear())->count();
-        return round(($retained / max($total,1)) * 100, 2);
+
+        return round(($retained / max($total, 1)) * 100, 2);
     }
 
     protected function calculateConversionRate()
     {
         $total = Member::count();
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
         $newThisMonth = Member::whereMonth('created_at', now()->month)->count();
-        return round(($newThisMonth / max($total,1)) * 100, 2);
+
+        return round(($newThisMonth / max($total, 1)) * 100, 2);
     }
 
     protected function calculateAttendanceEngagement()
@@ -353,6 +367,7 @@ class ReportingService
             ->groupBy('day')
             ->get()
             ->count();
+
         return round(($daysWithAttendance / 30) * 100, 2);
     }
 
@@ -363,6 +378,7 @@ class ReportingService
             ->whereNotNull('member_id')
             ->distinct('member_id')
             ->count('member_id');
+
         return round(($donorsThisMonth / $activeMembers) * 100, 2);
     }
 
@@ -381,8 +397,11 @@ class ReportingService
     protected function calculateCommunicationEngagement()
     {
         $total = Message::count();
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
         $delivered = Message::where('status', 'delivered')->count();
-        return round(($delivered / max($total,1)) * 100, 2);
+
+        return round(($delivered / max($total, 1)) * 100, 2);
     }
 }

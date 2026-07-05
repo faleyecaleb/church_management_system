@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Notification;
 use App\Models\Member;
+use App\Models\Notification;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Models\SmsMessage;
 
 class NotificationService
 {
@@ -38,10 +36,10 @@ class NotificationService
                     'recipient_type' => Member::class,
                     'data' => [
                         'birthday_date' => $nextBirthday->format('Y-m-d'),
-                        'age' => $nextBirthday->diffInYears($member->date_of_birth)
+                        'age' => $nextBirthday->diffInYears($member->date_of_birth),
                     ],
                     'status' => Notification::STATUS_SCHEDULED,
-                    'scheduled_at' => $scheduleDate
+                    'scheduled_at' => $scheduleDate,
                 ]);
             }
         }
@@ -67,7 +65,7 @@ class NotificationService
 
             if ($scheduleDate->isFuture()) {
                 $years = $nextAnniversary->diffInYears($member->membership_date);
-                
+
                 Notification::create([
                     'type' => Notification::TYPE_ANNIVERSARY,
                     'title' => 'Membership Anniversary',
@@ -76,10 +74,10 @@ class NotificationService
                     'recipient_type' => Member::class,
                     'data' => [
                         'anniversary_date' => $nextAnniversary->format('Y-m-d'),
-                        'years' => $years
+                        'years' => $years,
                     ],
                     'status' => Notification::STATUS_SCHEDULED,
-                    'scheduled_at' => $scheduleDate
+                    'scheduled_at' => $scheduleDate,
                 ]);
             }
         }
@@ -98,7 +96,7 @@ class NotificationService
 
         foreach ($members as $member) {
             $membershipYears = Carbon::parse($member->membership_date)->diffInYears(now());
-            
+
             foreach ($milestones as $milestone) {
                 if ($membershipYears == $milestone) {
                     Notification::create([
@@ -109,9 +107,9 @@ class NotificationService
                         'recipient_type' => Member::class,
                         'data' => [
                             'milestone_years' => $milestone,
-                            'membership_date' => $member->membership_date
+                            'membership_date' => $member->membership_date,
                         ],
-                        'status' => Notification::STATUS_PENDING
+                        'status' => Notification::STATUS_PENDING,
                     ]);
                     break;
                 }
@@ -133,10 +131,10 @@ class NotificationService
             'data' => [
                 'reason' => $reason,
                 'member_phone' => $member->phone,
-                'member_email' => $member->email
+                'member_email' => $member->email,
             ],
             'status' => $dueDate ? Notification::STATUS_SCHEDULED : Notification::STATUS_PENDING,
-            'scheduled_at' => $dueDate
+            'scheduled_at' => $dueDate,
         ]);
     }
 
@@ -153,7 +151,7 @@ class NotificationService
             'recipient_type' => Member::class,
             'data' => $additionalData,
             'status' => $scheduledAt ? Notification::STATUS_SCHEDULED : Notification::STATUS_PENDING,
-            'scheduled_at' => $scheduledAt
+            'scheduled_at' => $scheduledAt,
         ]);
     }
 
@@ -191,9 +189,9 @@ class NotificationService
             } catch (\Exception $e) {
                 $notification->markAsFailed();
                 // Log the error
-                \Illuminate\Support\Facades\Log::error('Failed to process notification: ' . $e->getMessage(), [
+                \Illuminate\Support\Facades\Log::error('Failed to process notification: '.$e->getMessage(), [
                     'notification_id' => $notification->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -214,7 +212,7 @@ class NotificationService
                 ->orderBy('check_in_time', 'desc')
                 ->first();
 
-            if (!$lastAttendance || $lastAttendance->check_in_time->diffInWeeks(now()) >= $thresholdWeeks) {
+            if (! $lastAttendance || $lastAttendance->check_in_time->diffInWeeks(now()) >= $thresholdWeeks) {
                 // Check if we already have a pending absence notification for this member
                 $existingNotification = Notification::where('recipient_id', $member->id)
                     ->where('recipient_type', Member::class)
@@ -222,7 +220,7 @@ class NotificationService
                     ->whereIn('status', [Notification::STATUS_PENDING, Notification::STATUS_SCHEDULED])
                     ->first();
 
-                if (!$existingNotification) {
+                if (! $existingNotification) {
                     $weeksAbsent = $lastAttendance ? $lastAttendance->check_in_time->diffInWeeks(now()) : $thresholdWeeks;
                     $message = $lastAttendance
                         ? "Member has not attended any service for {$weeksAbsent} weeks. Last attendance was on {$lastAttendance->check_in_time->format('M d, Y')}"
@@ -238,9 +236,9 @@ class NotificationService
                             'weeks_absent' => $weeksAbsent,
                             'last_attendance_date' => $lastAttendance ? $lastAttendance->check_in_time : null,
                             'member_phone' => $member->phone,
-                            'member_email' => $member->email
+                            'member_email' => $member->email,
                         ],
-                        'status' => Notification::STATUS_PENDING
+                        'status' => Notification::STATUS_PENDING,
                     ]);
                 }
             }

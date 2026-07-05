@@ -20,13 +20,13 @@ class MessageTemplate extends Model
         'variables',      // JSON array of available variables
         'created_by',     // User ID who created the template
         'is_active',     // Boolean flag for template status
-        'metadata'        // Additional template metadata
+        'metadata',        // Additional template metadata
     ];
 
     protected $casts = [
         'variables' => 'array',
         'metadata' => 'array',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     // Relationships
@@ -64,13 +64,13 @@ class MessageTemplate extends Model
 
         // Replace placeholders in content
         foreach ($data as $key => $value) {
-            $content = str_replace('{' . $key . '}', $value, $content);
-            $subject = str_replace('{' . $key . '}', $value, $subject);
+            $content = str_replace('{'.$key.'}', $value, $content);
+            $subject = str_replace('{'.$key.'}', $value, $subject);
         }
 
         return [
             'subject' => $subject,
-            'content' => $content
+            'content' => $content,
         ];
     }
 
@@ -80,30 +80,31 @@ class MessageTemplate extends Model
         $required = $this->variables ?? [];
 
         foreach ($required as $variable) {
-            if (!isset($data[$variable])) {
+            if (! isset($data[$variable])) {
                 $missing[] = $variable;
             }
         }
 
         return [
             'valid' => empty($missing),
-            'missing' => $missing
+            'missing' => $missing,
         ];
     }
 
     public function toggleStatus()
     {
-        $this->update(['is_active' => !$this->is_active]);
+        $this->update(['is_active' => ! $this->is_active]);
+
         return $this->is_active;
     }
 
     public function duplicate()
     {
         $clone = $this->replicate();
-        $clone->name = $this->name . ' (Copy)';
+        $clone->name = $this->name.' (Copy)';
         $clone->created_by = auth()->id();
         $clone->save();
-        
+
         return $clone;
     }
 }

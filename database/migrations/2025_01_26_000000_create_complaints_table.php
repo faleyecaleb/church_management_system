@@ -26,7 +26,7 @@ return new class extends Migration
                 'pastoral_care',
                 'communication',
                 'event_management',
-                'other'
+                'other',
             ])->default('other');
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->enum('status', [
@@ -35,7 +35,7 @@ return new class extends Migration
                 'pending_review',
                 'resolved',
                 'closed',
-                'escalated'
+                'escalated',
             ])->default('open');
             $table->string('subject');
             $table->text('description');

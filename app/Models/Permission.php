@@ -14,32 +14,47 @@ class Permission extends Model
         'slug',
         'description',
         'module',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     // Predefined modules
     const MODULE_MEMBER = 'member';
+
     const MODULE_ATTENDANCE = 'attendance';
+
     const MODULE_FINANCE = 'finance';
+
     const MODULE_COMMUNICATION = 'communication';
+
     const MODULE_EQUIPMENT = 'equipment';
+
     const MODULE_SETTINGS = 'settings';
+
     const MODULE_ROLE = 'role';
+
     const MODULE_AUDIT = 'audit';
+
     const MODULE_SERVICE = 'service';
 
     // Predefined actions
     const ACTION_VIEW = 'view';
+
     const ACTION_CREATE = 'create';
+
     const ACTION_UPDATE = 'update';
+
     const ACTION_DELETE = 'delete';
+
     const ACTION_MANAGE = 'manage';
+
     const ACTION_APPROVE = 'approve';
+
     const ACTION_EXPORT = 'export';
+
     const ACTION_IMPORT = 'import';
 
     // Relationships
@@ -81,7 +96,7 @@ class Permission extends Model
             self::MODULE_SETTINGS => 'System Settings',
             self::MODULE_ROLE => 'Role Management',
             self::MODULE_AUDIT => 'Audit Logs',
-            self::MODULE_SERVICE => 'Service Management'
+            self::MODULE_SERVICE => 'Service Management',
         ];
     }
 
@@ -95,7 +110,7 @@ class Permission extends Model
             self::ACTION_MANAGE => 'Manage',
             self::ACTION_APPROVE => 'Approve',
             self::ACTION_EXPORT => 'Export',
-            self::ACTION_IMPORT => 'Import'
+            self::ACTION_IMPORT => 'Import',
         ];
     }
 
@@ -112,7 +127,7 @@ class Permission extends Model
                     'slug' => "{$moduleSlug}.{$actionSlug}",
                     'description' => "Ability to {$actionSlug} in {$moduleName}",
                     'module' => $moduleSlug,
-                    'is_active' => true
+                    'is_active' => true,
                 ];
             }
         }
@@ -123,7 +138,7 @@ class Permission extends Model
             'slug' => 'dashboard.access',
             'description' => 'Ability to access the dashboard',
             'module' => 'dashboard',
-            'is_active' => true
+            'is_active' => true,
         ];
 
         $permissions[] = [
@@ -131,7 +146,7 @@ class Permission extends Model
             'slug' => 'reports.generate',
             'description' => 'Ability to generate system reports',
             'module' => 'reports',
-            'is_active' => true
+            'is_active' => true,
         ];
 
         return $permissions;
@@ -224,9 +239,9 @@ class Permission extends Model
                 ->map(function ($permission) {
                     return [
                         'name' => $permission->name,
-                        'usage_count' => $permission->roles_count
+                        'usage_count' => $permission->roles_count,
                     ];
-                })
+                }),
         ];
     }
 }

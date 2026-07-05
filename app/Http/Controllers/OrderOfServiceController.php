@@ -25,28 +25,29 @@ class OrderOfServiceController extends Controller
         $year = $request->input('year', date('Y'));
         $month = $request->input('month', date('n'));
 
-        $services = Service::with(['orderOfServices' => function($query) {
+        $services = Service::with(['orderOfServices' => function ($query) {
             $query->ordered();
         }])
-        ->active()
-        ->where(function ($query) use ($year, $month) {
-            $query->where('is_recurring', 1)
-                  ->orWhere(function ($subQuery) use ($year, $month) {
-                      $subQuery->where('is_recurring', 0)
-                               ->whereYear('date', $year)
-                               ->whereMonth('date', $month);
-                  });
-        })
-        ->orderBy('is_recurring', 'desc')
-        ->orderBy('date', 'asc')
-        ->orderBy('day_of_week')
-        ->orderBy('start_time')
-        ->get()
-        ->map(function($service) {
-            $service->order_count = $service->orderOfServices->count();
-            $service->total_duration = $service->orderOfServices->sum('duration');
-            return $service;
-        });
+            ->active()
+            ->where(function ($query) use ($year, $month) {
+                $query->where('is_recurring', 1)
+                    ->orWhere(function ($subQuery) use ($year, $month) {
+                        $subQuery->where('is_recurring', 0)
+                            ->whereYear('date', $year)
+                            ->whereMonth('date', $month);
+                    });
+            })
+            ->orderBy('is_recurring', 'desc')
+            ->orderBy('date', 'asc')
+            ->orderBy('day_of_week')
+            ->orderBy('start_time')
+            ->get()
+            ->map(function ($service) {
+                $service->order_count = $service->orderOfServices->count();
+                $service->total_duration = $service->orderOfServices->sum('duration');
+
+                return $service;
+            });
 
         return view('order-of-services.overview', compact('services', 'year', 'month'));
     }
@@ -58,16 +59,16 @@ class OrderOfServiceController extends Controller
     {
         $orderOfServices = $service->orderOfServices()->ordered()->get();
         $totalDuration = $orderOfServices->sum('duration');
-        
+
         // Calculate year range for filter: Earliest created service year -> Next Year
         $earliest = Service::min('created_at');
         $startYear = $earliest ? \Illuminate\Support\Carbon::parse($earliest)->year : date('Y');
         $endYear = date('Y') + 1;
         // Ensure startYear is not greater than endYear (sanity check)
         $startYear = min($startYear, $endYear);
-        
+
         $years = range($startYear, $endYear);
-        
+
         return view('order-of-services.index', compact('service', 'orderOfServices', 'totalDuration', 'years'));
     }
 
@@ -96,7 +97,7 @@ class OrderOfServiceController extends Controller
         ]);
 
         // If no order is provided, auto-assign
-        if (!$validated['order']) {
+        if (! $validated['order']) {
             $maxOrder = $service->orderOfServices()->max('order');
             $validated['order'] = ($maxOrder ?? 0) + 1;
         }
@@ -113,6 +114,7 @@ class OrderOfServiceController extends Controller
     public function show(OrderOfService $orderOfService)
     {
         $service = $orderOfService->service;
+
         return view('order-of-services.show', compact('service', 'orderOfService'));
     }
 
@@ -122,6 +124,7 @@ class OrderOfServiceController extends Controller
     public function edit(OrderOfService $orderOfService)
     {
         $service = $orderOfService->service;
+
         return view('order-of-services.edit', compact('service', 'orderOfService'));
     }
 
@@ -215,7 +218,7 @@ class OrderOfServiceController extends Controller
     {
         $orderOfServices = $service->orderOfServices()->ordered()->get();
         $totalDuration = $orderOfServices->sum('duration');
-        
+
         return view('order-of-services.print', compact('service', 'orderOfServices', 'totalDuration'));
     }
 
@@ -225,7 +228,7 @@ class OrderOfServiceController extends Controller
     public function downloadTemplate()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\OrderOfServiceTemplateExport(), 
+            new \App\Exports\OrderOfServiceTemplateExport,
             'order_of_service_template.xlsx'
         );
     }
@@ -241,7 +244,7 @@ class OrderOfServiceController extends Controller
 
         try {
             \Maatwebsite\Excel\Facades\Excel::import(
-                new \App\Imports\OrderOfServiceImport($service->id, $service->church_id), 
+                new \App\Imports\OrderOfServiceImport($service->id, $service->church_id),
                 $request->file('file')
             );
 
@@ -251,11 +254,12 @@ class OrderOfServiceController extends Controller
             $failures = $e->failures();
             $messages = [];
             foreach ($failures as $failure) {
-                $messages[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+                $messages[] = "Row {$failure->row()}: ".implode(', ', $failure->errors());
             }
+
             return back()->with('error', 'Import failed due to validation errors.')->with('import_errors', $messages);
         } catch (\Exception $e) {
-            return back()->with('error', 'Error importing file: ' . $e->getMessage());
+            return back()->with('error', 'Error importing file: '.$e->getMessage());
         }
     }
 }

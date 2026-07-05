@@ -3,16 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class Notification extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -38,17 +36,26 @@ class Notification extends Model
 
     // Notification types
     const TYPE_BIRTHDAY = 'birthday';
+
     const TYPE_ANNIVERSARY = 'anniversary';
+
     const TYPE_MILESTONE = 'milestone';
+
     const TYPE_CUSTOM = 'custom';
+
     const TYPE_FOLLOWUP = 'followup';
+
     const TYPE_SERMON = 'sermon';
+
     const TYPE_ABSENCE = 'absence';
 
     // Notification statuses
     const STATUS_PENDING = 'pending';
+
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_FAILED = 'failed';
 
     /**
@@ -81,7 +88,7 @@ class Notification extends Model
     public function scopeScheduled($query)
     {
         return $query->where('status', self::STATUS_SCHEDULED)
-                     ->where('scheduled_at', '>', now());
+            ->where('scheduled_at', '>', now());
     }
 
     /**
@@ -90,7 +97,7 @@ class Notification extends Model
     public function scopeDue($query)
     {
         return $query->where('status', self::STATUS_SCHEDULED)
-                     ->where('scheduled_at', '<=', now());
+            ->where('scheduled_at', '<=', now());
     }
 
     /**
@@ -110,7 +117,7 @@ class Notification extends Model
     {
         $this->update([
             'status' => self::STATUS_SENT,
-            'sent_at' => now()
+            'sent_at' => now(),
         ]);
     }
 
@@ -129,7 +136,7 @@ class Notification extends Model
     {
         $this->update([
             'status' => self::STATUS_SCHEDULED,
-            'scheduled_at' => $scheduledAt
+            'scheduled_at' => $scheduledAt,
         ]);
     }
 
@@ -138,7 +145,7 @@ class Notification extends Model
      */
     public function isRead()
     {
-        return !is_null($this->read_at);
+        return ! is_null($this->read_at);
     }
 
     /**

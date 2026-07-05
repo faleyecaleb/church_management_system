@@ -35,7 +35,7 @@ class PermissionController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -49,6 +49,7 @@ class PermissionController extends Controller
     {
         $modules = Permission::getModules();
         $actions = Permission::getActions();
+
         return view('permissions.create', compact('modules', 'actions'));
     }
 
@@ -59,7 +60,7 @@ class PermissionController extends Controller
             'description' => 'nullable|string|max:1000',
             'module' => 'required|string|max:50',
             'action' => 'required|string|max:50',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $permission = Permission::create([
@@ -68,7 +69,7 @@ class PermissionController extends Controller
             'description' => $validated['description'],
             'module' => $validated['module'],
             'action' => $validated['action'],
-            'is_active' => $validated['is_active'] ?? true
+            'is_active' => $validated['is_active'] ?? true,
         ]);
 
         return redirect()->route('permissions.show', $permission)
@@ -104,11 +105,11 @@ class PermissionController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name,' . $permission->id,
+            'name' => 'required|string|max:255|unique:permissions,name,'.$permission->id,
             'description' => 'nullable|string|max:1000',
             'module' => 'required|string|max:50',
             'action' => 'required|string|max:50',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $permission->update([
@@ -117,7 +118,7 @@ class PermissionController extends Controller
             'description' => $validated['description'],
             'module' => $validated['module'],
             'action' => $validated['action'],
-            'is_active' => $validated['is_active'] ?? true
+            'is_active' => $validated['is_active'] ?? true,
         ]);
 
         return redirect()->route('permissions.show', $permission)
@@ -146,11 +147,12 @@ class PermissionController extends Controller
     {
         try {
             Permission::createDefaultPermissions();
+
             return redirect()->route('permissions.index')
                 ->with('success', 'Default permissions created successfully.');
         } catch (\Exception $e) {
             return redirect()->route('permissions.index')
-                ->with('error', 'Failed to create default permissions: ' . $e->getMessage());
+                ->with('error', 'Failed to create default permissions: '.$e->getMessage());
         }
     }
 
@@ -158,11 +160,12 @@ class PermissionController extends Controller
     {
         try {
             Permission::assignDefaultPermissionsToRoles();
+
             return redirect()->route('permissions.index')
                 ->with('success', 'Default permissions assigned to roles successfully.');
         } catch (\Exception $e) {
             return redirect()->route('permissions.index')
-                ->with('error', 'Failed to assign default permissions: ' . $e->getMessage());
+                ->with('error', 'Failed to assign default permissions: '.$e->getMessage());
         }
     }
 
@@ -177,11 +180,11 @@ class PermissionController extends Controller
                     'module' => $permission->module,
                     'action' => $permission->action,
                     'is_active' => $permission->is_active,
-                    'roles' => $permission->roles->pluck('name')->toArray()
+                    'roles' => $permission->roles->pluck('name')->toArray(),
                 ];
             });
 
-        $filename = 'permissions_' . now()->format('Y-m-d_His') . '.json';
+        $filename = 'permissions_'.now()->format('Y-m-d_His').'.json';
 
         return response()->json($permissions)
             ->header('Content-Disposition', "attachment; filename={$filename}");
@@ -190,13 +193,13 @@ class PermissionController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:json|max:2048'
+            'file' => 'required|file|mimes:json|max:2048',
         ]);
 
         try {
             $content = json_decode(file_get_contents($request->file('file')), true);
 
-            if (!is_array($content)) {
+            if (! is_array($content)) {
                 throw new \Exception('Invalid file format');
             }
 
@@ -214,7 +217,7 @@ class PermissionController extends Controller
                         'module' => $permissionData['module'],
                         'action' => $permissionData['action'],
                         'is_active' => $permissionData['is_active'] ?? true,
-                        'slug' => Str::slug($permissionData['name'])
+                        'slug' => Str::slug($permissionData['name']),
                     ]);
                     $permission->save();
 
@@ -227,16 +230,16 @@ class PermissionController extends Controller
                     $imported++;
 
                 } catch (\Exception $e) {
-                    $errors[] = "Failed to import permission '{$permissionData['name']}': " . 
+                    $errors[] = "Failed to import permission '{$permissionData['name']}': ".
                         $e->getMessage();
                 }
             }
 
             DB::commit();
 
-            $message = $imported . ' permissions imported successfully.';
-            if (!empty($errors)) {
-                $message .= ' Errors: ' . implode(' ', $errors);
+            $message = $imported.' permissions imported successfully.';
+            if (! empty($errors)) {
+                $message .= ' Errors: '.implode(' ', $errors);
                 $type = 'warning';
             } else {
                 $type = 'success';
@@ -247,8 +250,9 @@ class PermissionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('permissions.index')
-                ->with('error', 'Failed to import permissions: ' . $e->getMessage());
+                ->with('error', 'Failed to import permissions: '.$e->getMessage());
         }
     }
 }

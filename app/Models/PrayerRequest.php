@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class PrayerRequest extends Model
 {
     use BelongsToChurch;
-
     use HasFactory;
 
     protected $fillable = [
@@ -27,7 +25,7 @@ class PrayerRequest extends Model
         'prayer_target',
         'prayer_frequency',
         'end_date',
-        'last_prayed_at'
+        'last_prayed_at',
     ];
 
     protected $casts = [
@@ -38,7 +36,7 @@ class PrayerRequest extends Model
         'prayer_target' => 'integer',
         'prayer_frequency' => 'integer',
         'end_date' => 'date',
-        'last_prayed_at' => 'datetime'
+        'last_prayed_at' => 'datetime',
     ];
 
     // Relationships
@@ -92,7 +90,7 @@ class PrayerRequest extends Model
     {
         return $query->where(function ($q) use ($days) {
             $q->whereNull('last_prayed_at')
-              ->orWhere('last_prayed_at', '<', Carbon::now()->subDays($days));
+                ->orWhere('last_prayed_at', '<', Carbon::now()->subDays($days));
         })->where('status', 'active');
     }
 
@@ -106,7 +104,7 @@ class PrayerRequest extends Model
             'user_id' => $userId,
             'member_id' => $memberId,
             'notes' => $notes,
-            'prayed_at' => Carbon::now()
+            'prayed_at' => Carbon::now(),
         ]);
     }
 
@@ -114,7 +112,7 @@ class PrayerRequest extends Model
     {
         $this->update([
             'status' => 'completed',
-            'notes' => $notes ?? 'Marked as completed' . ($completedBy ? ' by ' . $completedBy : '')
+            'notes' => $notes ?? 'Marked as completed'.($completedBy ? ' by '.$completedBy : ''),
         ]);
 
         // Notify the prayer request creator
@@ -163,39 +161,39 @@ class PrayerRequest extends Model
             'needs_prayer' => $requests->where('status', 'active')
                 ->where(function ($query) {
                     $query->whereNull('last_prayed_at')
-                          ->orWhere('last_prayed_at', '<', Carbon::now()->subDays(7));
+                        ->orWhere('last_prayed_at', '<', Carbon::now()->subDays(7));
                 })->count(),
-            'recently_prayed' => $requests->where('last_prayed_at', '>=', Carbon::now()->subDays(7))->count()
+            'recently_prayed' => $requests->where('last_prayed_at', '>=', Carbon::now()->subDays(7))->count(),
         ];
     }
 
     public function canBeViewedBy($user)
     {
         // Public requests are visible to everyone
-        if (!$this->is_private && $this->is_public) {
+        if (! $this->is_private && $this->is_public) {
             return true;
         }
 
         // If no user is provided, only public requests can be viewed
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         // Private requests can only be viewed by the creator, member, or admin
-        return $user->id === $this->requestor_id || 
-               $user->id === $this->member_id || 
+        return $user->id === $this->requestor_id ||
+               $user->id === $this->member_id ||
                $user->role === 'admin' ||
                ($user instanceof \App\Models\Member && $user->hasRole('admin'));
     }
 
     public function canBeEditedBy($user)
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
-        return $user->id === $this->requestor_id || 
-               $user->id === $this->member_id || 
+        return $user->id === $this->requestor_id ||
+               $user->id === $this->member_id ||
                $user->role === 'admin' ||
                ($user instanceof \App\Models\Member && $user->hasRole('admin'));
     }
@@ -206,7 +204,7 @@ class PrayerRequest extends Model
             'total_prayers' => $this->prayer_count ?? 0,
             'days_in_prayer' => $this->created_at->diffInDays(now()),
             'last_prayed' => $this->last_prayed_at,
-            'needs_prayer' => !$this->last_prayed_at || $this->last_prayed_at->diffInDays(now()) >= 7,
+            'needs_prayer' => ! $this->last_prayed_at || $this->last_prayed_at->diffInDays(now()) >= 7,
             'prayer_target' => $this->prayer_target,
             'target_progress' => $this->prayer_target ? round((($this->prayer_count ?? 0) / $this->prayer_target) * 100) : null,
         ];
@@ -220,6 +218,7 @@ class PrayerRequest extends Model
     public function getAveragePrayersPerDay()
     {
         $days = max(1, $this->getDaysInPrayer());
+
         return round($this->prayer_count / $days, 2);
     }
 
@@ -229,8 +228,7 @@ class PrayerRequest extends Model
             return false;
         }
 
-        return !$this->last_prayed_at || 
+        return ! $this->last_prayed_at ||
                $this->last_prayed_at->diffInDays(Carbon::now()) >= 7;
     }
-
 }

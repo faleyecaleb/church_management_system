@@ -4,22 +4,23 @@ namespace App\Exports;
 
 use App\Models\Member;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithTitle, ShouldAutoSize, WithEvents
+class MembersExport implements FromQuery, ShouldAutoSize, WithColumnWidths, WithEvents, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     protected $filters;
+
     protected $format;
 
     public function __construct($filters = [], $format = 'xlsx')
@@ -33,35 +34,35 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
         $query = Member::with(['departments']);
 
         // Apply filters
-        if (!empty($this->filters['membership_status'])) {
+        if (! empty($this->filters['membership_status'])) {
             $query->where('membership_status', $this->filters['membership_status']);
         }
 
-        if (!empty($this->filters['gender'])) {
+        if (! empty($this->filters['gender'])) {
             $query->where('gender', $this->filters['gender']);
         }
 
-        if (!empty($this->filters['department'])) {
-            $query->whereHas('departments', function($q) {
+        if (! empty($this->filters['department'])) {
+            $query->whereHas('departments', function ($q) {
                 $q->where('department', $this->filters['department']);
             });
         }
 
-        if (!empty($this->filters['date_from'])) {
+        if (! empty($this->filters['date_from'])) {
             $query->where('created_at', '>=', $this->filters['date_from']);
         }
 
-        if (!empty($this->filters['date_to'])) {
+        if (! empty($this->filters['date_to'])) {
             $query->where('created_at', '<=', $this->filters['date_to']);
         }
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -93,7 +94,7 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
             'BAPTIZED',
             'LOCATION & YEAR OF BAPTISM',
             'CHURCH OF BAPTISM',
-            'SPIRITUAL GIFTS'
+            'SPIRITUAL GIFTS',
         ];
     }
 
@@ -122,7 +123,7 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
             $member->is_baptized ? strtoupper($member->is_baptized) : '',
             $member->baptism_year_and_place,
             $member->baptism_church_name,
-            $member->spiritual_gifts
+            $member->spiritual_gifts,
         ];
     }
 
@@ -134,11 +135,11 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
                 'font' => [
                     'bold' => true,
                     'color' => ['rgb' => 'FFFFFF'],
-                    'size' => 12
+                    'size' => 12,
                 ],
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4F46E5'] // Indigo color
+                    'startColor' => ['rgb' => '4F46E5'], // Indigo color
                 ],
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -191,12 +192,12 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 // Add borders to all data
                 $highestRow = $event->sheet->getHighestRow();
                 $highestColumn = $event->sheet->getHighestColumn();
-                
-                $event->sheet->getStyle('A1:' . $highestColumn . $highestRow)->applyFromArray([
+
+                $event->sheet->getStyle('A1:'.$highestColumn.$highestRow)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
@@ -208,7 +209,7 @@ class MembersExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
                 // Alternate row colors
                 for ($i = 2; $i <= $highestRow; $i++) {
                     if ($i % 2 == 0) {
-                        $event->sheet->getStyle('A' . $i . ':' . $highestColumn . $i)->applyFromArray([
+                        $event->sheet->getStyle('A'.$i.':'.$highestColumn.$i)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F8FAFC'],

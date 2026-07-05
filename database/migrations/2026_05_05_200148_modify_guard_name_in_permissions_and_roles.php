@@ -30,9 +30,9 @@ return new class extends Migration
         });
 
         Schema::table('permissions', function (Blueprint $table) {
-             if (Schema::hasColumn('permissions', 'guard_name')) {
-                 $table->string('guard_name')->change();
-             }
+            if (Schema::hasColumn('permissions', 'guard_name')) {
+                $table->string('guard_name')->change();
+            }
         });
     }
 };

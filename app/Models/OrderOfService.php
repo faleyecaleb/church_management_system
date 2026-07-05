@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class OrderOfService extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -23,7 +21,7 @@ class OrderOfService extends Model
         'description',
         'leader',
         'notes',
-        'duration_minutes'
+        'duration_minutes',
     ];
 
     protected $casts = [
@@ -47,6 +45,7 @@ class OrderOfService extends Model
         if ($this->start_time && $this->end_time) {
             return $this->start_time->diffInMinutes($this->end_time);
         }
+
         return $this->duration_minutes ?? 0;
     }
 
@@ -72,8 +71,9 @@ class OrderOfService extends Model
     public function getTimeRangeAttribute()
     {
         if ($this->start_time && $this->end_time) {
-            return $this->start_time->format('h:i A') . ' - ' . $this->end_time->format('h:i A');
+            return $this->start_time->format('h:i A').' - '.$this->end_time->format('h:i A');
         }
+
         return 'Time not set';
     }
 
@@ -86,7 +86,7 @@ class OrderOfService extends Model
 
         static::creating(function ($orderOfService) {
             // Auto-set order if not provided
-            if (!$orderOfService->order) {
+            if (! $orderOfService->order) {
                 $maxOrder = static::where('service_id', $orderOfService->service_id)->max('order');
                 $orderOfService->order = ($maxOrder ?? 0) + 1;
             }

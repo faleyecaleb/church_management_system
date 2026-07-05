@@ -22,40 +22,39 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)
     {
         // Process notifications every 5 minutes
         $schedule->command('notifications:process')
-                 ->everyFiveMinutes()
-                 ->withoutOverlapping()
-                 ->appendOutputTo(storage_path('logs/notifications.log'));
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/notifications.log'));
 
         // Process scheduled messages every minute
         $schedule->command('messages:process-scheduled')
-                 ->everyMinute()
-                 ->withoutOverlapping()
-                 ->appendOutputTo(storage_path('logs/scheduled-messages.log'));
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/scheduled-messages.log'));
 
         // Generate scheduled reports every 5 minutes
         $schedule->command('reports:generate-scheduled')
-                 ->everyFiveMinutes()
-                 ->withoutOverlapping()
-                 ->appendOutputTo(storage_path('logs/scheduled-reports.log'));
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/scheduled-reports.log'));
 
         // Clean up old report exports daily
         $schedule->command('reports:cleanup-exports')
-                 ->daily()
-                 ->appendOutputTo(storage_path('logs/report-cleanup.log'));
+            ->daily()
+            ->appendOutputTo(storage_path('logs/report-cleanup.log'));
 
         // Check for member absences weekly
         $schedule->command('members:check-absences')
-                 ->weekly()
-                 ->sundays()
-                 ->at('23:00')
-                 ->appendOutputTo(storage_path('logs/absence-checks.log'));
+            ->weekly()
+            ->sundays()
+            ->at('23:00')
+            ->appendOutputTo(storage_path('logs/absence-checks.log'));
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class SmsMessage extends Model
 {
@@ -20,7 +20,7 @@ class SmsMessage extends Model
         'total_recipients',
         'successful_sends',
         'failed_sends',
-        'failure_reason'
+        'failure_reason',
     ];
 
     protected $casts = [
@@ -28,7 +28,7 @@ class SmsMessage extends Model
         'scheduled_at' => 'datetime',
         'total_recipients' => 'integer',
         'successful_sends' => 'integer',
-        'failed_sends' => 'integer'
+        'failed_sends' => 'integer',
     ];
 
     // Scopes
@@ -55,7 +55,7 @@ class SmsMessage extends Model
     public function scopeDueForSending($query)
     {
         return $query->where('status', 'scheduled')
-                     ->where('scheduled_at', '<=', Carbon::now());
+            ->where('scheduled_at', '<=', Carbon::now());
     }
 
     // Helper methods
@@ -112,7 +112,7 @@ class SmsMessage extends Model
     protected function sendToRecipient($recipient)
     {
         $message = $this->parseMessageTemplate($recipient);
-        
+
         // Log the SMS message for now
         \Illuminate\Support\Facades\Log::info("Sending SMS to {$recipient->phone}: {$message}");
     }
@@ -152,10 +152,10 @@ class SmsMessage extends Model
                 'draft' => $messages->where('status', 'draft')->count(),
                 'scheduled' => $messages->where('status', 'scheduled')->count(),
                 'sent' => $messages->where('status', 'sent')->count(),
-                'failed' => $messages->where('status', 'failed')->count()
+                'failed' => $messages->where('status', 'failed')->count(),
             ],
             'by_recipient_group' => $messages->groupBy('recipient_group')
-                ->map(fn ($items) => $items->count())
+                ->map(fn ($items) => $items->count()),
         ];
     }
 
@@ -163,7 +163,7 @@ class SmsMessage extends Model
     {
         $this->update([
             'scheduled_at' => $dateTime,
-            'status' => 'scheduled'
+            'status' => 'scheduled',
         ]);
     }
 
@@ -171,8 +171,10 @@ class SmsMessage extends Model
     {
         if ($this->status === 'scheduled') {
             $this->update(['status' => 'draft']);
+
             return true;
         }
+
         return false;
     }
 }

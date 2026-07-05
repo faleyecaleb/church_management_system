@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -31,7 +31,7 @@ class RoleController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -56,7 +56,7 @@ class RoleController extends Controller
             'level' => 'required|integer|min:1',
             'is_active' => 'boolean',
             'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         DB::beginTransaction();
@@ -67,7 +67,7 @@ class RoleController extends Controller
                 'slug' => Str::slug($validated['name']),
                 'description' => $validated['description'],
                 'level' => $validated['level'],
-                'is_active' => $validated['is_active'] ?? true
+                'is_active' => $validated['is_active'] ?? true,
             ]);
 
             $role->permissions()->attach($validated['permissions']);
@@ -79,9 +79,10 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create role: ' . $e->getMessage());
+                ->with('error', 'Failed to create role: '.$e->getMessage());
         }
     }
 
@@ -115,12 +116,12 @@ class RoleController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'name' => 'required|string|max:255|unique:roles,name,'.$role->id,
             'description' => 'nullable|string|max:1000',
             'level' => 'required|integer|min:1',
             'is_active' => 'boolean',
             'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         DB::beginTransaction();
@@ -131,7 +132,7 @@ class RoleController extends Controller
                 'slug' => Str::slug($validated['name']),
                 'description' => $validated['description'],
                 'level' => $validated['level'],
-                'is_active' => $validated['is_active'] ?? true
+                'is_active' => $validated['is_active'] ?? true,
             ]);
 
             $role->permissions()->sync($validated['permissions']);
@@ -143,9 +144,10 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to update role: ' . $e->getMessage());
+                ->with('error', 'Failed to update role: '.$e->getMessage());
         }
     }
 
@@ -176,7 +178,7 @@ class RoleController extends Controller
 
         $validated = $request->validate([
             'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         $role->permissions()->sync($validated['permissions']);
@@ -189,11 +191,12 @@ class RoleController extends Controller
     {
         try {
             Role::createDefaultRoles();
+
             return redirect()->route('roles.index')
                 ->with('success', 'Default roles created successfully.');
         } catch (\Exception $e) {
             return redirect()->route('roles.index')
-                ->with('error', 'Failed to create default roles: ' . $e->getMessage());
+                ->with('error', 'Failed to create default roles: '.$e->getMessage());
         }
     }
 
@@ -207,11 +210,11 @@ class RoleController extends Controller
                     'description' => $role->description,
                     'level' => $role->level,
                     'is_active' => $role->is_active,
-                    'permissions' => $role->permissions->pluck('name')->toArray()
+                    'permissions' => $role->permissions->pluck('name')->toArray(),
                 ];
             });
 
-        $filename = 'roles_' . now()->format('Y-m-d_His') . '.json';
+        $filename = 'roles_'.now()->format('Y-m-d_His').'.json';
 
         return response()->json($roles)
             ->header('Content-Disposition', "attachment; filename={$filename}");
@@ -220,13 +223,13 @@ class RoleController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:json|max:2048'
+            'file' => 'required|file|mimes:json|max:2048',
         ]);
 
         try {
             $content = json_decode(file_get_contents($request->file('file')), true);
 
-            if (!is_array($content)) {
+            if (! is_array($content)) {
                 throw new \Exception('Invalid file format');
             }
 
@@ -243,7 +246,7 @@ class RoleController extends Controller
                         'description' => $roleData['description'],
                         'level' => $roleData['level'],
                         'is_active' => $roleData['is_active'] ?? true,
-                        'slug' => Str::slug($roleData['name'])
+                        'slug' => Str::slug($roleData['name']),
                     ]);
                     $role->save();
 
@@ -254,16 +257,16 @@ class RoleController extends Controller
                     $imported++;
 
                 } catch (\Exception $e) {
-                    $errors[] = "Failed to import role '{$roleData['name']}': " . 
+                    $errors[] = "Failed to import role '{$roleData['name']}': ".
                         $e->getMessage();
                 }
             }
 
             DB::commit();
 
-            $message = $imported . ' roles imported successfully.';
-            if (!empty($errors)) {
-                $message .= ' Errors: ' . implode(' ', $errors);
+            $message = $imported.' roles imported successfully.';
+            if (! empty($errors)) {
+                $message .= ' Errors: '.implode(' ', $errors);
                 $type = 'warning';
             } else {
                 $type = 'success';
@@ -274,8 +277,9 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('roles.index')
-                ->with('error', 'Failed to import roles: ' . $e->getMessage());
+                ->with('error', 'Failed to import roles: '.$e->getMessage());
         }
     }
 }

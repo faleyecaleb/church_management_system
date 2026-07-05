@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\ReportingService;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
@@ -22,6 +22,7 @@ class ReportController extends Controller
     public function dashboard()
     {
         $stats = $this->reportingService->getDashboardStats();
+
         return view('reports.dashboard', compact('stats'));
     }
 
@@ -32,10 +33,10 @@ class ReportController extends Controller
     {
         $filters = $this->getDateRangeFilters($request);
         $membershipStats = $this->reportingService->getMembershipStats($filters);
-        
+
         return view('reports.membership', [
             'stats' => $membershipStats,
-            'filters' => $filters
+            'filters' => $filters,
         ]);
     }
 
@@ -49,7 +50,7 @@ class ReportController extends Controller
 
         return view('reports.attendance', [
             'stats' => $attendanceStats,
-            'filters' => $filters
+            'filters' => $filters,
         ]);
     }
 
@@ -63,7 +64,7 @@ class ReportController extends Controller
 
         return view('reports.financial', [
             'stats' => $financialStats,
-            'filters' => $filters
+            'filters' => $filters,
         ]);
     }
 
@@ -77,7 +78,7 @@ class ReportController extends Controller
 
         return view('reports.communication', [
             'stats' => $messageStats,
-            'filters' => $filters
+            'filters' => $filters,
         ]);
     }
 
@@ -93,7 +94,7 @@ class ReportController extends Controller
         return view('reports.growth', [
             'growthStats' => $growthStats,
             'engagementStats' => $engagementStats,
-            'filters' => $filters
+            'filters' => $filters,
         ]);
     }
 
@@ -104,7 +105,7 @@ class ReportController extends Controller
     {
         $request->validate([
             'type' => 'required|in:membership,attendance,financial,communication,growth',
-            'format' => 'required|in:csv,pdf,excel'
+            'format' => 'required|in:csv,pdf,excel',
         ]);
 
         $filters = $this->getDateRangeFilters($request);
@@ -126,7 +127,7 @@ class ReportController extends Controller
             case 'growth':
                 $data = [
                     'growth' => $this->reportingService->getGrowthMetrics($filters),
-                    'engagement' => $this->reportingService->getEngagementMetrics($filters)
+                    'engagement' => $this->reportingService->getEngagementMetrics($filters),
                 ];
                 break;
         }
@@ -139,7 +140,7 @@ class ReportController extends Controller
      */
     public function custom(Request $request)
     {
-        if ($request->isMethod('get') && !$request->has('metrics')) {
+        if ($request->isMethod('get') && ! $request->has('metrics')) {
             return view('reports.custom');
         }
 
@@ -153,7 +154,7 @@ class ReportController extends Controller
             'metrics.*' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'group_by' => 'required|in:day,week,month,year'
+            'group_by' => 'required|in:day,week,month,year',
         ]);
 
         $customStats = $this->reportingService->getCustomStats(
@@ -165,7 +166,7 @@ class ReportController extends Controller
 
         return view('reports.custom', [
             'stats' => $customStats,
-            'filters' => $request->all()
+            'filters' => $request->all(),
         ]);
     }
 
@@ -182,7 +183,7 @@ class ReportController extends Controller
         return [
             'start_date' => $startDate->startOfDay(),
             'end_date' => $endDate->endOfDay(),
-            'group_by' => $request->group_by ?? 'day'
+            'group_by' => $request->group_by ?? 'day',
         ];
     }
 
@@ -222,15 +223,15 @@ class ReportController extends Controller
     protected function generateCsvReport($data)
     {
         $output = fopen('php://output', 'w');
-        
+
         // Add headers
         fputcsv($output, array_keys(reset($data)));
-        
+
         // Add data
         foreach ($data as $row) {
             fputcsv($output, $row);
         }
-        
+
         fclose($output);
     }
 

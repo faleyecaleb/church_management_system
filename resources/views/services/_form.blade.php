@@ -49,14 +49,24 @@
         @enderror
     </div>
 
-    <!-- Service Date (One-time only) -->
-    <div class="col-span-1" id="date-group" style="display: none;">
-        <label for="date" class="block text-sm font-medium text-gray-700">Select Date</label>
-        <select name="date" id="date" 
+    <!-- Service Start Date (One-time only) -->
+    <div class="col-span-1" id="start-date-group" style="display: none;">
+        <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+        <select name="start_date" id="start_date" onchange="document.getElementById('end_date').value = this.value" 
                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                <!-- Options populated by JS -->
         </select>
-        @error('date')
+        @error('start_date')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <!-- Service End Date (One-time only) -->
+    <div class="col-span-1" id="end-date-group" style="display: none;">
+        <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+        <input type="date" name="end_date" id="end_date" value="{{ old('end_date', isset($service->end_date) ? $service->end_date->format('Y-m-d') : '') }}"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+        @error('end_date')
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
     </div>
@@ -169,23 +179,26 @@
         });
     });
 
-    const existingDate = "{{ old('date', isset($service->date) ? $service->date->format('Y-m-d') : '') }}";
+    const existingDate = "{{ old('start_date', isset($service->start_date) ? $service->start_date->format('Y-m-d') : '') }}";
 
     function handleRecurringChange() {
         const isRecurring = document.querySelector('input[name="is_recurring"]:checked').value === '1';
-        const dateGroup = document.getElementById('date-group');
+        const dateGroup = document.getElementById('start-date-group');
+        const endDateGroup = document.getElementById('end-date-group');
         
         if (isRecurring) {
             dateGroup.style.display = 'none';
+            if(endDateGroup) endDateGroup.style.display = 'none';
         } else {
             dateGroup.style.display = 'block';
+            if(endDateGroup) endDateGroup.style.display = 'block';
             generateDates();
         }
     }
 
     function generateDates() {
         const daySelect = document.getElementById('day_of_week');
-        const dateSelect = document.getElementById('date');
+        const dateSelect = document.getElementById('start_date');
         const selectedDay = daySelect.value;
         const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const targetDayIndex = days.indexOf(selectedDay);

@@ -28,7 +28,7 @@ class SettingController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('key', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -46,6 +46,7 @@ class SettingController extends Controller
     public function edit(Setting $setting)
     {
         $types = Setting::getAvailableTypes();
+
         return view('settings.edit', compact('setting', 'types'));
     }
 
@@ -53,10 +54,10 @@ class SettingController extends Controller
     {
         $validated = $request->validate([
             'value' => $this->getValidationRules($setting),
-            'description' => 'nullable|string|max:1000'
+            'description' => 'nullable|string|max:1000',
         ]);
 
-        if (!$setting->validateValue($validated['value'])) {
+        if (! $setting->validateValue($validated['value'])) {
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['value' => 'The provided value is not valid for this setting type.']);
@@ -64,7 +65,7 @@ class SettingController extends Controller
 
         $setting->update([
             'value' => $validated['value'],
-            'description' => $validated['description']
+            'description' => $validated['description'],
         ]);
 
         // Clear cache if this is an autoloaded setting
@@ -80,7 +81,7 @@ class SettingController extends Controller
     {
         $validated = $request->validate([
             'settings' => 'required|array',
-            'settings.*' => 'required'
+            'settings.*' => 'required',
         ]);
 
         $errors = [];
@@ -89,8 +90,9 @@ class SettingController extends Controller
         foreach ($validated['settings'] as $key => $value) {
             $setting = Setting::where('key', $key)->first();
 
-            if (!$setting) {
+            if (! $setting) {
                 $errors[] = "Setting '{$key}' not found.";
+
                 continue;
             }
 
@@ -100,13 +102,15 @@ class SettingController extends Controller
             );
 
             if ($validator->fails()) {
-                $errors[] = "Invalid value for setting '{$key}': " . 
+                $errors[] = "Invalid value for setting '{$key}': ".
                     $validator->errors()->first('value');
+
                 continue;
             }
 
-            if (!$setting->validateValue($value)) {
+            if (! $setting->validateValue($value)) {
                 $errors[] = "The provided value for '{$key}' is not valid for its type.";
+
                 continue;
             }
 
@@ -121,9 +125,9 @@ class SettingController extends Controller
             Cache::forget(Setting::CACHE_KEY);
         }
 
-        $message = $updated . ' settings updated successfully.';
-        if (!empty($errors)) {
-            $message .= ' Errors: ' . implode(' ', $errors);
+        $message = $updated.' settings updated successfully.';
+        if (! empty($errors)) {
+            $message .= ' Errors: '.implode(' ', $errors);
             $type = 'warning';
         } else {
             $type = 'success';
@@ -145,30 +149,30 @@ class SettingController extends Controller
             case 'integer':
                 $rules[] = 'integer';
                 if (isset($setting->options['min'])) {
-                    $rules[] = 'min:' . $setting->options['min'];
+                    $rules[] = 'min:'.$setting->options['min'];
                 }
                 if (isset($setting->options['max'])) {
-                    $rules[] = 'max:' . $setting->options['max'];
+                    $rules[] = 'max:'.$setting->options['max'];
                 }
                 break;
 
             case 'float':
                 $rules[] = 'numeric';
                 if (isset($setting->options['min'])) {
-                    $rules[] = 'min:' . $setting->options['min'];
+                    $rules[] = 'min:'.$setting->options['min'];
                 }
                 if (isset($setting->options['max'])) {
-                    $rules[] = 'max:' . $setting->options['max'];
+                    $rules[] = 'max:'.$setting->options['max'];
                 }
                 break;
 
             case 'string':
                 $rules[] = 'string';
                 if (isset($setting->options['max_length'])) {
-                    $rules[] = 'max:' . $setting->options['max_length'];
+                    $rules[] = 'max:'.$setting->options['max_length'];
                 }
                 if (isset($setting->options['pattern'])) {
-                    $rules[] = 'regex:' . $setting->options['pattern'];
+                    $rules[] = 'regex:'.$setting->options['pattern'];
                 }
                 break;
 
@@ -183,13 +187,13 @@ class SettingController extends Controller
             case 'array':
                 $rules[] = 'array';
                 if (isset($setting->options['max_items'])) {
-                    $rules[] = 'max:' . $setting->options['max_items'];
+                    $rules[] = 'max:'.$setting->options['max_items'];
                 }
                 break;
 
             case 'enum':
-                if (!empty($setting->options['allowed_values'])) {
-                    $rules[] = 'in:' . implode(',', $setting->options['allowed_values']);
+                if (! empty($setting->options['allowed_values'])) {
+                    $rules[] = 'in:'.implode(',', $setting->options['allowed_values']);
                 }
                 break;
 
@@ -204,7 +208,7 @@ class SettingController extends Controller
     public function export()
     {
         $settings = Setting::all(['key', 'value', 'type', 'group', 'description', 'autoload', 'options']);
-        $filename = 'settings_' . now()->format('Y-m-d_His') . '.json';
+        $filename = 'settings_'.now()->format('Y-m-d_His').'.json';
 
         return response()->json($settings)
             ->header('Content-Disposition', "attachment; filename={$filename}");
@@ -213,13 +217,13 @@ class SettingController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:json|max:2048'
+            'file' => 'required|file|mimes:json|max:2048',
         ]);
 
         try {
             $content = json_decode(file_get_contents($request->file('file')), true);
 
-            if (!is_array($content)) {
+            if (! is_array($content)) {
                 throw new \Exception('Invalid file format');
             }
 
@@ -234,6 +238,7 @@ class SettingController extends Controller
                         // Update existing setting
                         if ($setting->type !== $settingData['type']) {
                             $errors[] = "Type mismatch for setting '{$settingData['key']}'";
+
                             continue;
                         }
 
@@ -246,7 +251,7 @@ class SettingController extends Controller
                     $imported++;
 
                 } catch (\Exception $e) {
-                    $errors[] = "Failed to import setting '{$settingData['key']}': " . 
+                    $errors[] = "Failed to import setting '{$settingData['key']}': ".
                         $e->getMessage();
                 }
             }
@@ -254,9 +259,9 @@ class SettingController extends Controller
             // Clear cache as settings might have changed
             Cache::forget(Setting::CACHE_KEY);
 
-            $message = $imported . ' settings imported successfully.';
-            if (!empty($errors)) {
-                $message .= ' Errors: ' . implode(' ', $errors);
+            $message = $imported.' settings imported successfully.';
+            if (! empty($errors)) {
+                $message .= ' Errors: '.implode(' ', $errors);
                 $type = 'warning';
             } else {
                 $type = 'success';
@@ -267,7 +272,7 @@ class SettingController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->route('settings.index')
-                ->with('error', 'Failed to import settings: ' . $e->getMessage());
+                ->with('error', 'Failed to import settings: '.$e->getMessage());
         }
     }
 }

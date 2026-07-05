@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Member;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Laravel\Sanctum\HasApiTokens;
 
 class AuthController extends Controller
 {
@@ -27,7 +26,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation Error',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -42,8 +41,8 @@ class AuthController extends Controller
                 'data' => [
                     'user' => $user,
                     'token' => $token,
-                    'token_type' => 'Bearer'
-                ]
+                    'token_type' => 'Bearer',
+                ],
             ]);
         }
 
@@ -58,14 +57,14 @@ class AuthController extends Controller
                 'data' => [
                     'user' => $member,
                     'token' => $token,
-                    'token_type' => 'Bearer'
-                ]
+                    'token_type' => 'Bearer',
+                ],
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Invalid credentials'
+            'message' => 'Invalid credentials',
         ], 401);
     }
 
@@ -78,7 +77,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logout successful'
+            'message' => 'Logout successful',
         ]);
     }
 
@@ -91,10 +90,10 @@ class AuthController extends Controller
         if ($user instanceof \App\Models\Member) {
             $user->load(['departments.department', 'church']);
         }
-        
+
         return response()->json([
             'success' => true,
-            'data' => $user
+            'data' => $user,
         ]);
     }
 
@@ -104,10 +103,10 @@ class AuthController extends Controller
     public function refresh(Request $request)
     {
         $user = $request->user();
-        
+
         // Revoke current token
         $request->user()->currentAccessToken()->delete();
-        
+
         // Create new token
         $token = $user->createToken('API Token')->plainTextToken;
 
@@ -116,8 +115,8 @@ class AuthController extends Controller
             'message' => 'Token refreshed successfully',
             'data' => [
                 'token' => $token,
-                'token_type' => 'Bearer'
-            ]
+                'token_type' => 'Bearer',
+            ],
         ]);
     }
 
@@ -133,20 +132,20 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'The provided current password does not match our records.'
+                'message' => 'The provided current password does not match our records.',
             ], 422);
         }
 
         $user->update([
-            'password' => Hash::make($request->new_password)
+            'password' => Hash::make($request->new_password),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Password changed successfully!'
+            'message' => 'Password changed successfully!',
         ]);
     }
 
@@ -164,19 +163,19 @@ class AuthController extends Controller
         // Check if the user is a Member, since only members use the mobile app and have push notifications.
         if ($user instanceof \App\Models\Member) {
             $user->update([
-                'expo_push_token' => $request->expo_push_token
+                'expo_push_token' => $request->expo_push_token,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Expo push token saved successfully.',
-                'data' => $user
+                'data' => $user,
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Push tokens can only be saved for member accounts.'
+            'message' => 'Push tokens can only be saved for member accounts.',
         ], 400);
     }
 }

@@ -17,33 +17,44 @@ class Setting extends Model
         'group',
         'description',
         'is_public',
-        'autoload'
+        'autoload',
     ];
 
     protected $casts = [
         'value' => 'json',
         'is_public' => 'boolean',
-        'autoload' => 'boolean'
+        'autoload' => 'boolean',
     ];
 
     // Cache keys
     const CACHE_KEY = 'app_settings';
+
     const CACHE_DURATION = 1440; // 24 hours in minutes
 
     // Setting types
     const TYPE_STRING = 'string';
+
     const TYPE_INTEGER = 'integer';
+
     const TYPE_FLOAT = 'float';
+
     const TYPE_BOOLEAN = 'boolean';
+
     const TYPE_ARRAY = 'array';
+
     const TYPE_OBJECT = 'object';
 
     // Setting groups
     const GROUP_GENERAL = 'general';
+
     const GROUP_MAIL = 'mail';
+
     const GROUP_SMS = 'sms';
+
     const GROUP_PAYMENT = 'payment';
+
     const GROUP_NOTIFICATION = 'notification';
+
     const GROUP_SECURITY = 'security';
 
     // Scopes
@@ -65,12 +76,12 @@ class Setting extends Model
     // Helper methods
     public static function get($key, $default = null)
     {
-        $setting = Cache::get(self::CACHE_KEY . ':' . $key);
+        $setting = Cache::get(self::CACHE_KEY.':'.$key);
 
-        if (!$setting) {
+        if (! $setting) {
             $setting = self::where('key', $key)->first();
             if ($setting) {
-                Cache::put(self::CACHE_KEY . ':' . $key, $setting, self::CACHE_DURATION);
+                Cache::put(self::CACHE_KEY.':'.$key, $setting, self::CACHE_DURATION);
             }
         }
 
@@ -87,11 +98,11 @@ class Setting extends Model
                 'group' => $group,
                 'description' => $description,
                 'is_public' => $isPublic,
-                'autoload' => $autoload
+                'autoload' => $autoload,
             ]
         );
 
-        Cache::put(self::CACHE_KEY . ':' . $key, $setting, self::CACHE_DURATION);
+        Cache::put(self::CACHE_KEY.':'.$key, $setting, self::CACHE_DURATION);
 
         return $setting;
     }
@@ -100,9 +111,11 @@ class Setting extends Model
     {
         $setting = self::where('key', $key)->first();
         if ($setting) {
-            Cache::forget(self::CACHE_KEY . ':' . $key);
+            Cache::forget(self::CACHE_KEY.':'.$key);
+
             return $setting->delete();
         }
+
         return false;
     }
 
@@ -120,7 +133,7 @@ class Setting extends Model
         Cache::forget(self::CACHE_KEY);
         $keys = self::pluck('key')->all();
         foreach ($keys as $key) {
-            Cache::forget(self::CACHE_KEY . ':' . $key);
+            Cache::forget(self::CACHE_KEY.':'.$key);
         }
     }
 
@@ -198,7 +211,7 @@ class Setting extends Model
             self::GROUP_SMS,
             self::GROUP_PAYMENT,
             self::GROUP_NOTIFICATION,
-            self::GROUP_SECURITY
+            self::GROUP_SECURITY,
         ];
     }
 
@@ -210,7 +223,7 @@ class Setting extends Model
             self::TYPE_FLOAT,
             self::TYPE_BOOLEAN,
             self::TYPE_ARRAY,
-            self::TYPE_OBJECT
+            self::TYPE_OBJECT,
         ];
     }
 }

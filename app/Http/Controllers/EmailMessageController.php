@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attachment;
 use App\Models\EmailMessage;
 use App\Models\EmailTemplate;
 use App\Models\Member;
 use App\Models\MessageGroup;
-use App\Models\Attachment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -34,8 +34,8 @@ class EmailMessageController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%")
-                  ->orWhere('recipient_emails', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%")
+                    ->orWhere('recipient_emails', 'like', "%{$search}%");
             });
         }
 
@@ -66,7 +66,7 @@ class EmailMessageController extends Controller
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png',
             'scheduled_at' => 'nullable|date|after:now',
-            'status' => 'required|in:draft,scheduled,queued'
+            'status' => 'required|in:draft,scheduled,queued',
         ]);
 
         if ($request->filled('template_id')) {
@@ -96,7 +96,7 @@ class EmailMessageController extends Controller
                 'recipient_emails' => $recipientEmails,
                 'scheduled_at' => $validated['scheduled_at'],
                 'status' => $validated['status'],
-                'template_id' => $validated['template_id'] ?? null
+                'template_id' => $validated['template_id'] ?? null,
             ]);
 
             // Handle attachments
@@ -107,7 +107,7 @@ class EmailMessageController extends Controller
                         'name' => $file->getClientOriginalName(),
                         'path' => $path,
                         'mime_type' => $file->getMimeType(),
-                        'size' => $file->getSize()
+                        'size' => $file->getSize(),
                     ]);
                 }
             }
@@ -123,21 +123,23 @@ class EmailMessageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create email message: ' . $e->getMessage());
+                ->with('error', 'Failed to create email message: '.$e->getMessage());
         }
     }
 
     public function show(EmailMessage $message)
     {
         $message->load(['template', 'attachments']);
+
         return view('email.show', compact('message'));
     }
 
     public function edit(EmailMessage $message)
     {
-        if (!in_array($message->status, ['draft', 'scheduled'])) {
+        if (! in_array($message->status, ['draft', 'scheduled'])) {
             return redirect()->route('email.index')
                 ->with('error', 'Only draft or scheduled messages can be edited.');
         }
@@ -151,7 +153,7 @@ class EmailMessageController extends Controller
 
     public function update(Request $request, EmailMessage $message)
     {
-        if (!in_array($message->status, ['draft', 'scheduled'])) {
+        if (! in_array($message->status, ['draft', 'scheduled'])) {
             return redirect()->route('email.index')
                 ->with('error', 'Only draft or scheduled messages can be updated.');
         }
@@ -168,7 +170,7 @@ class EmailMessageController extends Controller
             'remove_attachments' => 'nullable|array',
             'remove_attachments.*' => 'integer|exists:attachments,id',
             'scheduled_at' => 'nullable|date|after:now',
-            'status' => 'required|in:draft,scheduled,queued'
+            'status' => 'required|in:draft,scheduled,queued',
         ]);
 
         if ($request->filled('template_id')) {
@@ -198,7 +200,7 @@ class EmailMessageController extends Controller
                 'recipient_emails' => $recipientEmails,
                 'scheduled_at' => $validated['scheduled_at'],
                 'status' => $validated['status'],
-                'template_id' => $validated['template_id'] ?? null
+                'template_id' => $validated['template_id'] ?? null,
             ]);
 
             // Remove selected attachments
@@ -222,7 +224,7 @@ class EmailMessageController extends Controller
                         'name' => $file->getClientOriginalName(),
                         'path' => $path,
                         'mime_type' => $file->getMimeType(),
-                        'size' => $file->getSize()
+                        'size' => $file->getSize(),
                     ]);
                 }
             }
@@ -238,15 +240,16 @@ class EmailMessageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to update email message: ' . $e->getMessage());
+                ->with('error', 'Failed to update email message: '.$e->getMessage());
         }
     }
 
     public function destroy(EmailMessage $message)
     {
-        if (!in_array($message->status, ['draft', 'failed'])) {
+        if (! in_array($message->status, ['draft', 'failed'])) {
             return redirect()->route('email.index')
                 ->with('error', 'Only draft or failed messages can be deleted.');
         }
@@ -269,8 +272,9 @@ class EmailMessageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('email.index')
-                ->with('error', 'Failed to delete email message: ' . $e->getMessage());
+                ->with('error', 'Failed to delete email message: '.$e->getMessage());
         }
     }
 
@@ -295,7 +299,7 @@ class EmailMessageController extends Controller
         }
 
         $validated = request()->validate([
-            'scheduled_at' => 'required|date|after:now'
+            'scheduled_at' => 'required|date|after:now',
         ]);
 
         $message->schedule($validated['scheduled_at']);

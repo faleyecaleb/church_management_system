@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pledge;
 use App\Models\Member;
+use App\Models\Pledge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +28,7 @@ class PledgeController extends Controller
         }
 
         if ($request->filled('campaign_name')) {
-            $query->where('campaign_name', 'like', '%' . $request->input('campaign_name') . '%');
+            $query->where('campaign_name', 'like', '%'.$request->input('campaign_name').'%');
         }
 
         if ($request->filled('member_id')) {
@@ -52,6 +52,7 @@ class PledgeController extends Controller
     public function create()
     {
         $members = Member::orderBy('first_name')->get();
+
         return view('pledges.create', compact('members'));
     }
 
@@ -65,7 +66,7 @@ class PledgeController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|string|in:active,completed,defaulted',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ]);
 
         $pledge = Pledge::create($validated);
@@ -77,12 +78,14 @@ class PledgeController extends Controller
     public function show(Pledge $pledge)
     {
         $pledge->load(['member']);
+
         return view('pledges.show', compact('pledge'));
     }
 
     public function edit(Pledge $pledge)
     {
         $members = Member::orderBy('first_name')->get();
+
         return view('pledges.edit', compact('pledge', 'members'));
     }
 
@@ -96,7 +99,7 @@ class PledgeController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|string|in:active,completed,defaulted',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ]);
 
         $pledge->update($validated);
@@ -190,5 +193,72 @@ class PledgeController extends Controller
             'topPledgers',
             'overduePledges'
         ));
+    }
+
+    /**
+     * API: Get pledges for the authenticated user
+     */
+    public function apiIndex(Request $request)
+    {
+        $user = Auth::user();
+        $member = $user->member;
+
+        if (!$member) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
+
+        $pledges = Pledge::where('member_id', $member->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $pledges
+        ]);
+    }
+
+    /**
+     * API: Store a new pledge
+     */
+    public function apiStore(Request $request)
+    {
+        $request->validate([
+            'campaign_name' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0.01',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $user = Auth::user();
+        $member = $user->member;
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User profile is not linked to a member record. Please update your profile first.'
+            ], 400);
+        }
+
+        $pledge = Pledge::create([
+            'church_id' => $user->church_id ?? null,
+            'member_id' => $member->id,
+            'campaign_name' => $request->campaign_name,
+            'total_amount' => $request->total_amount,
+            'amount_paid' => 0,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'status' => 'active',
+            'notes' => $request->notes,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pledge submitted successfully',
+            'data' => $pledge
+        ], 201);
     }
 }

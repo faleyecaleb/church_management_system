@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Complaint;
-use App\Models\ComplaintResponse;
 use App\Models\Member;
-use App\Models\User;
 use App\Models\MemberDepartment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -110,8 +109,8 @@ class ComplaintController extends Controller
             'complainant_email' => 'exclude_if:is_anonymous,1|nullable|email|max:255',
             'complainant_phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
-            'category' => 'required|in:' . implode(',', array_keys(Complaint::CATEGORIES)),
-            'priority' => 'required|in:' . implode(',', array_keys(Complaint::PRIORITIES)),
+            'category' => 'required|in:'.implode(',', array_keys(Complaint::CATEGORIES)),
+            'priority' => 'required|in:'.implode(',', array_keys(Complaint::PRIORITIES)),
             'subject' => 'required|string|max:255',
             'description' => 'required|string',
             'assigned_to' => 'nullable|exists:users,id',
@@ -133,7 +132,7 @@ class ComplaintController extends Controller
         if ($request->hasFile('evidence_files')) {
             $files = [];
             foreach ($request->file('evidence_files') as $file) {
-                $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $filename = time().'_'.Str::random(10).'.'.$file->getClientOriginalExtension();
                 $path = $file->storeAs('complaints/evidence', $filename, 'public');
                 $files[] = [
                     'original_name' => $file->getClientOriginalName(),
@@ -153,7 +152,7 @@ class ComplaintController extends Controller
             $complaint->addResponse([
                 'user_id' => auth()->id(),
                 'response_type' => 'assignment',
-                'message' => "Complaint assigned to " . $complaint->assignedTo->name,
+                'message' => 'Complaint assigned to '.$complaint->assignedTo->name,
                 'is_internal' => true,
                 'metadata' => ['assigned_to' => $complaint->assigned_to],
             ]);
@@ -173,7 +172,7 @@ class ComplaintController extends Controller
             'assignedTo',
             'resolvedBy',
             'escalatedTo',
-            'responses.user'
+            'responses.user',
         ]);
 
         $users = User::orderBy('name')->get();
@@ -204,8 +203,8 @@ class ComplaintController extends Controller
             'complainant_email' => 'exclude_if:is_anonymous,1|nullable|email|max:255',
             'complainant_phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
-            'category' => 'required|in:' . implode(',', array_keys(Complaint::CATEGORIES)),
-            'priority' => 'required|in:' . implode(',', array_keys(Complaint::PRIORITIES)),
+            'category' => 'required|in:'.implode(',', array_keys(Complaint::CATEGORIES)),
+            'priority' => 'required|in:'.implode(',', array_keys(Complaint::PRIORITIES)),
             'subject' => 'required|string|max:255',
             'description' => 'required|string',
             'assigned_to' => 'nullable|exists:users,id',
@@ -229,7 +228,7 @@ class ComplaintController extends Controller
                 $complaint->addResponse([
                     'user_id' => auth()->id(),
                     'response_type' => 'assignment',
-                    'message' => "Complaint reassigned to " . $complaint->assignedTo->name,
+                    'message' => 'Complaint reassigned to '.$complaint->assignedTo->name,
                     'is_internal' => true,
                     'metadata' => [
                         'old_assigned_to' => $oldAssignedTo,
@@ -240,7 +239,7 @@ class ComplaintController extends Controller
                 $complaint->addResponse([
                     'user_id' => auth()->id(),
                     'response_type' => 'assignment',
-                    'message' => "Complaint unassigned",
+                    'message' => 'Complaint unassigned',
                     'is_internal' => true,
                     'metadata' => ['old_assigned_to' => $oldAssignedTo],
                 ]);
@@ -310,7 +309,7 @@ class ComplaintController extends Controller
     public function updateStatus(Request $request, Complaint $complaint)
     {
         $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(Complaint::STATUSES)),
+            'status' => 'required|in:'.implode(',', array_keys(Complaint::STATUSES)),
             'reason' => 'nullable|string',
         ]);
 
@@ -384,14 +383,14 @@ class ComplaintController extends Controller
      */
     public function downloadEvidence(Complaint $complaint, $fileIndex)
     {
-        if (!$complaint->evidence_files || !isset($complaint->evidence_files[$fileIndex])) {
+        if (! $complaint->evidence_files || ! isset($complaint->evidence_files[$fileIndex])) {
             abort(404);
         }
 
         $file = $complaint->evidence_files[$fileIndex];
-        $path = storage_path('app/public/' . $file['path']);
+        $path = storage_path('app/public/'.$file['path']);
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404);
         }
 

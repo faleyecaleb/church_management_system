@@ -138,7 +138,7 @@
                             </a>
 
                             @if(!$notification->sent_at)
-                                @can('edit-notifications')
+                                @can('communication.update')
                                 <a href="{{ route('notifications.edit', $notification) }}" class="text-blue-600 hover:text-blue-900">
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -146,7 +146,9 @@
                                 </a>
                                 @endcan
 
-                                @can('delete-notifications')
+                                
+                            @endif
+                                @can('communication.delete')
                                 <form action="{{ route('notifications.destroy', $notification) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this notification?');">
                                     @csrf
                                     @method('DELETE')
@@ -157,7 +159,6 @@
                                     </button>
                                 </form>
                                 @endcan
-                            @endif
                         </div>
                     </div>
                 </div>

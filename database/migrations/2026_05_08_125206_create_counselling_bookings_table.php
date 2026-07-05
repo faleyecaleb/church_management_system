@@ -15,14 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('member_id')->constrained()->cascadeOnDelete();
             $table->foreignId('church_id')->nullable()->constrained()->cascadeOnDelete();
-            
+
             $table->date('requested_date');
             $table->time('requested_time');
-            
+
             $table->text('reason')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed', 'cancelled'])->default('pending');
             $table->text('admin_notes')->nullable()->comment('Notes from the PA or Pastor');
-            
+
             $table->timestamps();
             $table->softDeletes();
         });

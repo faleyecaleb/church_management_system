@@ -18,7 +18,7 @@ class OrderOfServiceTemplateExport implements FromArray, WithHeadings
                 '1',
                 'Pastor John',
                 'Opening prayers and declaration',
-                'Read Psalm 91'
+                'Read Psalm 91',
             ],
             [
                 'Praise and Worship',
@@ -28,7 +28,7 @@ class OrderOfServiceTemplateExport implements FromArray, WithHeadings
                 '2',
                 'Choir',
                 'High praise session',
-                ''
+                '',
             ],
             [
                 'Sermon',
@@ -38,8 +38,8 @@ class OrderOfServiceTemplateExport implements FromArray, WithHeadings
                 '3',
                 'Guest Minister',
                 'Topic: The Grace of God',
-                ''
-            ]
+                '',
+            ],
         ];
     }
 
@@ -53,7 +53,7 @@ class OrderOfServiceTemplateExport implements FromArray, WithHeadings
             'Order',
             'Leader',
             'Description',
-            'Notes'
+            'Notes',
         ];
     }
 }

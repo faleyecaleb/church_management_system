@@ -3,17 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\User;
-use Carbon\Carbon;
 
 class Attendance extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -30,7 +27,7 @@ class Attendance extends Model
         'notes',
         'is_present',
         'is_absent',
-        'status'
+        'status',
     ];
 
     protected $casts = [
@@ -46,17 +43,17 @@ class Attendance extends Model
     {
         return $this->belongsTo(Member::class);
     }
-    
+
     public function service()
     {
         return $this->belongsTo(Service::class);
     }
-    
+
     public function checkedInBy()
     {
         return $this->belongsTo(User::class, 'checked_in_by');
     }
-    
+
     public function checkedOutBy()
     {
         return $this->belongsTo(User::class, 'checked_out_by');
@@ -72,14 +69,14 @@ class Attendance extends Model
     {
         return $query->whereBetween('check_in_time', [
             Carbon::now()->startOfWeek(),
-            Carbon::now()->endOfWeek()
+            Carbon::now()->endOfWeek(),
         ]);
     }
 
     public function scopeThisMonth($query)
     {
         return $query->whereMonth('check_in_time', Carbon::now()->month)
-                     ->whereYear('check_in_time', Carbon::now()->year);
+            ->whereYear('check_in_time', Carbon::now()->year);
     }
 
     public function scopeByService($query, $serviceId)
@@ -113,11 +110,11 @@ class Attendance extends Model
         return [
             'total' => $query->count(),
             'by_service' => $query->groupBy('service_type')
-                                 ->selectRaw('service_type, count(*) as count')
-                                 ->pluck('count', 'service_type'),
+                ->selectRaw('service_type, count(*) as count')
+                ->pluck('count', 'service_type'),
             'by_method' => $query->groupBy('check_in_method')
-                                ->selectRaw('check_in_method, count(*) as count')
-                                ->pluck('count', 'check_in_method')
+                ->selectRaw('check_in_method, count(*) as count')
+                ->pluck('count', 'check_in_method'),
         ];
     }
 
@@ -128,7 +125,7 @@ class Attendance extends Model
             'service_type' => $serviceType,
             'check_in_time' => Carbon::now(),
             'check_in_method' => $checkInMethod,
-            'qr_code' => $checkInMethod === 'qr_code' ? self::generateQRCode() : null
+            'qr_code' => $checkInMethod === 'qr_code' ? self::generateQRCode() : null,
         ]);
     }
 }

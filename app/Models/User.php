@@ -57,8 +57,6 @@ class User extends Authenticatable
 
     /**
      * Check if the user is a super admin.
-     *
-     * @return bool
      */
     public function isSuperAdmin(): bool
     {
@@ -67,17 +65,15 @@ class User extends Authenticatable
 
     /**
      * Check if the user is an admin or super admin, or holds a staff role.
-     *
-     * @return bool
      */
     public function isAdmin(): bool
     {
         return in_array($this->role, [
-            'super_admin', 
-            'admin', 
-            'curate_pastor', 
-            'attendance_manager', 
-            'pa'
+            'super_admin',
+            'admin',
+            'curate_pastor',
+            'attendance_manager',
+            'pa',
         ]);
     }
 
@@ -115,7 +111,7 @@ class User extends Authenticatable
     /**
      * Check if the user has a specific permission.
      *
-     * @param string $permission
+     * @param  string  $permission
      * @return bool
      */
     public function hasPermission($permission)
@@ -167,9 +163,6 @@ class User extends Authenticatable
 
     /**
      * Check if the user has any of the given permissions.
-     *
-     * @param array $permissions
-     * @return bool
      */
     public function hasAnyPermission(array $permissions): bool
     {
@@ -178,9 +171,6 @@ class User extends Authenticatable
 
     /**
      * Check if the user has all of the given permissions.
-     *
-     * @param array $permissions
-     * @return bool
      */
     public function hasAllPermissions(array $permissions): bool
     {
@@ -189,6 +179,7 @@ class User extends Authenticatable
         }
 
         $userPermissions = $this->permissions()->whereIn('name', $permissions)->pluck('name');
+
         return count($permissions) === $userPermissions->count();
     }
 
@@ -218,4 +209,3 @@ class User extends Authenticatable
         return $this->belongsToMany(MessageGroup::class);
     }
 }
-

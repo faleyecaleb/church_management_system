@@ -62,11 +62,13 @@ class ProcessNotifications extends Command
             $this->notificationService->scheduleMilestoneNotifications();
 
             $this->info('Notification processing completed successfully.');
+
             return 0;
 
         } catch (\Exception $e) {
-            $this->error('Error processing notifications: ' . $e->getMessage());
+            $this->error('Error processing notifications: '.$e->getMessage());
             $this->error($e->getTraceAsString());
+
             return 1;
         }
     }

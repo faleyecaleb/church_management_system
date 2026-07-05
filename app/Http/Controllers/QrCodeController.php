@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
 use App\Models\Attendance;
+use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class QrCodeController extends Controller
@@ -14,14 +14,13 @@ class QrCodeController extends Controller
     /**
      * Generate a new QR code for a service.
      *
-     * @param  \App\Models\Service  $service
      * @return \Illuminate\Http\JsonResponse
      */
     public function generate(Service $service)
     {
         $token = $this->generateToken($service);
         $url = route('attendance.check-in', ['token' => $token]);
-        
+
         $qrCode = QrCode::size(300)
             ->format('svg')
             ->errorCorrection('H')
@@ -40,7 +39,6 @@ class QrCodeController extends Controller
     /**
      * Process check-in via QR code.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function checkIn(Request $request)
@@ -48,20 +46,20 @@ class QrCodeController extends Controller
         try {
             $token = $request->input('token');
             $serviceId = $this->validateToken($token);
-            
-            if (!$serviceId) {
+
+            if (! $serviceId) {
                 return response()->json(['error' => 'Invalid or expired QR code'], 400);
             }
 
             $service = Service::findOrFail($serviceId);
 
             // Verify if check-in is within the allowed time window
-            if (!$this->isWithinCheckInWindow($service)) {
+            if (! $this->isWithinCheckInWindow($service)) {
                 return response()->json(['error' => 'Check-in is not available at this time'], 400);
             }
 
             // Verify location if geofencing is enabled
-            if (config('attendance.require_geofencing') && !$this->verifyLocation($request)) {
+            if (config('attendance.require_geofencing') && ! $this->verifyLocation($request)) {
                 return response()->json(['error' => 'You are not within the allowed check-in area'], 400);
             }
 
@@ -87,14 +85,13 @@ class QrCodeController extends Controller
     /**
      * Generate a secure token for the service.
      *
-     * @param  \App\Models\Service  $service
      * @return string
      */
     protected function generateToken(Service $service)
     {
         $random = Str::random(config('attendance.token_length', 32));
-        $data = $service->id . '|' . $random . '|' . $this->getExpiryTime($service)->timestamp;
-        
+        $data = $service->id.'|'.$random.'|'.$this->getExpiryTime($service)->timestamp;
+
         return base64_encode(Hash::make($data, [
             'rounds' => 5,
         ]));
@@ -110,10 +107,12 @@ class QrCodeController extends Controller
     {
         try {
             $data = base64_decode($token);
-            if (!$data) return null;
+            if (! $data) {
+                return null;
+            }
 
-            list($serviceId, $random, $expiry) = explode('|', $data);
-            
+            [$serviceId, $random, $expiry] = explode('|', $data);
+
             if (now()->timestamp > $expiry) {
                 return null;
             }
@@ -128,21 +127,19 @@ class QrCodeController extends Controller
     /**
      * Calculate the expiry time for a service's QR code.
      *
-     * @param  \App\Models\Service  $service
      * @return \Carbon\Carbon
      */
     protected function getExpiryTime(Service $service)
     {
         $startTime = $service->start_time;
         $expiryAfter = config('attendance.qr_expiry_after', 15);
-        
+
         return $startTime->addMinutes($expiryAfter);
     }
 
     /**
      * Check if the current time is within the allowed check-in window.
      *
-     * @param  \App\Models\Service  $service
      * @return bool
      */
     protected function isWithinCheckInWindow(Service $service)
@@ -157,15 +154,14 @@ class QrCodeController extends Controller
     /**
      * Verify if the user's location is within the allowed distance.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return bool
      */
     protected function verifyLocation(Request $request)
     {
         $userLat = $request->input('latitude');
         $userLng = $request->input('longitude');
-        
-        if (!$userLat || !$userLng) {
+
+        if (! $userLat || ! $userLng) {
             return false;
         }
 

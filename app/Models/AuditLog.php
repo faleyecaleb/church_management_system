@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class AuditLog extends Model
 {
@@ -20,25 +20,34 @@ class AuditLog extends Model
         'url',
         'ip_address',
         'user_agent',
-        'tags'
+        'tags',
     ];
 
     protected $casts = [
         'old_values' => 'array',
         'new_values' => 'array',
-        'tags' => 'array'
+        'tags' => 'array',
     ];
 
     // Event types
     const CREATED = 'created';
+
     const UPDATED = 'updated';
+
     const DELETED = 'deleted';
+
     const RESTORED = 'restored';
+
     const LOGGED_IN = 'logged_in';
+
     const LOGGED_OUT = 'logged_out';
+
     const FAILED_LOGIN = 'failed_login';
+
     const SETTINGS_UPDATED = 'settings_updated';
+
     const PERMISSION_GRANTED = 'permission_granted';
+
     const PERMISSION_REVOKED = 'permission_revoked';
 
     // Relationships
@@ -95,7 +104,7 @@ class AuditLog extends Model
             'url' => request()->fullUrl(),
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'tags' => $tags
+            'tags' => $tags,
         ]);
     }
 
@@ -107,7 +116,7 @@ class AuditLog extends Model
             return array_map(function ($value) {
                 return [
                     'old' => null,
-                    'new' => $value
+                    'new' => $value,
                 ];
             }, $this->new_values);
         }
@@ -117,7 +126,7 @@ class AuditLog extends Model
             if ($oldValue !== $newValue) {
                 $changes[$key] = [
                     'old' => $oldValue,
-                    'new' => $newValue
+                    'new' => $newValue,
                 ];
             }
         }
@@ -137,7 +146,7 @@ class AuditLog extends Model
             self::FAILED_LOGIN,
             self::SETTINGS_UPDATED,
             self::PERMISSION_GRANTED,
-            self::PERMISSION_REVOKED
+            self::PERMISSION_REVOKED,
         ];
     }
 
@@ -164,7 +173,7 @@ class AuditLog extends Model
                 ->map(function ($logs) {
                     return [
                         'count' => $logs->count(),
-                        'user' => Member::find($logs->first()->user_id)
+                        'user' => Member::find($logs->first()->user_id),
                     ];
                 })
                 ->sortByDesc('count')
@@ -172,7 +181,7 @@ class AuditLog extends Model
             'ip_addresses' => $logs->groupBy('ip_address')->map->count(),
             'hourly_distribution' => $logs->groupBy(function ($log) {
                 return $log->created_at->format('H');
-            })->map->count()
+            })->map->count(),
         ];
     }
 

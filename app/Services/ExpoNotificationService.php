@@ -10,12 +10,6 @@ class ExpoNotificationService
 {
     /**
      * Send a single push notification to an Expo token.
-     *
-     * @param string $expoToken
-     * @param string $title
-     * @param string $body
-     * @param array $data
-     * @return bool
      */
     public function sendNotification(string $expoToken, string $title, string $body, array $data = []): bool
     {
@@ -39,32 +33,29 @@ class ExpoNotificationService
 
             if ($response->successful()) {
                 $responseData = $response->json();
-                
+
                 // Expo API might return success but have internal errors per token
                 if (isset($responseData['data']['status']) && $responseData['data']['status'] === 'error') {
-                    Log::error('Expo push delivery error details: ' . json_encode($responseData['data']));
+                    Log::error('Expo push delivery error details: '.json_encode($responseData['data']));
+
                     return false;
                 }
-                
+
                 return true;
             }
 
-            Log::error('Expo push notification request failed: ' . $response->body());
+            Log::error('Expo push notification request failed: '.$response->body());
+
             return false;
         } catch (\Exception $e) {
-            Log::error('Exception in ExpoNotificationService: ' . $e->getMessage());
+            Log::error('Exception in ExpoNotificationService: '.$e->getMessage());
+
             return false;
         }
     }
 
     /**
      * Send a push notification to a specific Member if they have a token and push notifications are enabled.
-     *
-     * @param Member $member
-     * @param string $title
-     * @param string $body
-     * @param array $data
-     * @return bool
      */
     public function notifyMember(Member $member, string $title, string $body, array $data = []): bool
     {
@@ -77,8 +68,9 @@ class ExpoNotificationService
         $customFields = $member->custom_fields ?? [];
         $pushEnabled = $customFields['push_notifications'] ?? true;
 
-        if (!$pushEnabled) {
+        if (! $pushEnabled) {
             Log::info("Skipping push notification for member {$member->id} because push preferences are disabled.");
+
             return false;
         }
 
@@ -88,10 +80,7 @@ class ExpoNotificationService
     /**
      * Send batch notifications to multiple members at once.
      *
-     * @param array $members array of Member models
-     * @param string $title
-     * @param string $body
-     * @param array $data
+     * @param  array  $members  array of Member models
      * @return array array of member IDs that succeeded
      */
     public function notifyMultiple(array $members, string $title, string $body, array $data = []): array
@@ -100,7 +89,7 @@ class ExpoNotificationService
         $memberIdToToken = [];
 
         foreach ($members as $member) {
-            if ($member instanceof Member && !empty($member->expo_push_token)) {
+            if ($member instanceof Member && ! empty($member->expo_push_token)) {
                 $customFields = $member->custom_fields ?? [];
                 $pushEnabled = $customFields['push_notifications'] ?? true;
 
@@ -137,23 +126,23 @@ class ExpoNotificationService
 
                 if ($response->successful()) {
                     $responseData = $response->json();
-                    
+
                     if (isset($responseData['data']) && is_array($responseData['data'])) {
                         foreach ($responseData['data'] as $index => $status) {
                             $token = $chunk[$index]['to'] ?? null;
                             if ($token && isset($status['status']) && $status['status'] === 'ok') {
                                 $successfulIds[] = $memberIdToToken[$token];
                             } else {
-                                Log::error('Expo batch delivery error for token ' . ($token ?? 'unknown') . ': ' . json_encode($status));
+                                Log::error('Expo batch delivery error for token '.($token ?? 'unknown').': '.json_encode($status));
                             }
                         }
                     }
                 } else {
-                    Log::error('Expo batch request failed: ' . $response->body());
+                    Log::error('Expo batch request failed: '.$response->body());
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Exception in Expo batch push send: ' . $e->getMessage());
+            Log::error('Exception in Expo batch push send: '.$e->getMessage());
         }
 
         return $successfulIds;

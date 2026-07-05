@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::table('members', function (Blueprint $table) {
             $table->enum('member_type', ['new_comer', 'main_member'])
-                  ->default('new_comer')
-                  ->after('membership_status');
+                ->default('new_comer')
+                ->after('membership_status');
         });
     }
 

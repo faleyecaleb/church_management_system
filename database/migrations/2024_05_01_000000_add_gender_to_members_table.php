@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('members', function (Blueprint $table) {
             // Check if the column doesn't exist before adding it
-            if (!Schema::hasColumn('members', 'gender')) {
+            if (! Schema::hasColumn('members', 'gender')) {
                 $table->enum('gender', ['male', 'female', 'other'])->nullable()->after('profile_photo');
             }
         });

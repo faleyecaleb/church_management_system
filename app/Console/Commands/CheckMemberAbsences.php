@@ -31,7 +31,6 @@ class CheckMemberAbsences extends Command
     /**
      * Create a new command instance.
      *
-     * @param  \App\Services\NotificationService  $notificationService
      * @return void
      */
     public function __construct(NotificationService $notificationService)
@@ -52,9 +51,11 @@ class CheckMemberAbsences extends Command
         try {
             $this->notificationService->checkAndNotifyAbsences();
             $this->info('Successfully checked member absences and created notifications.');
+
             return 0;
         } catch (\Exception $e) {
-            $this->error('Failed to check member absences: ' . $e->getMessage());
+            $this->error('Failed to check member absences: '.$e->getMessage());
+
             return 1;
         }
     }

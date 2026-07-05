@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Member;
 use App\Models\EmergencyContact;
+use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -42,7 +42,7 @@ class EmergencyContactController extends Controller
 
         DB::transaction(function () use ($member, $validated) {
             // If this contact is set as primary, unset any existing primary contact
-            if (!empty($validated['is_primary'])) {
+            if (! empty($validated['is_primary'])) {
                 $member->emergencyContacts()->where('is_primary', true)->update(['is_primary' => false]);
             }
             // If this is the first contact, make it primary regardless of input
@@ -86,7 +86,7 @@ class EmergencyContactController extends Controller
 
         DB::transaction(function () use ($member, $emergencyContact, $validated) {
             // Handle primary contact changes
-            if (!empty($validated['is_primary']) && !$emergencyContact->is_primary) {
+            if (! empty($validated['is_primary']) && ! $emergencyContact->is_primary) {
                 // Unset current primary contact if this contact is being set as primary
                 $member->emergencyContacts()->where('is_primary', true)->update(['is_primary' => false]);
             } elseif (empty($validated['is_primary']) && $emergencyContact->is_primary) {

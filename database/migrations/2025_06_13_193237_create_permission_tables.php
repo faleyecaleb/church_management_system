@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -19,8 +19,8 @@ return new class extends Migration
             throw new \Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
 
-        if (!Schema::hasTable($tableNames['permissions'])) {
-            Schema::create($tableNames['permissions'], function (Blueprint $table) use ($columnNames) {
+        if (! Schema::hasTable($tableNames['permissions'])) {
+            Schema::create($tableNames['permissions'], function (Blueprint $table) {
                 $table->bigIncrements('id'); // permission id
                 $table->string('name', 125); // For example: 'edit articles'
                 $table->string('guard_name', 125); // For example: 'web'
@@ -30,13 +30,13 @@ return new class extends Migration
             });
         } else {
             Schema::table($tableNames['permissions'], function (Blueprint $table) {
-                if (!Schema::hasColumn('permissions', 'guard_name')) {
+                if (! Schema::hasColumn('permissions', 'guard_name')) {
                     $table->string('guard_name', 125)->default('web')->nullable();
                 }
             });
         }
 
-        if (!Schema::hasTable($tableNames['roles'])) {
+        if (! Schema::hasTable($tableNames['roles'])) {
             Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
                 $table->bigIncrements('id'); // role id
                 if ($teams || config('permission.testing')) {
@@ -55,13 +55,13 @@ return new class extends Migration
             });
         } else {
             Schema::table($tableNames['roles'], function (Blueprint $table) {
-                if (!Schema::hasColumn('roles', 'guard_name')) {
+                if (! Schema::hasColumn('roles', 'guard_name')) {
                     $table->string('guard_name', 125)->default('web')->nullable();
                 }
             });
         }
 
-        if (!Schema::hasTable($tableNames['model_has_permissions'])) {
+        if (! Schema::hasTable($tableNames['model_has_permissions'])) {
             Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
                 $table->unsignedBigInteger(config('permission.column_names.model_morph_key'));
                 $table->string('model_type', 125);
@@ -73,18 +73,18 @@ return new class extends Migration
                     $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
                 }
 
-                $table->index([config('permission.column_names.model_morph_key'), 'model_type', ]);
+                $table->index([config('permission.column_names.model_morph_key'), 'model_type']);
 
                 $table->primary([
                     'permission_id',
                     config('permission.column_names.model_morph_key'),
                     'model_type',
                 ],
-                'model_has_permissions_permission_model_type_primary');
+                    'model_has_permissions_permission_model_type_primary');
             });
         }
 
-        if (!Schema::hasTable($tableNames['model_has_roles'])) {
+        if (! Schema::hasTable($tableNames['model_has_roles'])) {
             Schema::create($tableNames['model_has_roles'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
                 $table->unsignedBigInteger(config('permission.column_names.model_morph_key'));
                 $table->string('model_type', 125);
@@ -96,18 +96,18 @@ return new class extends Migration
                     $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
                 }
 
-                $table->index([config('permission.column_names.model_morph_key'), 'model_type', ]);
+                $table->index([config('permission.column_names.model_morph_key'), 'model_type']);
 
                 $table->primary([
                     'role_id',
                     config('permission.column_names.model_morph_key'),
                     'model_type',
                 ],
-                'model_has_roles_role_model_type_primary');
+                    'model_has_roles_role_model_type_primary');
             });
         }
 
-        if (!Schema::hasTable($tableNames['role_has_permissions'])) {
+        if (! Schema::hasTable($tableNames['role_has_permissions'])) {
             Schema::create($tableNames['role_has_permissions'], function (Blueprint $table) use ($tableNames) {
                 $table->foreignId('permission_id')
                     ->constrained($tableNames['permissions'])

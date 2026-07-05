@@ -5,11 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\InternalMessage;
 use App\Models\Member;
 use App\Models\MessageGroup;
-use App\Models\Attachment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
 
 class InternalMessageController extends Controller
 {
@@ -36,7 +35,7 @@ class InternalMessageController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
@@ -54,7 +53,7 @@ class InternalMessageController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
@@ -73,7 +72,7 @@ class InternalMessageController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
@@ -99,7 +98,7 @@ class InternalMessageController extends Controller
             'recipient_ids' => 'required|array',
             'recipient_ids.*' => 'required|integer',
             'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png'
+            'attachments.*' => 'file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png',
         ]);
 
         DB::beginTransaction();
@@ -108,7 +107,7 @@ class InternalMessageController extends Controller
             $message = InternalMessage::create([
                 'subject' => $validated['subject'],
                 'content' => $validated['content'],
-                'sender_id' => Auth::id()
+                'sender_id' => Auth::id(),
             ]);
 
             // Add recipients
@@ -127,7 +126,7 @@ class InternalMessageController extends Controller
                         'name' => $file->getClientOriginalName(),
                         'path' => $path,
                         'mime_type' => $file->getMimeType(),
-                        'size' => $file->getSize()
+                        'size' => $file->getSize(),
                     ]);
                 }
             }
@@ -139,15 +138,16 @@ class InternalMessageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to send message: ' . $e->getMessage());
+                ->with('error', 'Failed to send message: '.$e->getMessage());
         }
     }
 
     public function show(InternalMessage $message)
     {
-        if (!$message->canBeViewedBy(Auth::user())) {
+        if (! $message->canBeViewedBy(Auth::user())) {
             abort(403, 'You do not have permission to view this message.');
         }
 
@@ -157,12 +157,13 @@ class InternalMessageController extends Controller
         }
 
         $message->load(['sender', 'recipients', 'attachments']);
+
         return view('messages.show', compact('message'));
     }
 
     public function reply(InternalMessage $message)
     {
-        if (!$message->recipients->contains(Auth::id())) {
+        if (! $message->recipients->contains(Auth::id())) {
             abort(403, 'You can only reply to messages you received.');
         }
 
@@ -171,7 +172,7 @@ class InternalMessageController extends Controller
 
     public function forward(InternalMessage $message)
     {
-        if (!$message->canBeViewedBy(Auth::user())) {
+        if (! $message->canBeViewedBy(Auth::user())) {
             abort(403, 'You do not have permission to forward this message.');
         }
 
@@ -183,7 +184,7 @@ class InternalMessageController extends Controller
 
     public function destroy(InternalMessage $message)
     {
-        if (!$message->canBeViewedBy(Auth::user())) {
+        if (! $message->canBeViewedBy(Auth::user())) {
             abort(403, 'You do not have permission to delete this message.');
         }
 
@@ -209,14 +210,15 @@ class InternalMessageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Failed to delete message: ' . $e->getMessage());
+                ->with('error', 'Failed to delete message: '.$e->getMessage());
         }
     }
 
     public function markAsRead(InternalMessage $message)
     {
-        if (!$message->recipients->contains(Auth::id())) {
+        if (! $message->recipients->contains(Auth::id())) {
             abort(403, 'You can only mark messages you received as read.');
         }
 
@@ -228,7 +230,7 @@ class InternalMessageController extends Controller
 
     public function markAsUnread(InternalMessage $message)
     {
-        if (!$message->recipients->contains(Auth::id())) {
+        if (! $message->recipients->contains(Auth::id())) {
             abort(403, 'You can only mark messages you received as unread.');
         }
 
@@ -240,7 +242,7 @@ class InternalMessageController extends Controller
 
     public function archive(InternalMessage $message)
     {
-        if (!$message->recipients->contains(Auth::id())) {
+        if (! $message->recipients->contains(Auth::id())) {
             abort(403, 'You can only archive messages you received.');
         }
 
@@ -252,7 +254,7 @@ class InternalMessageController extends Controller
 
     public function unarchive(InternalMessage $message)
     {
-        if (!$message->recipients->contains(Auth::id())) {
+        if (! $message->recipients->contains(Auth::id())) {
             abort(403, 'You can only unarchive messages you received.');
         }
 

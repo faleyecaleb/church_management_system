@@ -11,8 +11,11 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class AttendanceAnalyticsExport implements FromView, ShouldAutoSize, WithStyles
 {
     protected $mostRegular;
+
     protected $mostPunctual;
+
     protected $startDate;
+
     protected $endDate;
 
     public function __construct($mostRegular, $mostPunctual, $startDate, $endDate)
@@ -36,7 +39,7 @@ class AttendanceAnalyticsExport implements FromView, ShouldAutoSize, WithStyles
     public function styles(Worksheet $sheet)
     {
         return [
-            1    => ['font' => ['bold' => true, 'size' => 14]],
+            1 => ['font' => ['bold' => true, 'size' => 14]],
             // We'll rely on HTML styling mapped to Excel via Maatwebsite
         ];
     }

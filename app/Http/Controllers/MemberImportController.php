@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\MembersImport;
 use App\Exports\MemberTemplateExport;
+use App\Imports\MembersImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -60,7 +60,7 @@ class MemberImportController extends Controller
                 'BAPTIZED',
                 'LOCATION & YEAR OF BAPTISM',
                 'CHURCH OF BAPTISM',
-                'SPIRITUAL GIFTS'
+                'SPIRITUAL GIFTS',
             ],
             [
                 'john.doe@example.com',
@@ -85,11 +85,11 @@ class MemberImportController extends Controller
                 'YES',
                 '2010 - Lagos',
                 'RCCG',
-                'Teaching, Healing'
-            ]
+                'Teaching, Healing',
+            ],
         ];
 
-        $callback = function() use ($sampleData) {
+        $callback = function () use ($sampleData) {
             $file = fopen('php://output', 'w');
             foreach ($sampleData as $row) {
                 fputcsv($file, $row);
@@ -116,11 +116,11 @@ class MemberImportController extends Controller
         $request->validate([
             'import_file' => 'required|file|max:10240', // 10MB max
             'skip_duplicates' => 'boolean',
-            'update_existing' => 'boolean'
+            'update_existing' => 'boolean',
         ]);
 
         $extension = strtolower($request->file('import_file')->getClientOriginalExtension());
-        if (!in_array($extension, ['csv', 'txt', 'xlsx', 'xls'])) {
+        if (! in_array($extension, ['csv', 'txt', 'xlsx', 'xls'])) {
             return back()->with('error', 'The import file must be a file of type: csv, txt, xlsx, xls.');
         }
 
@@ -132,15 +132,15 @@ class MemberImportController extends Controller
             $results = $this->processExcelImport($file, $skipDuplicates, $updateExisting);
 
             return back()->with('success',
-                "Import completed! " .
-                "Created: {$results['created']}, " .
-                "Updated: {$results['updated']}, " .
-                "Skipped: {$results['skipped']}, " .
+                'Import completed! '.
+                "Created: {$results['created']}, ".
+                "Updated: {$results['updated']}, ".
+                "Skipped: {$results['skipped']}, ".
                 "Errors: {$results['errors']}"
             )->with('import_details', $results['details']);
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Import failed: ' . $e->getMessage());
+            return back()->with('error', 'Import failed: '.$e->getMessage());
         }
     }
 
@@ -150,14 +150,14 @@ class MemberImportController extends Controller
     public function preview(Request $request)
     {
         $request->validate([
-            'import_file' => 'required|file|max:10240'
+            'import_file' => 'required|file|max:10240',
         ]);
 
         $extension = strtolower($request->file('import_file')->getClientOriginalExtension());
-        if (!in_array($extension, ['csv', 'txt', 'xlsx', 'xls'])) {
+        if (! in_array($extension, ['csv', 'txt', 'xlsx', 'xls'])) {
             return response()->json([
                 'success' => false,
-                'error' => 'The import file must be a file of type: csv, txt, xlsx, xls.'
+                'error' => 'The import file must be a file of type: csv, txt, xlsx, xls.',
             ], 422);
         }
 
@@ -169,13 +169,13 @@ class MemberImportController extends Controller
                 'success' => true,
                 'total_rows' => $previewData['total_rows'],
                 'preview_data' => $previewData['preview_data'],
-                'headers' => $previewData['headers']
+                'headers' => $previewData['headers'],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 400);
         }
     }
@@ -192,6 +192,7 @@ class MemberImportController extends Controller
         try {
             Excel::import($import, $file);
             DB::commit();
+
             return $import->getResults();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -204,7 +205,7 @@ class MemberImportController extends Controller
      */
     private function previewExcelFile($file)
     {
-        $data = Excel::toArray(new MembersImport(), $file);
+        $data = Excel::toArray(new MembersImport, $file);
 
         if (empty($data) || empty($data[0])) {
             throw new \Exception('The import file appears to be empty or invalid.');
@@ -224,7 +225,7 @@ class MemberImportController extends Controller
         return [
             'total_rows' => count($rows),
             'preview_data' => $previewData,
-            'headers' => $headers
+            'headers' => $headers,
         ];
     }
 }
