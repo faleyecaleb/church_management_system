@@ -24,6 +24,7 @@ class User extends Authenticatable
         'avatar_url',
         'last_login_at',
         'church_id',
+        'expo_push_token',
     ];
 
     /**

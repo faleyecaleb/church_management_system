@@ -53,6 +53,10 @@ class ProcessNotifications extends Command
             $this->info('Scheduling birthday notifications...');
             $this->notificationService->scheduleBirthdayNotifications();
 
+            // Schedule admin birthday notifications
+            $this->info('Scheduling admin birthday notifications...');
+            $this->notificationService->scheduleAdminBirthdayNotifications();
+
             // Schedule anniversary notifications
             $this->info('Scheduling anniversary notifications...');
             $this->notificationService->scheduleAnniversaryNotifications();

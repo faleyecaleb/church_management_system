@@ -91,7 +91,11 @@ class AttendanceController extends Controller
     {
         $query = Attendance::with(['member.departments.department', 'service'])
             ->whereHas('member', function ($q) {
-                $q->whereHas('departments')->orWhereHas('roles');
+                $q->whereHas('departments', function ($sub) {
+                    $sub->whereHas('department', function ($sub2) {
+                        $sub2->where('name', '!=', 'NONE');
+                    });
+                })->orWhereHas('roles');
             })
             ->latest('check_in_time');
 

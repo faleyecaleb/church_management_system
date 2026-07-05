@@ -78,6 +78,19 @@ class ExpoNotificationService
     }
 
     /**
+     * Send a push notification to a specific User (Admin/Staff) if they have a token.
+     */
+    public function notifyUser(\App\Models\User $user, string $title, string $body, array $data = []): bool
+    {
+        // Check if the user has a registered push token
+        if (empty($user->expo_push_token)) {
+            return false;
+        }
+
+        return $this->sendNotification($user->expo_push_token, $title, $body, $data);
+    }
+
+    /**
      * Send batch notifications to multiple members at once.
      *
      * @param  array  $members  array of Member models

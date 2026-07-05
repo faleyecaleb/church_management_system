@@ -37,6 +37,8 @@ class Notification extends Model
     // Notification types
     const TYPE_BIRTHDAY = 'birthday';
 
+    const TYPE_ADMIN_BIRTHDAY_REMINDER = 'admin_birthday_reminder';
+
     const TYPE_ANNIVERSARY = 'anniversary';
 
     const TYPE_MILESTONE = 'milestone';

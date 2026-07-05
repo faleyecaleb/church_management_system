@@ -168,12 +168,12 @@ class NotificationService
 
                 if ($notification->type === Notification::TYPE_BIRTHDAY) {
                     // Send email
-                    if ($recipient->email) {
+                    if ($recipient && $recipient->email) {
                         Mail::to($recipient->email)->send(new \App\Mail\BirthdayWish($recipient, $notification->data['age']));
                     }
 
                     // Send SMS
-                    if ($recipient->phone) {
+                    if ($recipient && $recipient->phone) {
                         $smsMessage = new \App\Models\SmsMessage([
                             'title' => 'Birthday Wish',
                             'content' => 'Happy Birthday {$recipient->name}! May God bless you abundantly on your special day.',
@@ -182,6 +182,16 @@ class NotificationService
                             'status' => 'queued',
                         ]);
                         $smsMessage->send();
+                    }
+                }
+
+                // Send Push Notification if recipient has an expo_push_token
+                if ($recipient && !empty($recipient->expo_push_token)) {
+                    $expoService = new \App\Services\ExpoNotificationService;
+                    if ($recipient instanceof \App\Models\Member) {
+                        $expoService->notifyMember($recipient, $notification->title, $notification->message, $notification->data ?? []);
+                    } elseif ($recipient instanceof \App\Models\User) {
+                        $expoService->notifyUser($recipient, $notification->title, $notification->message, $notification->data ?? []);
                     }
                 }
 
@@ -240,6 +250,95 @@ class NotificationService
                         ],
                         'status' => Notification::STATUS_PENDING,
                     ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Schedule admin birthday notifications for all members' birthdays.
+     */
+    public function scheduleAdminBirthdayNotifications()
+    {
+        $members = Member::whereNotNull('date_of_birth')->get();
+        $adminRoles = ['super_admin', 'admin', 'curate_pastor', 'attendance_manager', 'pa'];
+        $admins = \App\Models\User::whereIn('role', $adminRoles)->get();
+
+        if ($admins->isEmpty()) {
+            return;
+        }
+
+        foreach ($members as $member) {
+            $nextBirthday = Carbon::parse($member->date_of_birth)
+                ->setYear(now()->year);
+
+            if ($nextBirthday->isPast()) {
+                $nextBirthday->addYear();
+            }
+
+            // 1. Schedule 1 week before (7 days before)
+            $oneWeekBefore = $nextBirthday->copy()->subDays(7)->setTime(8, 0);
+            
+            // 2. Schedule on the day
+            $onTheDay = $nextBirthday->copy()->setTime(8, 0);
+
+            foreach ($admins as $admin) {
+                // Schedule 1 week before
+                if ($oneWeekBefore->isFuture()) {
+                    $exists = Notification::where('recipient_id', $admin->id)
+                        ->where('recipient_type', \App\Models\User::class)
+                        ->where('type', Notification::TYPE_ADMIN_BIRTHDAY_REMINDER)
+                        ->where('data->member_id', $member->id)
+                        ->where('data->reminder_type', 'week_before')
+                        ->where('data->birthday_date', $nextBirthday->format('Y-m-d'))
+                        ->exists();
+
+                    if (!$exists) {
+                        Notification::create([
+                            'type' => Notification::TYPE_ADMIN_BIRTHDAY_REMINDER,
+                            'title' => 'Upcoming Member Birthday',
+                            'message' => "Upcoming birthday for {$member->name} in a week on {$nextBirthday->format('M j')}.",
+                            'recipient_id' => $admin->id,
+                            'recipient_type' => \App\Models\User::class,
+                            'data' => [
+                                'member_id' => $member->id,
+                                'birthday_date' => $nextBirthday->format('Y-m-d'),
+                                'reminder_type' => 'week_before',
+                                'age' => $nextBirthday->diffInYears($member->date_of_birth),
+                            ],
+                            'status' => Notification::STATUS_SCHEDULED,
+                            'scheduled_at' => $oneWeekBefore,
+                        ]);
+                    }
+                }
+
+                // Schedule on the day
+                if ($onTheDay->isFuture()) {
+                    $exists = Notification::where('recipient_id', $admin->id)
+                        ->where('recipient_type', \App\Models\User::class)
+                        ->where('type', Notification::TYPE_ADMIN_BIRTHDAY_REMINDER)
+                        ->where('data->member_id', $member->id)
+                        ->where('data->reminder_type', 'on_day')
+                        ->where('data->birthday_date', $nextBirthday->format('Y-m-d'))
+                        ->exists();
+
+                    if (!$exists) {
+                        Notification::create([
+                            'type' => Notification::TYPE_ADMIN_BIRTHDAY_REMINDER,
+                            'title' => 'Member Birthday Today',
+                            'message' => "{$member->name} is celebrating their birthday today! Wish them a happy birthday.",
+                            'recipient_id' => $admin->id,
+                            'recipient_type' => \App\Models\User::class,
+                            'data' => [
+                                'member_id' => $member->id,
+                                'birthday_date' => $nextBirthday->format('Y-m-d'),
+                                'reminder_type' => 'on_day',
+                                'age' => $nextBirthday->diffInYears($member->date_of_birth),
+                            ],
+                            'status' => Notification::STATUS_SCHEDULED,
+                            'scheduled_at' => $onTheDay,
+                        ]);
+                    }
                 }
             }
         }

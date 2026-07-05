@@ -261,6 +261,175 @@
         </div>
     </section>
 
+    <!-- Mobile App Showcase Section -->
+    <section class="py-24 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 text-white relative overflow-hidden">
+        <!-- Ambient light/glow behind elements -->
+        <div class="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-fuchsia-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                
+                <!-- App Info Column (left side) -->
+                <div class="lg:col-span-7 reveal-left">
+                    <span class="inline-flex items-center px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-bold uppercase tracking-[0.2em] mb-6">
+                        Hosanna Mobile App
+                    </span>
+                    <h3 class="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight tracking-tight font-serif">
+                        Stay Connected <br/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-indigo-300 to-teal-300">Anytime, Anywhere</span>
+                    </h3>
+                    <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-xl font-light leading-relaxed">
+                        Download our brand-new mobile application to easily follow up on order of services, track attendance, receive real-time push notifications, and stay close to your church family.
+                    </p>
+
+                    <!-- App Features list -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-indigo-500/20 border border-indigo-400/20 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Instant Notifications</h4>
+                                <p class="text-slate-400 text-sm mt-1">Get immediate reminders, birthday alerts, and announcements.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-fuchsia-500/20 border border-fuchsia-400/20 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-fuchsia-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base">QR Attendance & Logins</h4>
+                                <p class="text-slate-400 text-sm mt-1">Secure and fast check-ins for all Sunday service assemblies.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-teal-500/20 border border-teal-400/20 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Order of Service</h4>
+                                <p class="text-slate-400 text-sm mt-1">Track the program, times, and notes for all gatherings live.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-amber-500/20 border border-amber-400/20 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Special Admin Access</h4>
+                                <p class="text-slate-400 text-sm mt-1">Admins get automated birthday reminders of members a week before and on the day.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center">
+                        <a href="https://expo.dev/artifacts/eas/FColijxV7AaEXNj-BvA_Tp34VofpS5KYSxasjEHRJtk.apk" 
+                           class="group inline-flex items-center justify-center px-8 py-4.5 bg-gradient-to-r from-fuchsia-500 via-purple-600 to-indigo-600 hover:from-fuchsia-600 hover:to-indigo-700 text-white font-bold text-lg rounded-2xl shadow-[0_4px_20px_rgba(168,85,247,0.4)] hover:shadow-[0_10px_30px_rgba(168,85,247,0.6)] hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto">
+                            <!-- SVG Android icon -->
+                            <svg class="w-6 h-6 mr-3 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                                <path d="M17.523 15.3l1.816 3.146a.5.5 0 0 1-.177.683l-.323.187a.5.5 0 0 1-.683-.177L16.33 16H7.67l-1.828 3.14a.5.5 0 0 1-.683.177l-.323-.187a.5.5 0 0 1-.177-.683L6.477 15.3C4.015 13.906 2.308 11.455 2.05 8.5h19.9c-.258 2.955-1.965 5.406-4.427 6.8zM7 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM9.765 2.336l1.242 2.15a.5.5 0 0 1-.171.683l-.323.187a.5.5 0 0 1-.683-.171L8.588 3.036l-1.242 2.15a.5.5 0 0 1-.683.171l-.323-.187a.5.5 0 0 1-.171-.683l1.242-2.15C5.034 3.753 3.146 5.864 2.45 8.5H21.55c-.696-2.636-2.584-4.747-4.962-6.164l1.242 2.15a.5.5 0 0 1-.171.683l-.323.187a.5.5 0 0 1-.683-.171L15.412 3.036l-1.242 2.15a.5.5 0 0 1-.683.171l-.323-.187a.5.5 0 0 1-.171-.683l1.242-2.15z"/>
+                            </svg>
+                            Download Android APK
+                        </a>
+                        <span class="text-sm text-slate-400 font-medium sm:max-w-[200px] text-center sm:text-left self-center sm:self-auto">
+                            Requires Android 6.0+ | Fast, direct installation.
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Phone Mockup Column (right side) -->
+                <div class="lg:col-span-5 flex justify-center reveal-right delay-200">
+                    <div class="relative w-[310px] h-[620px] bg-slate-950 border-[10px] border-slate-800 rounded-[3rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden hover:scale-102 transition-transform duration-500">
+                        <!-- Dynamic Island / Speaker notch -->
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-b-2xl z-30"></div>
+                        
+                        <!-- Screen Content (Simulating the Hosanna app dashboard) -->
+                        <div class="w-full h-full bg-[#0B0F19] text-white flex flex-col p-5 pt-8 relative z-20">
+                            <!-- Mock App Header -->
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold text-xs">CAC</div>
+                                    <span class="font-extrabold text-sm tracking-tight text-slate-100">Hosanna</span>
+                                </div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                            </div>
+
+                            <!-- Mock App Welcome Card -->
+                            <div class="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 mb-5">
+                                <span class="text-[10px] text-indigo-300 font-bold uppercase tracking-wider block mb-1">Welcome back,</span>
+                                <h5 class="text-base font-black text-white">Pastor Caleb 👋</h5>
+                                <div class="mt-2.5 inline-block px-2.5 py-1 bg-indigo-500/20 border border-indigo-400/20 rounded-full text-[10px] font-semibold text-indigo-300">
+                                    Church Administration
+                                </div>
+                            </div>
+
+                            <!-- Mock Birthday Banner (Special Admin Feature highlight) -->
+                            <div class="p-4 rounded-2xl bg-fuchsia-950/40 border border-fuchsia-500/20 mb-5 animate-pulse">
+                                <span class="text-[9px] text-fuchsia-300 font-bold uppercase tracking-wider block mb-1">📢 Admin Alert</span>
+                                <h5 class="text-xs font-bold text-white mb-1">Member Birthday Reminder</h5>
+                                <p class="text-[10px] text-slate-300 leading-tight">Sarah Johnson is celebrating her birthday today! Tap to send wishes.</p>
+                            </div>
+
+                            <!-- Mock Service Card -->
+                            <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 mb-5 flex-grow">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-[10px] text-slate-400 font-bold">SUNDAY SERVICE</span>
+                                    <span class="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full font-bold">Active</span>
+                                </div>
+                                <h6 class="text-sm font-extrabold mb-1.5">Youth Assembly</h6>
+                                <p class="text-[10px] text-slate-400 mb-3">Time: 11:30 AM - 1:30 PM</p>
+                                
+                                <!-- Mock timeline -->
+                                <div class="space-y-2.5 border-l-2 border-indigo-500/30 pl-3">
+                                    <div class="relative">
+                                        <div class="absolute -left-[17.5px] top-1 w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+                                        <div class="text-[9px] font-extrabold">Worship & Praise</div>
+                                        <div class="text-[8px] text-slate-400">11:30 AM (30 mins)</div>
+                                    </div>
+                                    <div class="relative">
+                                        <div class="absolute -left-[17.5px] top-1 w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                                        <div class="text-[9px] font-bold text-slate-400">Word Ministration</div>
+                                        <div class="text-[8px] text-slate-500">12:00 PM (45 mins)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mock Navigation Tab Bar -->
+                            <div class="mt-auto pt-3 border-t border-slate-900 flex justify-around text-slate-500 text-[9px] font-semibold">
+                                <div class="flex flex-col items-center gap-1 text-indigo-400">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                                    <span>Home</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    <span>Attendance</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    <span>Profile</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <!-- Testimonials Section -->
     <section class="py-24 bg-fuchsia-50 relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -150,7 +150,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Save the Expo push token for the authenticated member.
+     * Save the Expo push token for the authenticated user/member.
      */
     public function savePushToken(Request $request)
     {
@@ -160,8 +160,8 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        // Check if the user is a Member, since only members use the mobile app and have push notifications.
-        if ($user instanceof \App\Models\Member) {
+        // Check if the user is a Member or Admin User, since both can use the mobile app.
+        if ($user instanceof \App\Models\Member || $user instanceof \App\Models\User) {
             $user->update([
                 'expo_push_token' => $request->expo_push_token,
             ]);
@@ -175,7 +175,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'Push tokens can only be saved for member accounts.',
+            'message' => 'Push tokens can only be saved for valid accounts.',
         ], 400);
     }
 }
