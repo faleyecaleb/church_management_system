@@ -151,7 +151,7 @@
 
                         
                     @endif
-                    @can('communication.delete')
+                    @if(auth()->user()->can('communication.delete') || auth()->user()->role === 'admin')
                         <form action="{{ route('notifications.destroy', $notification) }}" method="POST" class="inline" 
                               onsubmit="return confirm('Are you sure you want to delete this notification?');">
                             @csrf
@@ -161,7 +161,7 @@
                                 Delete Notification
                             </button>
                         </form>
-                        @endcan
+                    @endif
                 </div>
             </div>
         </div>
