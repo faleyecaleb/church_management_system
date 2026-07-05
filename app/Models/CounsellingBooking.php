@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CounsellingBooking extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToChurch;
+    use BelongsToChurch, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'member_id',

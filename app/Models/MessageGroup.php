@@ -3,14 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MessageGroup extends Model
 {
     use BelongsToChurch;
-
     use HasFactory;
 
     protected $fillable = [
@@ -18,12 +16,12 @@ class MessageGroup extends Model
         'description',
         'member_ids',
         'created_by',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
         'member_ids' => 'array',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     // Relationships
@@ -53,14 +51,14 @@ class MessageGroup extends Model
     {
         return $query->where(function ($q) use ($memberId) {
             $q->where('created_by', $memberId)
-              ->orWhereJsonContains('member_ids', $memberId);
+                ->orWhereJsonContains('member_ids', $memberId);
         });
     }
 
     // Helper methods
     public function addMember($memberId)
     {
-        if (!in_array($memberId, $this->member_ids)) {
+        if (! in_array($memberId, $this->member_ids)) {
             $memberIds = $this->member_ids;
             array_push($memberIds, $memberId);
             $this->update(['member_ids' => $memberIds]);
@@ -68,6 +66,7 @@ class MessageGroup extends Model
             // TODO: Notify new member
             return true;
         }
+
         return false;
     }
 
@@ -80,20 +79,22 @@ class MessageGroup extends Model
             // TODO: Notify removed member
             return true;
         }
+
         return false;
     }
 
     public function addMembers($memberIds)
     {
         $newMemberIds = array_diff($memberIds, $this->member_ids);
-        if (!empty($newMemberIds)) {
+        if (! empty($newMemberIds)) {
             $this->update([
-                'member_ids' => array_values(array_unique(array_merge($this->member_ids, $newMemberIds)))
+                'member_ids' => array_values(array_unique(array_merge($this->member_ids, $newMemberIds))),
             ]);
 
             // TODO: Notify new members
             return true;
         }
+
         return false;
     }
 
@@ -106,6 +107,7 @@ class MessageGroup extends Model
             // TODO: Notify removed members
             return true;
         }
+
         return false;
     }
 
@@ -130,9 +132,9 @@ class MessageGroup extends Model
             'sender_id' => auth()->id(),
             'recipient_type' => 'group',
             'recipient_ids' => [$this->id],
-            'subject' => $subject ?? 'Group Message: ' . $this->name,
+            'subject' => $subject ?? 'Group Message: '.$this->name,
             'content' => $content,
-            'attachments' => $attachments
+            'attachments' => $attachments,
         ]);
     }
 
@@ -167,8 +169,8 @@ class MessageGroup extends Model
                 })->count(),
                 'large' => $groups->filter(function ($group) {
                     return count($group->member_ids) > 50;
-                })->count()
-            ]
+                })->count(),
+            ],
         ];
     }
 

@@ -3,16 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class InternalMessage extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -23,14 +21,14 @@ class InternalMessage extends Model
         'content',
         'attachments',
         'is_read',
-        'read_at'
+        'read_at',
     ];
 
     protected $casts = [
         'recipient_ids' => 'array',
         'attachments' => 'array',
         'is_read' => 'boolean',
-        'read_at' => 'datetime'
+        'read_at' => 'datetime',
     ];
 
     // Relationships
@@ -61,16 +59,16 @@ class InternalMessage extends Model
     {
         return $query->where(function ($q) use ($memberId) {
             $q->where('sender_id', $memberId)
-              ->orWhere(function ($q) use ($memberId) {
-                  $q->where('recipient_type', 'individual')
-                    ->whereJsonContains('recipient_ids', $memberId);
-              })
-              ->orWhere(function ($q) use ($memberId) {
-                  $q->where('recipient_type', 'group')
-                    ->whereHas('recipients', function ($q) use ($memberId) {
-                        $q->whereJsonContains('member_ids', $memberId);
-                    });
-              });
+                ->orWhere(function ($q) use ($memberId) {
+                    $q->where('recipient_type', 'individual')
+                        ->whereJsonContains('recipient_ids', $memberId);
+                })
+                ->orWhere(function ($q) use ($memberId) {
+                    $q->where('recipient_type', 'group')
+                        ->whereHas('recipients', function ($q) use ($memberId) {
+                            $q->whereJsonContains('member_ids', $memberId);
+                        });
+                });
         });
     }
 
@@ -79,7 +77,7 @@ class InternalMessage extends Model
     {
         $this->update([
             'is_read' => true,
-            'read_at' => Carbon::now()
+            'read_at' => Carbon::now(),
         ]);
 
         // TODO: Implement read receipt notification to sender if enabled
@@ -89,7 +87,7 @@ class InternalMessage extends Model
     {
         $this->update([
             'is_read' => false,
-            'read_at' => null
+            'read_at' => null,
         ]);
     }
 
@@ -97,7 +95,7 @@ class InternalMessage extends Model
     {
         // Send notifications to recipients
         $recipients = $this->getRecipientMembers();
-        
+
         foreach ($recipients as $recipient) {
             // TODO: Implement notification logic
             // Could be email, SMS, or in-app notification
@@ -119,7 +117,7 @@ class InternalMessage extends Model
 
     public function canBeViewedBy($member)
     {
-        if (!$member) {
+        if (! $member) {
             return false;
         }
 
@@ -157,8 +155,8 @@ class InternalMessage extends Model
             'sent_messages' => $messages->where('sender_id', $memberId)->count(),
             'received_messages' => $messages->where('sender_id', '!=', $memberId)->count(),
             'with_attachments' => $messages->filter(function ($message) {
-                return !empty($message->attachments);
-            })->count()
+                return ! empty($message->attachments);
+            })->count(),
         ];
     }
 
@@ -175,24 +173,26 @@ class InternalMessage extends Model
         if (isset($attachments[$fileIndex])) {
             unset($attachments[$fileIndex]);
             $this->update(['attachments' => array_values($attachments)]);
+
             return true;
         }
+
         return false;
     }
 
     public function forward($recipientIds, $recipientType = 'individual', $additionalContent = null)
     {
         $newContent = $additionalContent
-            ? $additionalContent . "\n\n--- Forwarded Message ---\n" . $this->content
+            ? $additionalContent."\n\n--- Forwarded Message ---\n".$this->content
             : $this->content;
 
         return self::create([
             'sender_id' => auth()->id(),
             'recipient_type' => $recipientType,
             'recipient_ids' => $recipientIds,
-            'subject' => 'Fwd: ' . $this->subject,
+            'subject' => 'Fwd: '.$this->subject,
             'content' => $newContent,
-            'attachments' => $this->attachments
+            'attachments' => $this->attachments,
         ]);
     }
 
@@ -206,8 +206,8 @@ class InternalMessage extends Model
             'sender_id' => auth()->id(),
             'recipient_type' => 'individual',
             'recipient_ids' => $recipientIds,
-            'subject' => 'Re: ' . $this->subject,
-            'content' => $content
+            'subject' => 'Re: '.$this->subject,
+            'content' => $content,
         ]);
     }
 }

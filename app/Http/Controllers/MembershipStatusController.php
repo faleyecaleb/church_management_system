@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Models\MembershipStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MembershipStatusController extends Controller
 {
@@ -28,7 +28,7 @@ class MembershipStatusController extends Controller
         return view('membership.status.index', [
             'member' => $member,
             'statuses' => $statuses,
-            'availableStatuses' => MembershipStatus::getStatuses()
+            'availableStatuses' => MembershipStatus::getStatuses(),
         ]);
     }
 
@@ -42,7 +42,7 @@ class MembershipStatusController extends Controller
         return view('membership.status.create', [
             'member' => $member,
             'currentStatus' => $currentStatus,
-            'availableStatuses' => MembershipStatus::getStatuses()
+            'availableStatuses' => MembershipStatus::getStatuses(),
         ]);
     }
 
@@ -58,7 +58,7 @@ class MembershipStatusController extends Controller
             'class_completed' => 'boolean',
             'transfer_church' => 'required_if:status,transferred|nullable|string|max:255',
             'transfer_date' => 'required_if:status,transferred|nullable|date',
-            'renewal_date' => 'nullable|date|after:start_date'
+            'renewal_date' => 'nullable|date|after:start_date',
         ]);
 
         try {
@@ -67,7 +67,7 @@ class MembershipStatusController extends Controller
                 $currentStatus = $member->currentMembershipStatus();
                 if ($currentStatus) {
                     $currentStatus->update([
-                        'end_date' => $validated['start_date']
+                        'end_date' => $validated['start_date'],
                     ]);
                 }
 
@@ -80,7 +80,7 @@ class MembershipStatusController extends Controller
                     'class_completed' => $validated['class_completed'] ?? false,
                     'transfer_church' => $validated['transfer_church'] ?? null,
                     'transfer_date' => $validated['transfer_date'] ?? null,
-                    'renewal_date' => $validated['renewal_date'] ?? null
+                    'renewal_date' => $validated['renewal_date'] ?? null,
                 ]);
             });
 
@@ -91,7 +91,7 @@ class MembershipStatusController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to update member status. ' . $e->getMessage());
+                ->with('error', 'Failed to update member status. '.$e->getMessage());
         }
     }
 
@@ -102,7 +102,7 @@ class MembershipStatusController extends Controller
     {
         return view('membership.status.show', [
             'member' => $member,
-            'status' => $status->load('changedBy')
+            'status' => $status->load('changedBy'),
         ]);
     }
 
@@ -111,14 +111,14 @@ class MembershipStatusController extends Controller
      */
     public function edit(Member $member, MembershipStatus $status)
     {
-        if (!$status->isCurrent()) {
+        if (! $status->isCurrent()) {
             return back()->with('error', 'Only current status can be edited.');
         }
 
         return view('membership.status.edit', [
             'member' => $member,
             'status' => $status,
-            'availableStatuses' => MembershipStatus::getStatuses()
+            'availableStatuses' => MembershipStatus::getStatuses(),
         ]);
     }
 
@@ -127,7 +127,7 @@ class MembershipStatusController extends Controller
      */
     public function update(Request $request, Member $member, MembershipStatus $status)
     {
-        if (!$status->isCurrent()) {
+        if (! $status->isCurrent()) {
             return back()->with('error', 'Only current status can be edited.');
         }
 
@@ -138,7 +138,7 @@ class MembershipStatusController extends Controller
             'class_completed' => 'boolean',
             'transfer_church' => 'required_if:status,transferred|nullable|string|max:255',
             'transfer_date' => 'required_if:status,transferred|nullable|date',
-            'renewal_date' => 'nullable|date|after:start_date'
+            'renewal_date' => 'nullable|date|after:start_date',
         ]);
 
         try {
@@ -150,7 +150,7 @@ class MembershipStatusController extends Controller
                 'class_completed' => $validated['class_completed'] ?? false,
                 'transfer_church' => $validated['transfer_church'] ?? null,
                 'transfer_date' => $validated['transfer_date'] ?? null,
-                'renewal_date' => $validated['renewal_date'] ?? null
+                'renewal_date' => $validated['renewal_date'] ?? null,
             ]);
 
             return redirect()
@@ -160,7 +160,7 @@ class MembershipStatusController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to update status. ' . $e->getMessage());
+                ->with('error', 'Failed to update status. '.$e->getMessage());
         }
     }
 
@@ -175,9 +175,10 @@ class MembershipStatusController extends Controller
 
         try {
             $status->delete();
+
             return back()->with('success', 'Status deleted successfully.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete status. ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete status. '.$e->getMessage());
         }
     }
 }

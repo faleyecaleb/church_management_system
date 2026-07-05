@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
-use App\Models\Member;
 use App\Models\Attendance;
+use App\Models\Member;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,13 +24,13 @@ class ServiceAttendanceController extends Controller
         $services = Service::orderBy('day_of_week')->orderBy('start_time')->get();
         $members = Member::orderBy('first_name')->orderBy('last_name')->get();
 
-        $selectedDate = $request->date ? Carbon::parse($request->date) : now();
+        $selectedDate = $request->start_date ? Carbon::parse($request->start_date) : now();
 
         $selectedService = null;
         $attendances = collect();
 
         if ($request->service_id) {
-            $selectedService = Service::findOrFail($request->service_id);       
+            $selectedService = Service::findOrFail($request->service_id);
 
             $attendances = Attendance::with('member')
                 ->where('service_id', $selectedService->id)
@@ -57,10 +57,10 @@ class ServiceAttendanceController extends Controller
         $request->validate([
             'member_ids' => 'required|array',
             'member_ids.*' => 'exists:members,id',
-            'date' => 'required|date'
+            'date' => 'required|date',
         ]);
 
-        $date = Carbon::parse($request->date);
+        $date = Carbon::parse($request->start_date);
         $checkInTime = now();
 
         DB::beginTransaction();
@@ -73,7 +73,7 @@ class ServiceAttendanceController extends Controller
                     ->where('attendance_date', $date->toDateString())
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     Attendance::create([
                         'member_id' => $memberId,
                         'service_id' => $service->id,
@@ -90,12 +90,13 @@ class ServiceAttendanceController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'Members checked in successfully'
+                'message' => 'Members checked in successfully',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
-                'error' => 'Failed to check in members'
+                'error' => 'Failed to check in members',
             ], 500);
         }
     }
@@ -107,16 +108,16 @@ class ServiceAttendanceController extends Controller
     {
         if ($attendance->check_out_time) {
             return response()->json([
-                'error' => 'Member is already checked out'
+                'error' => 'Member is already checked out',
             ], 400);
         }
 
         $attendance->update([
-            'check_out_time' => now()
+            'check_out_time' => now(),
         ]);
 
         return response()->json([
-            'message' => 'Member checked out successfully'
+            'message' => 'Member checked out successfully',
         ]);
     }
 
@@ -126,20 +127,20 @@ class ServiceAttendanceController extends Controller
     public function checkOutAll(Request $request, Service $service)
     {
         $request->validate([
-            'date' => 'required|date'
+            'date' => 'required|date',
         ]);
 
-        $date = Carbon::parse($request->date);
+        $date = Carbon::parse($request->start_date);
 
         Attendance::where('service_id', $service->id)
             ->where('attendance_date', $date->toDateString())
             ->whereNull('check_out_time')
             ->update([
-                'check_out_time' => now()
+                'check_out_time' => now(),
             ]);
 
         return response()->json([
-            'message' => 'All members checked out successfully'
+            'message' => 'All members checked out successfully',
         ]);
     }
 }

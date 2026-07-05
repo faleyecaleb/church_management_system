@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Expense extends Model
 {
     use BelongsToChurch;
-
     use HasFactory;
 
     protected $fillable = [
@@ -25,12 +23,12 @@ class Expense extends Model
         'approved_by',
         'status',
         'description',
-        'receipt_file'
+        'receipt_file',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'expense_date' => 'date'
+        'expense_date' => 'date',
     ];
 
     // Relationships
@@ -75,7 +73,7 @@ class Expense extends Model
     {
         $this->update([
             'status' => 'approved',
-            'approved_by' => $approvedBy
+            'approved_by' => $approvedBy,
         ]);
 
         // Update related budget
@@ -97,7 +95,7 @@ class Expense extends Model
         $this->update([
             'status' => 'rejected',
             'approved_by' => $rejectedBy,
-            'notes' => $reason
+            'notes' => $reason,
         ]);
 
         // TODO: Trigger notification to expense creator
@@ -130,14 +128,14 @@ class Expense extends Model
         return [
             'total_amount' => $query->sum('amount'),
             'by_category' => $query->groupBy('category')
-                                  ->selectRaw('category, SUM(amount) as total')
-                                  ->pluck('total', 'category'),
+                ->selectRaw('category, SUM(amount) as total')
+                ->pluck('total', 'category'),
             'by_department' => $query->groupBy('department')
-                                    ->selectRaw('department, SUM(amount) as total')
-                                    ->pluck('total', 'department'),
+                ->selectRaw('department, SUM(amount) as total')
+                ->pluck('total', 'department'),
             'by_payment_method' => $query->groupBy('payment_method')
-                                        ->selectRaw('payment_method, SUM(amount) as total')
-                                        ->pluck('total', 'payment_method')
+                ->selectRaw('payment_method, SUM(amount) as total')
+                ->pluck('total', 'payment_method'),
         ];
     }
 
@@ -152,8 +150,8 @@ class Expense extends Model
         }
 
         return $query->orderByDesc('total_amount')
-                     ->limit($limit)
-                     ->get();
+            ->limit($limit)
+            ->get();
     }
 
     public function isOverBudget()
@@ -164,7 +162,7 @@ class Expense extends Model
             ->where('end_date', '>=', $this->expense_date)
             ->first();
 
-        if (!$budget) {
+        if (! $budget) {
             return false;
         }
 

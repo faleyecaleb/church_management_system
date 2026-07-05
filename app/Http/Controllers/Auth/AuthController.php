@@ -19,13 +19,13 @@ class AuthController extends Controller
         if (Auth::check() && Auth::user()->isAdmin()) {
             return redirect()->route('admin.dashboard');
         }
+
         return view('auth.login');
     }
 
     /**
      * Handle an authentication attempt.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function login(Request $request)
@@ -36,7 +36,7 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            if (!Auth::user()->isAdmin()) {
+            if (! Auth::user()->isAdmin()) {
                 Auth::logout();
                 throw ValidationException::withMessages([
                     'email' => ['Only administrators can access this system.'],
@@ -44,6 +44,7 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
+
             return redirect()->intended(route('admin.dashboard'));
         }
 
@@ -55,7 +56,6 @@ class AuthController extends Controller
     /**
      * Log the user out of the application.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function logout(Request $request)
@@ -87,6 +87,7 @@ class AuthController extends Controller
                 ->map(function ($log) {
                     $log->type_color = $this->getActivityTypeColor($log->event);
                     $log->icon = $this->getActivityIcon($log->event);
+
                     return $log;
                 }),
             'chartData' => $this->getFinancialChartData(),
@@ -98,7 +99,7 @@ class AuthController extends Controller
     /**
      * Get the color class for different activity types.
      *
-     * @param string $type
+     * @param  string  $type
      * @return string
      */
     private function getActivityTypeColor($type)
@@ -114,7 +115,7 @@ class AuthController extends Controller
     /**
      * Get the icon for different activity types.
      *
-     * @param string $type
+     * @param  string  $type
      * @return string
      */
     private function getActivityIcon($type)

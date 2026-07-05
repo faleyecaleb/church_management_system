@@ -53,8 +53,9 @@ class ProcessScheduledMessages extends Command
 
             return 0;
         } catch (\Exception $e) {
-            $this->error('Error processing scheduled messages: ' . $e->getMessage());
-            Log::error('ProcessScheduledMessages failed: ' . $e->getMessage());
+            $this->error('Error processing scheduled messages: '.$e->getMessage());
+            Log::error('ProcessScheduledMessages failed: '.$e->getMessage());
+
             return 1;
         }
     }

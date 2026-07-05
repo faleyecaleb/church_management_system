@@ -17,7 +17,7 @@ class PublicComplaintController extends Controller
     public function create()
     {
         $departments = MemberDepartment::getDepartmentOptions();
-        
+
         return view('public.complaints.create', compact('departments'));
     }
 
@@ -31,7 +31,7 @@ class PublicComplaintController extends Controller
             'complainant_email' => 'exclude_if:is_anonymous,1|nullable|email|max:255',
             'complainant_phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
-            'category' => 'required|in:' . implode(',', array_keys(Complaint::CATEGORIES)),
+            'category' => 'required|in:'.implode(',', array_keys(Complaint::CATEGORIES)),
             'subject' => 'required|string|max:255',
             'description' => 'required|string|min:10',
             'is_anonymous' => 'boolean',
@@ -46,7 +46,7 @@ class PublicComplaintController extends Controller
         }
 
         $data = $validator->validated();
-        
+
         // Set default priority for public complaints
         $data['priority'] = 'medium';
         $data['status'] = 'open';
@@ -55,7 +55,7 @@ class PublicComplaintController extends Controller
         if ($request->hasFile('evidence_files')) {
             $files = [];
             foreach ($request->file('evidence_files') as $file) {
-                $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $filename = time().'_'.Str::random(10).'.'.$file->getClientOriginalExtension();
                 $path = $file->storeAs('complaints/evidence', $filename, 'public');
                 $files[] = [
                     'original_name' => $file->getClientOriginalName(),
@@ -69,7 +69,7 @@ class PublicComplaintController extends Controller
         }
 
         // Try to find existing member by email
-        if (!$data['is_anonymous'] && $data['complainant_email']) {
+        if (! $data['is_anonymous'] && $data['complainant_email']) {
             $member = Member::where('email', $data['complainant_email'])->first();
             if ($member) {
                 $data['member_id'] = $member->id;
@@ -79,7 +79,7 @@ class PublicComplaintController extends Controller
         $complaint = Complaint::create($data);
 
         // Generate a reference number for the complainant
-        $referenceNumber = 'CMP-' . str_pad($complaint->id, 6, '0', STR_PAD_LEFT);
+        $referenceNumber = 'CMP-'.str_pad($complaint->id, 6, '0', STR_PAD_LEFT);
 
         return view('public.complaints.success', compact('complaint', 'referenceNumber'));
     }
@@ -97,24 +97,24 @@ class PublicComplaintController extends Controller
 
             // Extract ID from reference number (CMP-000001 -> 1)
             $id = (int) str_replace('CMP-', '', $request->reference_number);
-            
+
             $complaint = Complaint::where('id', $id)
                 ->where(function ($query) use ($request) {
                     $query->where('complainant_email', $request->email)
-                          ->orWhereHas('member', function ($memberQuery) use ($request) {
-                              $memberQuery->where('email', $request->email);
-                          });
+                        ->orWhereHas('member', function ($memberQuery) use ($request) {
+                            $memberQuery->where('email', $request->email);
+                        });
                 })
                 ->with(['publicResponses.user'])
                 ->first();
 
-            if (!$complaint) {
+            if (! $complaint) {
                 return redirect()->back()
                     ->withErrors(['reference_number' => 'Complaint not found or email does not match.'])
                     ->withInput();
             }
 
-            $referenceNumber = 'CMP-' . str_pad($complaint->id, 6, '0', STR_PAD_LEFT);
+            $referenceNumber = 'CMP-'.str_pad($complaint->id, 6, '0', STR_PAD_LEFT);
 
             return view('public.complaints.status', compact('complaint', 'referenceNumber'));
         }
@@ -137,7 +137,7 @@ class PublicComplaintController extends Controller
         $emailMatches = $complaint->complainant_email === $request->email ||
                        ($complaint->member && $complaint->member->email === $request->email);
 
-        if (!$emailMatches || $complaint->status !== 'resolved') {
+        if (! $emailMatches || $complaint->status !== 'resolved') {
             abort(403, 'Unauthorized or complaint not resolved.');
         }
 

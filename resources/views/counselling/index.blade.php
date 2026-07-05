@@ -69,13 +69,16 @@
                                 {{ $booking->status === 'rejected' ? 'bg-red-100 text-red-800' : '' }}">
                                 {{ ucfirst($booking->status) }}
                             </span>
+                            @if($booking->admin_notes)
+                                <p class="text-xs text-gray-500 mt-1 max-w-[150px] truncate" title="{{ $booking->admin_notes }}">Note: {{ $booking->admin_notes }}</p>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <!-- Only PA can approve/reject. Super Admin can only view. -->
                             @if(Auth::user()->hasPermission('counselling.manage'))
                                 @if($booking->status === 'pending')
-                                    <button onclick="updateStatus({{ $booking->id }}, 'approved')" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
-                                    <button onclick="updateStatus({{ $booking->id }}, 'rejected')" class="text-red-600 hover:text-red-900">Reject</button>
+                                    <button onclick="openActionModal({{ $booking->id }}, 'approved')" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
+                                    <button onclick="openActionModal({{ $booking->id }}, 'rejected')" class="text-red-600 hover:text-red-900">Reject</button>
                                 @else
                                     <span class="text-gray-400 text-xs">Actioned</span>
                                 @endif
@@ -107,14 +110,82 @@
     </div>
 </div>
 
+<!-- Action Modal -->
+<div id="actionModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true" onclick="closeActionModal()"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <!-- Modal panel -->
+        <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-xl shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+            <div class="sm:flex sm:items-start">
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                        <span id="actionTitleText">Action</span> Booking
+                    </h3>
+                    <div class="mt-4">
+                        <p class="text-sm text-gray-500 mb-2">Please provide a note or reason for this action. The member will see this in their app.</p>
+                        <textarea id="adminNotesInput" rows="4" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Type your response here..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="button" id="submitActionBtn" onclick="submitAction()" class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-primary-600 border border-transparent rounded-md shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Confirm
+                </button>
+                <button type="button" onclick="closeActionModal()" class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
-    function updateStatus(bookingId, status) {
-        if (!confirm('Are you sure you want to mark this booking as ' + status + '?')) {
-            return;
+    let currentBookingId = null;
+    let currentActionStatus = null;
+
+    function openActionModal(bookingId, status) {
+        currentBookingId = bookingId;
+        currentActionStatus = status;
+        
+        const modal = document.getElementById('actionModal');
+        const titleText = document.getElementById('actionTitleText');
+        const submitBtn = document.getElementById('submitActionBtn');
+        const notesInput = document.getElementById('adminNotesInput');
+        
+        notesInput.value = ''; // Reset notes
+
+        if (status === 'approved') {
+            titleText.textContent = 'Approve';
+            submitBtn.className = 'inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm';
+        } else {
+            titleText.textContent = 'Reject';
+            submitBtn.className = 'inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm';
         }
 
-        fetch(`/counselling/${bookingId}/status`, {
+        modal.classList.remove('hidden');
+    }
+
+    function closeActionModal() {
+        document.getElementById('actionModal').classList.add('hidden');
+        currentBookingId = null;
+        currentActionStatus = null;
+    }
+
+    function submitAction() {
+        if (!currentBookingId || !currentActionStatus) return;
+        
+        const adminNotes = document.getElementById('adminNotesInput').value;
+        const submitBtn = document.getElementById('submitActionBtn');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Processing...';
+
+        fetch(`/counselling/${currentBookingId}/status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -122,20 +193,27 @@
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                status: status
+                status: currentActionStatus,
+                admin_notes: adminNotes
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Remove hidden class manually to hide modal, reload
+                closeActionModal();
                 alert(data.message);
-                window.location.reload(); // Reload to reflect changes and remove action buttons
+                window.location.reload(); 
             } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Confirm';
                 alert('Error: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Confirm';
             alert('An error occurred while updating the status.');
         });
     }

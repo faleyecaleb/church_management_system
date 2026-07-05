@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MessageGroup;
 use App\Models\Member;
+use App\Models\MessageGroup;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MessageGroupController extends Controller
 {
@@ -31,7 +31,7 @@ class MessageGroupController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -43,6 +43,7 @@ class MessageGroupController extends Controller
     public function create()
     {
         $members = Member::active()->orderBy('last_name')->get();
+
         return view('message-groups.create', compact('members'));
     }
 
@@ -55,7 +56,7 @@ class MessageGroupController extends Controller
             'member_ids.*' => 'integer|exists:members,id',
             'is_active' => 'boolean',
             'auto_add_new_members' => 'boolean',
-            'criteria' => 'nullable|array'
+            'criteria' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
@@ -67,7 +68,7 @@ class MessageGroupController extends Controller
                 'is_active' => $validated['is_active'] ?? true,
                 'auto_add_new_members' => $validated['auto_add_new_members'] ?? false,
                 'criteria' => $validated['criteria'] ?? null,
-                'created_by' => Auth::id()
+                'created_by' => Auth::id(),
             ]);
 
             $group->members()->attach($validated['member_ids']);
@@ -79,9 +80,10 @@ class MessageGroupController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create message group: ' . $e->getMessage());
+                ->with('error', 'Failed to create message group: '.$e->getMessage());
         }
     }
 
@@ -95,7 +97,7 @@ class MessageGroupController extends Controller
 
     public function edit(MessageGroup $group)
     {
-        if (!$group->canBeModifiedBy(Auth::user())) {
+        if (! $group->canBeModifiedBy(Auth::user())) {
             abort(403, 'You do not have permission to edit this group.');
         }
 
@@ -107,18 +109,18 @@ class MessageGroupController extends Controller
 
     public function update(Request $request, MessageGroup $group)
     {
-        if (!$group->canBeModifiedBy(Auth::user())) {
+        if (! $group->canBeModifiedBy(Auth::user())) {
             abort(403, 'You do not have permission to update this group.');
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:message_groups,name,' . $group->id,
+            'name' => 'required|string|max:255|unique:message_groups,name,'.$group->id,
             'description' => 'nullable|string|max:1000',
             'member_ids' => 'required|array',
             'member_ids.*' => 'integer|exists:members,id',
             'is_active' => 'boolean',
             'auto_add_new_members' => 'boolean',
-            'criteria' => 'nullable|array'
+            'criteria' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
@@ -129,7 +131,7 @@ class MessageGroupController extends Controller
                 'description' => $validated['description'],
                 'is_active' => $validated['is_active'] ?? true,
                 'auto_add_new_members' => $validated['auto_add_new_members'] ?? false,
-                'criteria' => $validated['criteria'] ?? null
+                'criteria' => $validated['criteria'] ?? null,
             ]);
 
             $group->members()->sync($validated['member_ids']);
@@ -141,15 +143,16 @@ class MessageGroupController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to update message group: ' . $e->getMessage());
+                ->with('error', 'Failed to update message group: '.$e->getMessage());
         }
     }
 
     public function destroy(MessageGroup $group)
     {
-        if (!$group->canBeModifiedBy(Auth::user())) {
+        if (! $group->canBeModifiedBy(Auth::user())) {
             abort(403, 'You do not have permission to delete this group.');
         }
 
@@ -167,19 +170,19 @@ class MessageGroupController extends Controller
     public function members(MessageGroup $group)
     {
         return response()->json([
-            'members' => $group->members()->select('id', 'first_name', 'last_name', 'email')->get()
+            'members' => $group->members()->select('id', 'first_name', 'last_name', 'email')->get(),
         ]);
     }
 
     public function addMembers(Request $request, MessageGroup $group)
     {
-        if (!$group->canBeModifiedBy(Auth::user())) {
+        if (! $group->canBeModifiedBy(Auth::user())) {
             abort(403, 'You do not have permission to modify this group.');
         }
 
         $validated = $request->validate([
             'member_ids' => 'required|array',
-            'member_ids.*' => 'integer|exists:members,id'
+            'member_ids.*' => 'integer|exists:members,id',
         ]);
 
         $group->members()->attach($validated['member_ids']);
@@ -190,13 +193,13 @@ class MessageGroupController extends Controller
 
     public function removeMembers(Request $request, MessageGroup $group)
     {
-        if (!$group->canBeModifiedBy(Auth::user())) {
+        if (! $group->canBeModifiedBy(Auth::user())) {
             abort(403, 'You do not have permission to modify this group.');
         }
 
         $validated = $request->validate([
             'member_ids' => 'required|array',
-            'member_ids.*' => 'integer|exists:members,id'
+            'member_ids.*' => 'integer|exists:members,id',
         ]);
 
         $group->members()->detach($validated['member_ids']);
@@ -207,13 +210,14 @@ class MessageGroupController extends Controller
 
     public function toggle(MessageGroup $group)
     {
-        if (!$group->canBeModifiedBy(Auth::user())) {
+        if (! $group->canBeModifiedBy(Auth::user())) {
             abort(403, 'You do not have permission to modify this group.');
         }
 
-        $group->update(['is_active' => !$group->is_active]);
+        $group->update(['is_active' => ! $group->is_active]);
 
         $status = $group->is_active ? 'activated' : 'deactivated';
+
         return redirect()->route('message-groups.show', $group)
             ->with('success', "Message group {$status} successfully.");
     }

@@ -20,7 +20,7 @@ class MembershipStatus extends Model
         'class_completed',
         'transfer_church',
         'transfer_date',
-        'renewal_date'
+        'renewal_date',
     ];
 
     protected $casts = [
@@ -28,14 +28,18 @@ class MembershipStatus extends Model
         'end_date' => 'datetime',
         'transfer_date' => 'datetime',
         'renewal_date' => 'datetime',
-        'class_completed' => 'boolean'
+        'class_completed' => 'boolean',
     ];
 
     // Status constants
     const STATUS_NEW = 'new';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_TRANSFERRED = 'transferred';
+
     const STATUS_PENDING = 'pending';
 
     /**
@@ -48,7 +52,7 @@ class MembershipStatus extends Model
             self::STATUS_ACTIVE => 'Active',
             self::STATUS_INACTIVE => 'Inactive',
             self::STATUS_TRANSFERRED => 'Transferred',
-            self::STATUS_PENDING => 'Pending'
+            self::STATUS_PENDING => 'Pending',
         ];
     }
 
@@ -97,7 +101,7 @@ class MembershipStatus extends Model
      */
     public function needsRenewal(): bool
     {
-        if (!$this->renewal_date) {
+        if (! $this->renewal_date) {
             return false;
         }
 
@@ -118,6 +122,7 @@ class MembershipStatus extends Model
     public function getDurationInDays(): int
     {
         $end = $this->end_date ?? now();
+
         return $this->start_date->diffInDays($end);
     }
 }

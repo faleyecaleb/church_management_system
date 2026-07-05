@@ -1,14 +1,15 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CounsellingBookingController;
-use App\Http\Controllers\SmsMessageController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SmsMessageController;
+use App\Http\Controllers\PrayerRequestController;
+use App\Http\Controllers\PledgeController;
 use App\Http\Middleware\RateLimitMiddleware;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,21 +26,21 @@ use App\Http\Middleware\RateLimitMiddleware;
 Route::prefix('v1')->group(function () {
     // Authentication routes
     Route::post('/login', [AuthController::class, 'login'])
-        ->middleware([RateLimitMiddleware::class . ':5,1']); // 5 attempts per minute
-    
+        ->middleware([RateLimitMiddleware::class.':5,1']); // 5 attempts per minute
+
     // Protected API routes
-    Route::middleware(['auth:sanctum', RateLimitMiddleware::class . ':100,1'])->group(function () {
+    Route::middleware(['auth:sanctum', RateLimitMiddleware::class.':100,1'])->group(function () {
         // Auth routes
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
         Route::post('/user/change-password', [AuthController::class, 'changePassword']);
         Route::post('/user/push-token', [AuthController::class, 'savePushToken']);
-        
+
         // Member routes
         Route::apiResource('members', MemberController::class);
         Route::put('/user/profile', [MemberController::class, 'apiUpdate']);
-        
+
         // Attendance routes
         Route::apiResource('attendance', AttendanceController::class);
         Route::post('/attendance/bulk', [AttendanceController::class, 'bulkStore']);
@@ -51,7 +52,15 @@ Route::prefix('v1')->group(function () {
 
         // Counselling Booking routes
         Route::get('/counselling', [CounsellingBookingController::class, 'apiIndex']);
+        // Prayer Requests routes
+        Route::get('/prayer-requests', [PrayerRequestController::class, 'apiIndex']);
+        Route::post('/prayer-requests', [PrayerRequestController::class, 'apiStore']);
+
+        // Pledges routes
+        Route::get('/pledges', [PledgeController::class, 'apiIndex']);
+        Route::post('/pledges', [PledgeController::class, 'apiStore']);
         Route::post('/counselling', [CounsellingBookingController::class, 'apiStore']);
+        Route::delete('/counselling/clear-history', [CounsellingBookingController::class, 'apiClearHistory']);
 
         // Announcements (Communication Hub) routes
         Route::get('/announcements', [SmsMessageController::class, 'apiIndex']);
@@ -63,6 +72,6 @@ Route::get('/health', function () {
     return response()->json([
         'status' => 'ok',
         'timestamp' => now(),
-        'version' => '1.0.0'
+        'version' => '1.0.0',
     ]);
 });

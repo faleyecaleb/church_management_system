@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
-use App\Models\Member;
-use App\Models\MemberDepartment;
 use App\Models\Attendance;
+use App\Models\Member;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceMarkingController extends Controller
 {
@@ -24,6 +23,7 @@ class AttendanceMarkingController extends Controller
     public function index()
     {
         $services = Service::orderBy('day_of_week')->orderBy('start_time')->get();
+
         return view('attendance.marking.step1', compact('services'));
     }
 
@@ -70,7 +70,7 @@ class AttendanceMarkingController extends Controller
     {
         info('Attendance marking request data:', [
             'all_data' => $request->all(),
-            'member_status' => $request->input('member_status')
+            'member_status' => $request->input('member_status'),
         ]);
 
         $validated = $request->validate([
@@ -83,22 +83,22 @@ class AttendanceMarkingController extends Controller
         $service = Service::findOrFail($validated['service_id']);
         $attendanceDate = Carbon::parse($validated['attendance_date']);
         $memberStatuses = $validated['member_status'];
-        
+
         DB::beginTransaction();
-        
+
         try {
             $now = now();
             $checkedIn = 0;
             $updated = 0;
             $count = 0;
-            
+
             foreach ($memberStatuses as $memberId => $status) {
                 $count++;
                 info('Processing member attendance:', [
                     'member_id' => $memberId,
                     'status' => $status,
                     'service_id' => $service->id,
-                    'date' => $attendanceDate->format('Y-m-d')
+                    'date' => $attendanceDate->format('Y-m-d'),
                 ]);
 
                 if ($status === 'absent') {
@@ -107,28 +107,29 @@ class AttendanceMarkingController extends Controller
                         [
                             'member_id' => $memberId,
                             'service_id' => $service->id,
-                            'check_in_time' => Carbon::parse($attendanceDate->format('Y-m-d') . ' ' . $service->start_time->format('H:i:s'))
+                            'check_in_time' => Carbon::parse($attendanceDate->format('Y-m-d').' '.$service->start_time->format('H:i:s')),
                         ],
                         [
                             'check_in_method' => 'manual',
                             'checked_in_by' => Auth::id(),
                             'is_present' => false,
-                            'is_absent' => true
+                            'is_absent' => true,
                         ]
                     );
-                    
+
                     info('Updated/Created absent record');
+
                     continue;
                 }
-                
+
                 // Check if attendance record already exists
                 $attendance = Attendance::where('member_id', $memberId)
                     ->where('service_id', $service->id)
                     ->whereDate('check_in_time', $attendanceDate)
                     ->first();
-                
+
                 info('Existing attendance record:', ['attendance' => $attendance]);
-                
+
                 if ($attendance) {
                     info('Updating existing attendance record:', ['attendance_id' => $attendance->id]);
                     // Update existing record
@@ -136,11 +137,11 @@ class AttendanceMarkingController extends Controller
                         'check_in_method' => 'manual',
                         'checked_in_by' => Auth::id(),
                         // For 'late' status, set check-in time to 15 minutes after service start
-                        'check_in_time' => $status === 'late' 
-                            ? Carbon::parse($attendanceDate->format('Y-m-d') . ' ' . $service->start_time->format('H:i:s'))->addMinutes(15)
-                            : Carbon::parse($attendanceDate->format('Y-m-d') . ' ' . $service->start_time->format('H:i:s')),
+                        'check_in_time' => $status === 'late'
+                            ? Carbon::parse($attendanceDate->format('Y-m-d').' '.$service->start_time->format('H:i:s'))->addMinutes(15)
+                            : Carbon::parse($attendanceDate->format('Y-m-d').' '.$service->start_time->format('H:i:s')),
                         'is_present' => true,
-                        'is_absent' => false
+                        'is_absent' => false,
                     ]);
                     info("After update -  check in time of status whether late or not {$attendance->check_in_time}{$attendanceDate}");
                     $updated++;
@@ -153,48 +154,48 @@ class AttendanceMarkingController extends Controller
                         'check_in_method' => 'manual',
                         'checked_in_by' => Auth::id(),
                         // For 'late' status, set check-in time to 15 minutes after service start
-                        'check_in_time' => $status === 'late' 
-                            ? Carbon::parse($attendanceDate->format('Y-m-d') . ' ' . $service->start_time->format('H:i:s'))->addMinutes(15)
-                            : Carbon::parse($attendanceDate->format('Y-m-d') . ' ' . $service->start_time->format('H:i:s')),
+                        'check_in_time' => $status === 'late'
+                            ? Carbon::parse($attendanceDate->format('Y-m-d').' '.$service->start_time->format('H:i:s'))->addMinutes(15)
+                            : Carbon::parse($attendanceDate->format('Y-m-d').' '.$service->start_time->format('H:i:s')),
                         'is_present' => true,
-                        'is_absent' => false
+                        'is_absent' => false,
                     ]);
                     info('Creating new attendance record Done');
                     $checkedIn++;
                 }
             }
-            
+
             DB::commit();
             info("Attendance marked successfully: {$checkedIn} new records, {$updated} updated. {$count}");
             $message = "Attendance marked successfully: {$checkedIn} new records, {$updated} updated.";
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
                     'message' => $message,
                     'redirect' => route('attendance.service', [
                         'service_id' => $service->id,
-                        'date' => $attendanceDate->format('Y-m-d')
-                    ])
+                        'date' => $attendanceDate->format('Y-m-d'),
+                    ]),
                 ]);
             }
-            
+
             return redirect()->route('attendance.service', [
                 'service_id' => $service->id,
-                'date' => $attendanceDate->format('Y-m-d')
+                'date' => $attendanceDate->format('Y-m-d'),
             ])->with('success', $message);
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            $errorMessage = 'Failed to mark attendance: ' . $e->getMessage();
-            
+            $errorMessage = 'Failed to mark attendance: '.$e->getMessage();
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'error' => $errorMessage
+                    'error' => $errorMessage,
                 ], 500);
             }
-            
+
             return back()->with('error', $errorMessage);
         }
     }
@@ -215,54 +216,54 @@ class AttendanceMarkingController extends Controller
     {
         $request->validate([
             'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2030'
+            'year' => 'required|integer|min:2020|max:2030',
         ]);
 
         try {
             $month = $request->month;
             $year = $request->year;
-            
+
             // Get active recurring services AND one-time services for the selected month/year
             $services = Service::active()
                 ->where(function ($query) use ($year, $month) {
                     $query->where('is_recurring', 1)
-                          ->orWhere(function ($subQuery) use ($year, $month) {
-                              $subQuery->where('is_recurring', 0)
-                                       ->whereYear('date', $year)
-                                       ->whereMonth('date', $month);
-                          });
+                        ->orWhere(function ($subQuery) use ($year, $month) {
+                            $subQuery->where('is_recurring', 0)
+                                ->whereYear('date', $year)
+                                ->whereMonth('date', $month);
+                        });
                 })
                 ->orderBy('is_recurring', 'desc')
                 ->orderBy('date', 'asc')
                 ->orderBy('day_of_week')
                 ->orderBy('start_time')
                 ->get()
-                ->map(function ($service) use ($month, $year) {
-                    $dateInfo = $service->is_recurring 
-                        ? "{$service->day_of_week_name}s (Recurring)" 
-                        : (optional($service->date)->format('M j, Y') ?? 'Date Not Set');
-                    
+                ->map(function ($service) {
+                    $dateInfo = $service->is_recurring
+                        ? "{$service->day_of_week_name}s (Recurring)"
+                        : (optional($service->start_date)->format('M j, Y') ?? 'Date Not Set');
+
                     return [
                         'id' => $service->id,
-                        'name' => $service->name . " - " . $dateInfo,
+                        'name' => $service->name.' - '.$dateInfo,
                         'day_of_week' => $service->day_of_week,
                         'day_of_week_name' => $service->day_of_week_name,
                         'start_time' => $service->start_time->format('H:i'),
                         'location' => $service->location,
                         'description' => $service->description,
-                        'is_recurring' => $service->is_recurring
+                        'is_recurring' => $service->is_recurring,
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'services' => $services
+                'services' => $services,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to load services: ' . $e->getMessage()
+                'error' => 'Failed to load services: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -274,7 +275,7 @@ class AttendanceMarkingController extends Controller
     {
         $request->validate([
             'service_id' => 'required|exists:services,id',
-            'attendance_date' => 'required|date'
+            'attendance_date' => 'required|date',
         ]);
 
         try {
@@ -291,7 +292,7 @@ class AttendanceMarkingController extends Controller
                     $attendance = Attendance::where([
                         'member_id' => $member->id,
                         'service_id' => $serviceId,
-                        'attendance_date' => $attendanceDate
+                        'attendance_date' => $attendanceDate,
                     ])->first();
 
                     return [
@@ -300,19 +301,19 @@ class AttendanceMarkingController extends Controller
                         'email' => $member->email,
                         'gender' => $member->gender,
                         'departments' => $member->departments->pluck('department')->toArray(),
-                        'status' => $attendance ? $attendance->status : null
+                        'status' => $attendance ? $attendance->status : null,
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'members' => $members
+                'members' => $members,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to load members: ' . $e->getMessage()
+                'error' => 'Failed to load members: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -327,7 +328,7 @@ class AttendanceMarkingController extends Controller
             'attendance_date' => 'required|date',
             'member_ids' => 'required|array',
             'member_ids.*' => 'exists:members,id',
-            'status' => 'required|in:present,absent,late'
+            'status' => 'required|in:present,absent,late',
         ]);
 
         try {
@@ -346,7 +347,7 @@ class AttendanceMarkingController extends Controller
                 $attendance = Attendance::where([
                     'member_id' => $memberId,
                     'service_id' => $serviceId,
-                    'attendance_date' => $attendanceDate
+                    'attendance_date' => $attendanceDate,
                 ])->first();
 
                 if ($attendance) {
@@ -356,16 +357,16 @@ class AttendanceMarkingController extends Controller
                         'checked_in_by' => $markedBy,
                         'is_present' => $status === 'present',
                         'is_absent' => $status === 'absent',
-                        'status' => $status
+                        'status' => $status,
                     ];
-                    
+
                     // Only update check_in_time for present members
                     if ($status === 'present') {
-                        $updateData['check_in_time'] = Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s'));
+                        $updateData['check_in_time'] = Carbon::parse($attendanceDate.' '.now()->format('H:i:s'));
                     } elseif ($status === 'absent') {
                         $updateData['check_in_time'] = null;
                     }
-                    
+
                     $attendance->update($updateData);
                 } else {
                     // Create new record
@@ -377,14 +378,14 @@ class AttendanceMarkingController extends Controller
                         'checked_in_by' => $markedBy,
                         'is_present' => $status === 'present',
                         'is_absent' => $status === 'absent',
-                        'status' => $status
+                        'status' => $status,
                     ];
-                    
+
                     // Only set check_in_time for present members
                     if ($status === 'present') {
-                        $attendanceData['check_in_time'] = Carbon::parse($attendanceDate . ' ' . now()->format('H:i:s'));
+                        $attendanceData['check_in_time'] = Carbon::parse($attendanceDate.' '.now()->format('H:i:s'));
                     }
-                    
+
                     Attendance::create($attendanceData);
                 }
                 $count++;
@@ -395,14 +396,15 @@ class AttendanceMarkingController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Successfully marked {$count} members as {$status}",
-                'count' => $count
+                'count' => $count,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to mark attendance: ' . $e->getMessage()
+                'error' => 'Failed to mark attendance: '.$e->getMessage(),
             ], 500);
         }
     }

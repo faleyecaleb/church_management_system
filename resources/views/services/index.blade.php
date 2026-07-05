@@ -196,8 +196,8 @@
                                     </svg>
                                 </span>
                             @else
-                                <span class="block text-xs font-bold text-gray-500 uppercase">{{ optional($service->date)->format('M') ?? 'N/A' }}</span>
-                                <span class="block text-xl font-extrabold text-gray-900">{{ optional($service->date)->format('d') ?? '?' }}</span>
+                                <span class="block text-xs font-bold text-gray-500 uppercase">{{ optional($service->start_date)->format('M') ?? 'N/A' }}</span>
+                                <span class="block text-xl font-extrabold text-gray-900">{{ optional($service->start_date)->format('d') ?? '?' }}</span>
                             @endif
                         </div>
                     </div>

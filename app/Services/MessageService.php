@@ -6,8 +6,8 @@ use App\Models\Message;
 use App\Models\MessageGroup;
 use App\Models\MessageTemplate;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class MessageService
 {
@@ -47,7 +47,7 @@ class MessageService
                     'template_id' => $template?->id,
                     'status' => 'pending',
                     'scheduled_at' => $data['scheduled_at'] ?? null,
-                    'metadata' => $data['metadata'] ?? null
+                    'metadata' => $data['metadata'] ?? null,
                 ]);
 
                 $messages[] = $message;
@@ -59,7 +59,7 @@ class MessageService
 
             return $messages;
         } catch (Exception $e) {
-            Log::error('Bulk SMS sending failed: ' . $e->getMessage());
+            Log::error('Bulk SMS sending failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -83,7 +83,8 @@ class MessageService
             return true;
         } catch (Exception $e) {
             $message->markAsFailed($e->getMessage());
-            Log::error('Message processing failed: ' . $e->getMessage());
+            Log::error('Message processing failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -112,6 +113,7 @@ class MessageService
     {
         if ($type === 'group') {
             $group = MessageGroup::findOrFail($id);
+
             return $group->members();
         } else {
             return [User::findOrFail($id)];
@@ -133,8 +135,8 @@ class MessageService
             'status' => 'pending',
             'metadata' => array_merge($data['metadata'] ?? [], [
                 'prayer_status' => 'new',
-                'prayer_responses' => []
-            ])
+                'prayer_responses' => [],
+            ]),
         ]);
     }
 
@@ -152,7 +154,7 @@ class MessageService
             'content' => $data['content'],
             'status' => 'sent',
             'sent_at' => now(),
-            'metadata' => $data['metadata'] ?? null
+            'metadata' => $data['metadata'] ?? null,
         ]);
     }
 
@@ -182,17 +184,17 @@ class MessageService
             'by_type' => [
                 'sms' => $messages->where('type', 'sms')->count(),
                 'prayer' => $messages->where('type', 'prayer')->count(),
-                'internal' => $messages->where('type', 'internal')->count()
+                'internal' => $messages->where('type', 'internal')->count(),
             ],
             'by_status' => [
                 'pending' => $messages->where('status', 'pending')->count(),
                 'sent' => $messages->where('status', 'sent')->count(),
                 'delivered' => $messages->where('status', 'delivered')->count(),
-                'failed' => $messages->where('status', 'failed')->count()
+                'failed' => $messages->where('status', 'failed')->count(),
             ],
             'delivery_rate' => $messages->count() > 0
                 ? round(($messages->where('status', 'delivered')->count() / $messages->count()) * 100, 2)
-                : 0
+                : 0,
         ];
     }
 }

@@ -21,7 +21,6 @@ class ProcessNotificationCreated implements ShouldQueue
     /**
      * Create the event listener.
      *
-     * @param  \App\Services\NotificationService  $notificationService
      * @return void
      */
     public function __construct(NotificationService $notificationService)
@@ -32,7 +31,6 @@ class ProcessNotificationCreated implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  \App\Events\NotificationCreated  $event
      * @return void
      */
     public function handle(NotificationCreated $event)
@@ -40,7 +38,7 @@ class ProcessNotificationCreated implements ShouldQueue
         $notification = $event->notification;
 
         // If notification is not scheduled, process it immediately
-        if (!$notification->scheduled_at) {
+        if (! $notification->scheduled_at) {
             try {
                 // Here you would implement the actual notification sending logic
                 // This could include sending emails, SMS, or other notification methods
@@ -51,7 +49,7 @@ class ProcessNotificationCreated implements ShouldQueue
                 \Log::info('Notification processed successfully', [
                     'notification_id' => $notification->id,
                     'type' => $notification->type,
-                    'recipient_id' => $notification->recipient_id
+                    'recipient_id' => $notification->recipient_id,
                 ]);
 
             } catch (\Exception $e) {
@@ -62,7 +60,7 @@ class ProcessNotificationCreated implements ShouldQueue
                 \Log::error('Failed to process notification', [
                     'notification_id' => $notification->id,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
 
                 // Optionally re-throw the exception to trigger job failure
@@ -74,8 +72,6 @@ class ProcessNotificationCreated implements ShouldQueue
     /**
      * Handle a job failure.
      *
-     * @param  \App\Events\NotificationCreated  $event
-     * @param  \Throwable  $exception
      * @return void
      */
     public function failed(NotificationCreated $event, \Throwable $exception)
@@ -87,7 +83,7 @@ class ProcessNotificationCreated implements ShouldQueue
         \Log::error('Notification processing failed', [
             'notification_id' => $event->notification->id,
             'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString()
+            'trace' => $exception->getTraceAsString(),
         ]);
     }
 }

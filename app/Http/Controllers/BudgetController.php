@@ -60,7 +60,7 @@ class BudgetController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'notes' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $budget = Budget::create($validated);
@@ -103,7 +103,7 @@ class BudgetController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'notes' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         // Check if reducing budget would cause overspending
@@ -168,9 +168,9 @@ class BudgetController extends Controller
         // Monthly budget vs actual
         // Use left join to handle expenses that might not have budget_id
         $monthlyComparison = DB::table('expenses')
-            ->leftJoin('budgets', function($join) use ($fiscalYear) {
+            ->leftJoin('budgets', function ($join) use ($fiscalYear) {
                 $join->on('expenses.budget_id', '=', 'budgets.id')
-                     ->where('budgets.fiscal_year', '=', $fiscalYear);
+                    ->where('budgets.fiscal_year', '=', $fiscalYear);
             })
             ->whereYear('expenses.expense_date', $fiscalYear)
             ->select(
@@ -210,7 +210,7 @@ class BudgetController extends Controller
             'budgets' => 'required|array',
             'budgets.*.category' => 'required|string',
             'budgets.*.department' => 'required|string',
-            'budgets.*.amount' => 'required|numeric|min:0'
+            'budgets.*.amount' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -219,7 +219,7 @@ class BudgetController extends Controller
                     'fiscal_year' => $validated['fiscal_year'],
                     'start_date' => Carbon::createFromDate($validated['fiscal_year'], 1, 1),
                     'end_date' => Carbon::createFromDate($validated['fiscal_year'], 12, 31),
-                    'is_active' => true
+                    'is_active' => true,
                 ]));
             }
         });

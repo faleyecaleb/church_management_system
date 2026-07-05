@@ -3,14 +3,14 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths, WithTitle
+class MemberTemplateExport implements FromArray, WithColumnWidths, WithHeadings, WithStyles, WithTitle
 {
     protected $isYouthChurch;
 
@@ -45,8 +45,8 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
                 'YES',
                 '2010 - Lagos',
                 'RCCG',
-                'Teaching, Healing'
-            ]
+                'Teaching, Healing',
+            ],
         ];
     }
 
@@ -75,7 +75,7 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
             'BAPTIZED',
             'LOCATION & YEAR OF BAPTISM',
             'CHURCH OF BAPTISM',
-            'SPIRITUAL GIFTS'
+            'SPIRITUAL GIFTS',
         ];
     }
 
@@ -86,20 +86,20 @@ class MemberTemplateExport implements FromArray, WithHeadings, WithStyles, WithC
             1 => [
                 'font' => [
                     'bold' => true,
-                    'color' => ['rgb' => 'FFFFFF']
+                    'color' => ['rgb' => 'FFFFFF'],
                 ],
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4F46E5'] // Indigo color
-                ]
+                    'startColor' => ['rgb' => '4F46E5'], // Indigo color
+                ],
             ],
             // Style data rows with alternating colors
             '2:2' => [
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'F8FAFC'] // Light gray
-                ]
-            ]
+                    'startColor' => ['rgb' => 'F8FAFC'], // Light gray
+                ],
+            ],
         ];
     }
 

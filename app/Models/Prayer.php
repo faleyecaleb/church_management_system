@@ -14,11 +14,11 @@ class Prayer extends Model
         'member_id',
         'user_id',
         'notes',
-        'prayed_at'
+        'prayed_at',
     ];
 
     protected $casts = [
-        'prayed_at' => 'datetime'
+        'prayed_at' => 'datetime',
     ];
 
     // Relationships
@@ -64,7 +64,7 @@ class Prayer extends Model
         if ($this->user_id && $this->user) {
             return $this->user->name;
         }
-        
+
         if ($this->member_id && $this->member) {
             return $this->member->full_name;
         }
@@ -93,7 +93,7 @@ class Prayer extends Model
             'by_request' => $prayers->groupBy('prayer_request_id')
                 ->map(fn ($items) => $items->count()),
             'by_member' => $prayers->groupBy('member_id')
-                ->map(fn ($items) => $items->count())
+                ->map(fn ($items) => $items->count()),
         ];
     }
 
@@ -115,7 +115,7 @@ class Prayer extends Model
             ->map(function ($prayer) {
                 return [
                     'member' => $prayer->member->full_name,
-                    'count' => $prayer->prayer_count
+                    'count' => $prayer->prayer_count,
                 ];
             });
     }
@@ -137,14 +137,14 @@ class Prayer extends Model
             ->map(function ($prayer) {
                 return [
                     'request' => $prayer->prayerRequest->title,
-                    'count' => $prayer->prayer_count
+                    'count' => $prayer->prayer_count,
                 ];
             });
     }
 
     public function notifyRequestCreator()
     {
-        if ($this->prayerRequest->member_id && !$this->prayerRequest->is_anonymous) {
+        if ($this->prayerRequest->member_id && ! $this->prayerRequest->is_anonymous) {
             // TODO: Implement notification logic
             // Notify the prayer request creator that someone has prayed for their request
         }

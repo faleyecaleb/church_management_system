@@ -15,20 +15,25 @@ class Role extends Model
         'slug',
         'description',
         'is_active',
-        'level'
+        'level',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'level' => 'integer'
+        'level' => 'integer',
     ];
 
     // Predefined roles
     const SUPER_ADMIN = 'super_admin';
+
     const ADMIN = 'admin';
+
     const PASTOR = 'pastor';
+
     const STAFF = 'staff';
+
     const MEMBER = 'member';
+
     const GUEST = 'guest';
 
     // Relationships
@@ -89,7 +94,7 @@ class Role extends Model
             $permission = Permission::where('slug', $permission)->firstOrFail();
         }
 
-        if (!$this->hasPermission($permission)) {
+        if (! $this->hasPermission($permission)) {
             $this->permissions()->attach($permission->id);
 
             // Log the change
@@ -155,33 +160,33 @@ class Role extends Model
             self::SUPER_ADMIN => [
                 'name' => 'Super Administrator',
                 'level' => 100,
-                'description' => 'Has complete system access'
+                'description' => 'Has complete system access',
             ],
             self::ADMIN => [
                 'name' => 'Administrator',
                 'level' => 90,
-                'description' => 'Has administrative access with some restrictions'
+                'description' => 'Has administrative access with some restrictions',
             ],
             self::PASTOR => [
                 'name' => 'Pastor',
                 'level' => 80,
-                'description' => 'Has access to spiritual and member management features'
+                'description' => 'Has access to spiritual and member management features',
             ],
             self::STAFF => [
                 'name' => 'Staff Member',
                 'level' => 70,
-                'description' => 'Has access to day-to-day operational features'
+                'description' => 'Has access to day-to-day operational features',
             ],
             self::MEMBER => [
                 'name' => 'Church Member',
                 'level' => 10,
-                'description' => 'Has basic member access'
+                'description' => 'Has basic member access',
             ],
             self::GUEST => [
                 'name' => 'Guest',
                 'level' => 1,
-                'description' => 'Has limited access to public features'
-            ]
+                'description' => 'Has limited access to public features',
+            ],
         ];
     }
 
@@ -194,7 +199,7 @@ class Role extends Model
                     'name' => $role['name'],
                     'description' => $role['description'],
                     'level' => $role['level'],
-                    'is_active' => true
+                    'is_active' => true,
                 ]
             );
         }
@@ -222,7 +227,7 @@ class Role extends Model
                 ->pluck('members_count', 'name'),
             'permissions_by_role' => self::withCount('permissions')
                 ->get()
-                ->pluck('permissions_count', 'name')
+                ->pluck('permissions_count', 'name'),
         ];
     }
 }

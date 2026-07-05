@@ -32,7 +32,7 @@ class ThemeMiddleware
                 // Assuming IDs 1=Adult, 2=Youth, 3=Children based on seeder.
                 // It's safer to fetch the church, but we can do a quick check.
                 $church = \App\Models\Church::find($churchId);
-                
+
                 if ($church) {
                     if (stripos($church->name, 'Adult') !== false) {
                         $theme = 'adult';

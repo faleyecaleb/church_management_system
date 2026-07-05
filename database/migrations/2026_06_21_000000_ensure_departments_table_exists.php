@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Ensure the departments table exists
-        if (!Schema::hasTable('departments')) {
+        if (! Schema::hasTable('departments')) {
             Schema::create('departments', function (Blueprint $table) {
                 $table->id();
                 $table->string('name')->unique();
@@ -26,7 +26,7 @@ return new class extends Migration
         // Ensure the member_departments table has the department_id foreign key column
         if (Schema::hasTable('member_departments')) {
             Schema::table('member_departments', function (Blueprint $table) {
-                if (!Schema::hasColumn('member_departments', 'department_id')) {
+                if (! Schema::hasColumn('member_departments', 'department_id')) {
                     $table->unsignedBigInteger('department_id')->nullable()->after('member_id');
                     $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
                 }

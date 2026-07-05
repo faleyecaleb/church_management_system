@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -34,6 +34,7 @@ class CreateAdminUser extends Command
         // Check if user already exists
         if (User::where('email', $email)->exists()) {
             $this->error('User with this email already exists!');
+
             return 1;
         }
 
@@ -51,10 +52,10 @@ class CreateAdminUser extends Command
         $user->assignRole($adminRole);
 
         $this->info('Admin user created successfully!');
-        $this->info('Email: ' . $email);
-        $this->info('Password: ' . $password);
+        $this->info('Email: '.$email);
+        $this->info('Password: '.$password);
         $this->warn('Please change the password after first login.');
-        
+
         return 0;
     }
 }

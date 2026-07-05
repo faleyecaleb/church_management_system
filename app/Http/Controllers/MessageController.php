@@ -65,7 +65,7 @@ class MessageController extends Controller
             'content' => 'required',
             'template_id' => 'nullable|exists:message_templates,id',
             'scheduled_at' => 'nullable|date|after:now',
-            'metadata' => 'nullable|array'
+            'metadata' => 'nullable|array',
         ]);
 
         try {
@@ -90,7 +90,7 @@ class MessageController extends Controller
                 ->with('success', $message);
         } catch (\Exception $e) {
             return back()->withInput()
-                ->with('error', 'Failed to send message: ' . $e->getMessage());
+                ->with('error', 'Failed to send message: '.$e->getMessage());
         }
     }
 
@@ -107,7 +107,7 @@ class MessageController extends Controller
      */
     public function edit(Message $message)
     {
-        if (!in_array($message->status, ['pending', 'failed'])) {
+        if (! in_array($message->status, ['pending', 'failed'])) {
             return back()->with('error', 'Only pending or failed messages can be edited.');
         }
 
@@ -122,7 +122,7 @@ class MessageController extends Controller
      */
     public function update(Request $request, Message $message)
     {
-        if (!in_array($message->status, ['pending', 'failed'])) {
+        if (! in_array($message->status, ['pending', 'failed'])) {
             return back()->with('error', 'Only pending or failed messages can be updated.');
         }
 
@@ -130,7 +130,7 @@ class MessageController extends Controller
             'subject' => 'required_if:type,prayer,internal',
             'content' => 'required',
             'scheduled_at' => 'nullable|date|after:now',
-            'metadata' => 'nullable|array'
+            'metadata' => 'nullable|array',
         ]);
 
         $message->update($validated);
@@ -144,7 +144,7 @@ class MessageController extends Controller
      */
     public function destroy(Message $message)
     {
-        if (!in_array($message->status, ['pending', 'failed'])) {
+        if (! in_array($message->status, ['pending', 'failed'])) {
             return back()->with('error', 'Only pending or failed messages can be deleted.');
         }
 
@@ -161,6 +161,7 @@ class MessageController extends Controller
     {
         if ($message->type === 'internal') {
             $message->markAsRead();
+
             return response()->json(['success' => true]);
         }
 
@@ -178,9 +179,10 @@ class MessageController extends Controller
 
         try {
             $this->messageService->processMessage($message);
+
             return back()->with('success', 'Message retry initiated successfully.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to retry message: ' . $e->getMessage());
+            return back()->with('error', 'Failed to retry message: '.$e->getMessage());
         }
     }
 
@@ -189,7 +191,7 @@ class MessageController extends Controller
      */
     public function cancel(Message $message)
     {
-        if ($message->status !== 'pending' || !$message->scheduled_at) {
+        if ($message->status !== 'pending' || ! $message->scheduled_at) {
             return back()->with('error', 'Only pending scheduled messages can be cancelled.');
         }
 
@@ -197,8 +199,8 @@ class MessageController extends Controller
             'status' => 'cancelled',
             'metadata' => array_merge($message->metadata ?? [], [
                 'cancelled_at' => now(),
-                'cancelled_by' => Auth::id()
-            ])
+                'cancelled_by' => Auth::id(),
+            ]),
         ]);
 
         return back()->with('success', 'Scheduled message cancelled successfully.');

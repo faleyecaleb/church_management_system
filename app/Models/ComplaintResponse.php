@@ -68,7 +68,7 @@ class ComplaintResponse extends Model
 
     public function getTypeColorAttribute()
     {
-        return match($this->response_type) {
+        return match ($this->response_type) {
             'comment' => 'blue',
             'status_update' => 'yellow',
             'resolution' => 'green',

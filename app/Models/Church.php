@@ -12,7 +12,7 @@ class Church extends Model
     protected $fillable = [
         'name',
         'type',
-        'description'
+        'description',
     ];
 
     /**
@@ -22,7 +22,7 @@ class Church extends Model
     {
         return $this->hasMany(User::class);
     }
-    
+
     /**
      * Get the members associated with this church.
      */

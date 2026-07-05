@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -27,12 +27,12 @@ return new class extends Migration
         // Restore data... (Simplified rollback)
         $records = DB::table('member_departments')->get();
         foreach ($records as $record) {
-             $deptName = DB::table('departments')->where('id', $record->department_id)->value('name');
-             if ($deptName) {
-                 DB::table('member_departments')
-                     ->where('id', $record->id)
-                     ->update(['department' => $deptName]);
-             }
+            $deptName = DB::table('departments')->where('id', $record->department_id)->value('name');
+            if ($deptName) {
+                DB::table('member_departments')
+                    ->where('id', $record->id)
+                    ->update(['department' => $deptName]);
+            }
         }
 
         Schema::table('member_departments', function (Blueprint $table) {

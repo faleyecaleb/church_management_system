@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notification;
 use App\Models\Member;
+use App\Models\Notification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class NotificationController extends Controller
 {
@@ -55,14 +55,14 @@ class NotificationController extends Controller
                 Notification::TYPE_MILESTONE => 'Milestone',
                 Notification::TYPE_CUSTOM => 'Custom',
                 Notification::TYPE_FOLLOWUP => 'Follow-up',
-                Notification::TYPE_SERMON => 'Sermon Banner'
+                Notification::TYPE_SERMON => 'Sermon Banner',
             ],
             'statuses' => [
                 Notification::STATUS_PENDING => 'Pending',
                 Notification::STATUS_SCHEDULED => 'Scheduled',
                 Notification::STATUS_SENT => 'Sent',
-                Notification::STATUS_FAILED => 'Failed'
-            ]
+                Notification::STATUS_FAILED => 'Failed',
+            ],
         ]);
     }
 
@@ -72,6 +72,7 @@ class NotificationController extends Controller
     public function create()
     {
         $members = Member::all();
+
         return view('notifications.create', compact('members'));
     }
 
@@ -81,20 +82,20 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'type' => 'required|in:' . implode(',', [
+            'type' => 'required|in:'.implode(',', [
                 Notification::TYPE_BIRTHDAY,
                 Notification::TYPE_ANNIVERSARY,
                 Notification::TYPE_MILESTONE,
                 Notification::TYPE_CUSTOM,
                 Notification::TYPE_FOLLOWUP,
-                Notification::TYPE_SERMON
+                Notification::TYPE_SERMON,
             ]),
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'recipient_id' => 'required|exists:members,id',
             'scheduled_at' => 'nullable|date|after:now',
             'data' => 'nullable|array',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         try {
@@ -115,7 +116,7 @@ class NotificationController extends Controller
                 'data' => $validated['data'] ?? null,
                 'status' => $request->has('scheduled_at')
                     ? Notification::STATUS_SCHEDULED
-                    : Notification::STATUS_PENDING
+                    : Notification::STATUS_PENDING,
             ]);
             if ($request->has('scheduled_at')) {
                 $notification->scheduled_at = Carbon::parse($validated['scheduled_at']);
@@ -131,9 +132,10 @@ class NotificationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()
                 ->withInput()
-                ->with('error', 'Failed to create notification. ' . $e->getMessage());
+                ->with('error', 'Failed to create notification. '.$e->getMessage());
         }
     }
 
@@ -155,6 +157,7 @@ class NotificationController extends Controller
         }
 
         $members = Member::all();
+
         return view('notifications.edit', compact('notification', 'members'));
     }
 
@@ -171,7 +174,7 @@ class NotificationController extends Controller
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'scheduled_at' => 'nullable|date|after:now',
-            'data' => 'nullable|array'
+            'data' => 'nullable|array',
         ]);
 
         try {
@@ -181,12 +184,12 @@ class NotificationController extends Controller
                 'title' => $validated['title'],
                 'message' => $validated['message'],
                 'data' => $validated['data'] ?? null,
-                'status' => $request->has('scheduled_at') 
-                    ? Notification::STATUS_SCHEDULED 
+                'status' => $request->has('scheduled_at')
+                    ? Notification::STATUS_SCHEDULED
                     : Notification::STATUS_PENDING,
                 'scheduled_at' => $request->has('scheduled_at')
                     ? Carbon::parse($validated['scheduled_at'])
-                    : null
+                    : null,
             ]);
 
             DB::commit();
@@ -197,9 +200,10 @@ class NotificationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()
                 ->withInput()
-                ->with('error', 'Failed to update notification. ' . $e->getMessage());
+                ->with('error', 'Failed to update notification. '.$e->getMessage());
         }
     }
 
@@ -208,12 +212,11 @@ class NotificationController extends Controller
      */
     public function destroy(Notification $notification)
     {
-        if ($notification->isSent()) {
-            return back()->with('error', 'Cannot delete sent notifications.');
-        }
+        // Allowed deleting sent notifications per requirements
 
         try {
             $notification->delete();
+
             return redirect()
                 ->route('notifications.index')
                 ->with('success', 'Notification deleted successfully.');
@@ -228,6 +231,7 @@ class NotificationController extends Controller
     public function markAsRead(Notification $notification)
     {
         $notification->markAsRead();
+
         return back()->with('success', 'Notification marked as read.');
     }
 

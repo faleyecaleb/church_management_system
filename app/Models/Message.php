@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Message extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -28,7 +26,7 @@ class Message extends Model
         'sent_at',       // When the message was sent
         'delivered_at',  // When delivery was confirmed
         'read_at',       // For internal messages
-        'metadata'       // JSON field for additional data
+        'metadata',       // JSON field for additional data
     ];
 
     protected $casts = [
@@ -36,7 +34,7 @@ class Message extends Model
         'sent_at' => 'datetime',
         'delivered_at' => 'datetime',
         'read_at' => 'datetime',
-        'metadata' => 'array'
+        'metadata' => 'array',
     ];
 
     // Relationships
@@ -79,7 +77,7 @@ class Message extends Model
     public function scopeScheduled($query)
     {
         return $query->whereNotNull('scheduled_at')
-                     ->where('scheduled_at', '>', now());
+            ->where('scheduled_at', '>', now());
     }
 
     // Methods
@@ -87,7 +85,7 @@ class Message extends Model
     {
         $this->update([
             'status' => 'sent',
-            'sent_at' => now()
+            'sent_at' => now(),
         ]);
     }
 
@@ -95,7 +93,7 @@ class Message extends Model
     {
         $this->update([
             'status' => 'delivered',
-            'delivered_at' => now()
+            'delivered_at' => now(),
         ]);
     }
 
@@ -110,7 +108,7 @@ class Message extends Model
     {
         $this->update([
             'status' => 'failed',
-            'metadata' => array_merge($this->metadata ?? [], ['failure_reason' => $reason])
+            'metadata' => array_merge($this->metadata ?? [], ['failure_reason' => $reason]),
         ]);
     }
 }

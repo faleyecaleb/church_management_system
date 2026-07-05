@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Donation extends Model
 {
     use BelongsToChurch;
-
     use HasFactory;
 
     protected $fillable = [
@@ -23,13 +21,13 @@ class Donation extends Model
         'is_recurring',
         'frequency',
         'next_payment_date',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'is_recurring' => 'boolean',
-        'next_payment_date' => 'date'
+        'next_payment_date' => 'date',
     ];
 
     // Relationships
@@ -62,7 +60,7 @@ class Donation extends Model
     public function scopeDueForRecurring($query)
     {
         return $query->where('is_recurring', true)
-                     ->whereDate('next_payment_date', '<=', Carbon::today());
+            ->whereDate('next_payment_date', '<=', Carbon::today());
     }
 
     // Helper methods
@@ -111,20 +109,20 @@ class Donation extends Model
 
         if ($groupBy === 'date') {
             return $query->selectRaw('DATE(created_at) as date, SUM(amount) as total')
-                         ->groupBy('date')
-                         ->orderBy('date')
-                         ->get();
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
         }
 
         return $query->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
-                     ->groupBy('month')
-                     ->orderBy('month')
-                     ->get();
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
     }
 
     public function updateNextPaymentDate()
     {
-        if (!$this->is_recurring) {
+        if (! $this->is_recurring) {
             return;
         }
 
@@ -160,8 +158,8 @@ class Donation extends Model
         }
 
         return $query->orderByDesc('total_amount')
-                     ->limit($limit)
-                     ->with('member')
-                     ->get();
+            ->limit($limit)
+            ->with('member')
+            ->get();
     }
 }

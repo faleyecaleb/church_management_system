@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -15,17 +15,17 @@ return new class extends Migration
         // Ensure expenses table has budget_id column if it doesn't exist
         if (Schema::hasTable('expenses')) {
             $columns = Schema::getColumnListing('expenses');
-            
-            if (!in_array('budget_id', $columns)) {
+
+            if (! in_array('budget_id', $columns)) {
                 Schema::table('expenses', function (Blueprint $table) {
                     $table->foreignId('budget_id')->nullable()->after('id')->constrained('budgets')->nullOnDelete();
                 });
-                
+
                 echo "Added budget_id column to expenses table.\n";
             } else {
                 echo "budget_id column already exists in expenses table.\n";
             }
-            
+
             // Try to link existing expenses to budgets based on category and department
             if (Schema::hasTable('budgets')) {
                 $this->linkExistingExpensesToBudgets();
@@ -40,7 +40,7 @@ return new class extends Migration
     {
         if (Schema::hasTable('expenses')) {
             $columns = Schema::getColumnListing('expenses');
-            
+
             if (in_array('budget_id', $columns)) {
                 Schema::table('expenses', function (Blueprint $table) {
                     $table->dropForeign(['budget_id']);
@@ -49,7 +49,7 @@ return new class extends Migration
             }
         }
     }
-    
+
     /**
      * Link existing expenses to budgets based on category and department
      */
@@ -59,7 +59,7 @@ return new class extends Migration
         $expensesWithoutBudget = DB::table('expenses')
             ->whereNull('budget_id')
             ->get();
-            
+
         foreach ($expensesWithoutBudget as $expense) {
             // Find a matching budget based on category and department
             $budget = DB::table('budgets')
@@ -68,13 +68,13 @@ return new class extends Migration
                 ->whereDate('start_date', '<=', $expense->expense_date)
                 ->whereDate('end_date', '>=', $expense->expense_date)
                 ->first();
-                
+
             if ($budget) {
                 // Link the expense to the budget
                 DB::table('expenses')
                     ->where('id', $expense->id)
                     ->update(['budget_id' => $budget->id]);
-                    
+
                 // Update the budget's used_amount
                 DB::table('budgets')
                     ->where('id', $budget->id)

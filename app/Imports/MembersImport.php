@@ -3,24 +3,22 @@
 namespace App\Imports;
 
 use App\Models\Member;
-use App\Models\MemberDepartment;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, WithChunkReading
+class MembersImport implements ToCollection, WithBatchInserts, WithChunkReading, WithHeadingRow
 {
     use Importable;
 
     protected $skipDuplicates;
+
     protected $updateExisting;
+
     protected $results;
 
     public function __construct($skipDuplicates = true, $updateExisting = false)
@@ -32,7 +30,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             'updated' => 0,
             'skipped' => 0,
             'errors' => 0,
-            'details' => []
+            'details' => [],
         ];
     }
 
@@ -40,12 +38,13 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     {
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2; // +2 because we skip header and array is 0-indexed
-            
+
             try {
                 $memberData = $this->validateAndPrepareData($row->toArray(), $rowNumber);
-                
-                if (!$memberData) {
+
+                if (! $memberData) {
                     $this->results['errors']++;
+
                     continue;
                 }
 
@@ -75,7 +74,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
 
             } catch (\Exception $e) {
                 $this->results['errors']++;
-                $this->results['details'][] = "Row {$rowNumber}: Error - " . $e->getMessage();
+                $this->results['details'][] = "Row {$rowNumber}: Error - ".$e->getMessage();
             }
         }
     }
@@ -94,11 +93,11 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             'emergency_contact_details', 'marital_status', 'partner_name', 'phone',
             'state_of_origin', 'lga_of_origin', 'state_of_residence', 'city_of_residence',
             'address', 'profession', 'church_group', 'department', 'is_baptized',
-            'baptism_year_and_place', 'baptism_church_name', 'spiritual_gifts'
+            'baptism_year_and_place', 'baptism_church_name', 'spiritual_gifts',
         ];
 
         foreach ($stringFields as $field) {
-            if (isset($normalizedRow[$field]) && !is_array($normalizedRow[$field])) {
+            if (isset($normalizedRow[$field]) && ! is_array($normalizedRow[$field])) {
                 $normalizedRow[$field] = (string) $normalizedRow[$field];
             }
         }
@@ -194,7 +193,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
             'is_baptized' => ['are_you_baptized', 'is_baptized', 'baptized'],
             'baptism_year_and_place' => ['location_year_of_baptism', 'what_year_and_where', 'baptism_year_and_place'],
             'baptism_church_name' => ['church_of_baptism', 'name_of_the_church', 'baptism_church_name'],
-            'spiritual_gifts' => ['spiritual_gifts', 'gifts']
+            'spiritual_gifts' => ['spiritual_gifts', 'gifts'],
         ];
 
         // Ensure keys are strictly lowercase alphanumeric for matching from exact headings
@@ -211,7 +210,7 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
                     $normalized[$standardName] = $cleanRow[$variation];
                     break;
                 }
-                
+
                 // Fallback check on original keys just in case
                 foreach ($row as $rawKey => $rawValue) {
                     if (str_replace(' ', '_', strtolower(trim($rawKey))) === $variation) {
@@ -236,10 +235,10 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
         }
 
         $member = Member::create($memberData);
-        
+
         // Handle department
         $normalizedRow = $this->normalizeColumnNames($row);
-        if (!empty($normalizedRow['department'])) {
+        if (! empty($normalizedRow['department'])) {
             $this->assignDepartments($member, $normalizedRow['department']);
         }
 
@@ -254,10 +253,10 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     private function updateMember($member, $memberData, $row)
     {
         $member->update($memberData);
-        
+
         // Handle department - remove existing and add new ones
         $normalizedRow = $this->normalizeColumnNames($row);
-        if (!empty($normalizedRow['department'])) {
+        if (! empty($normalizedRow['department'])) {
             $member->departments()->delete();
             $this->assignDepartments($member, $normalizedRow['department']);
         }
@@ -273,18 +272,18 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     private function assignDepartments($member, $departmentsString)
     {
         $departments = array_map('trim', explode(',', $departmentsString));
-        
+
         foreach ($departments as $departmentName) {
-            if (!empty($departmentName)) {
+            if (! empty($departmentName)) {
                 // Find or create department by name
                 $department = \App\Models\Department::firstOrCreate(
                     ['name' => $departmentName],
-                    ['is_active' => true, 'description' => $departmentName . ' Department']
+                    ['is_active' => true, 'description' => $departmentName.' Department']
                 );
-                
+
                 \App\Models\MemberDepartment::updateOrCreate([
                     'member_id' => $member->id,
-                    'department_id' => $department->id
+                    'department_id' => $department->id,
                 ]);
             }
         }
@@ -296,13 +295,13 @@ class MembersImport implements ToCollection, WithHeadingRow, WithBatchInserts, W
     private function syncUserAccount($memberData)
     {
         $user = \App\Models\User::firstOrNew(['email' => $memberData['email']]);
-        
+
         // Only update if they are a regular member or a brand new account
         // This prevents accidentally converting an admin into a member if their email is in the CSV
-        if (!$user->exists || $user->role === 'member') {
-            $user->name = $memberData['first_name'] . ' ' . $memberData['last_name'];
-            
-            if (!$user->exists) {
+        if (! $user->exists || $user->role === 'member') {
+            $user->name = $memberData['first_name'].' '.$memberData['last_name'];
+
+            if (! $user->exists) {
                 $user->password = $memberData['password']; // Set password only on creation
                 $user->role = 'member';
                 if (auth()->check()) {

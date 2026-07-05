@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\MembersExport;
 use App\Models\Member;
 use App\Models\MemberDepartment;
-use App\Exports\MembersExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use Carbon\Carbon;
 
 class MemberExportController extends Controller
 {
@@ -60,23 +59,23 @@ class MemberExportController extends Controller
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'search' => 'nullable|string|max:255',
-            'include_inactive' => 'boolean'
+            'include_inactive' => 'boolean',
         ]);
 
         try {
             $filters = $request->only([
-                'membership_status', 'gender', 'department', 
-                'date_from', 'date_to', 'search'
+                'membership_status', 'gender', 'department',
+                'date_from', 'date_to', 'search',
             ]);
 
             // Remove empty filters
-            $filters = array_filter($filters, function($value) {
-                return !empty($value);
+            $filters = array_filter($filters, function ($value) {
+                return ! empty($value);
             });
 
             $format = $request->input('format', 'xlsx');
             $timestamp = now()->format('Y-m-d_H-i-s');
-            
+
             // Generate filename based on filters
             $filename = $this->generateFilename($filters, $format, $timestamp);
 
@@ -94,7 +93,7 @@ class MemberExportController extends Controller
             }
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Export failed: ' . $e->getMessage());
+            return back()->with('error', 'Export failed: '.$e->getMessage());
         }
     }
 
@@ -105,29 +104,29 @@ class MemberExportController extends Controller
     {
         try {
             $filters = $request->only([
-                'membership_status', 'gender', 'department', 
-                'date_from', 'date_to', 'search'
+                'membership_status', 'gender', 'department',
+                'date_from', 'date_to', 'search',
             ]);
 
             // Remove empty filters
-            $filters = array_filter($filters, function($value) {
-                return !empty($value);
+            $filters = array_filter($filters, function ($value) {
+                return ! empty($value);
             });
 
             $timestamp = now()->format('Y-m-d_H-i-s');
             $filename = "members_export_{$timestamp}.xlsx";
-            
+
             $export = new MembersExport($filters, 'xlsx');
-            
+
             return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::XLSX);
-            
+
         } catch (\Exception $e) {
             // Fallback: Generate CSV manually if Excel fails
             $timestamp = now()->format('Y-m-d_H-i-s');
             $filename = "members_export_{$timestamp}.csv";
-            
+
             $members = Member::with(['departments'])->get();
-            
+
             $csvData = [];
             $csvData[] = [
                 'EMAIL',
@@ -152,9 +151,9 @@ class MemberExportController extends Controller
                 'BAPTIZED',
                 'LOCATION & YEAR OF BAPTISM',
                 'CHURCH OF BAPTISM',
-                'SPIRITUAL GIFTS'
+                'SPIRITUAL GIFTS',
             ];
-            
+
             foreach ($members as $member) {
                 $csvData[] = [
                     $member->email,
@@ -179,23 +178,23 @@ class MemberExportController extends Controller
                     $member->is_baptized ? strtoupper($member->is_baptized) : '',
                     $member->baptism_year_and_place,
                     $member->baptism_church_name,
-                    $member->spiritual_gifts
+                    $member->spiritual_gifts,
                 ];
             }
-            
+
             $headers = [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             ];
-            
-            $callback = function() use ($csvData) {
+
+            $callback = function () use ($csvData) {
                 $file = fopen('php://output', 'w');
                 foreach ($csvData as $row) {
                     fputcsv($file, $row);
                 }
                 fclose($file);
             };
-            
+
             return response()->stream($callback, 200, $headers);
         }
     }
@@ -207,24 +206,24 @@ class MemberExportController extends Controller
     {
         try {
             $filters = $request->only([
-                'membership_status', 'gender', 'department', 
-                'date_from', 'date_to', 'search'
+                'membership_status', 'gender', 'department',
+                'date_from', 'date_to', 'search',
             ]);
 
             // Remove empty filters
-            $filters = array_filter($filters, function($value) {
-                return !empty($value);
+            $filters = array_filter($filters, function ($value) {
+                return ! empty($value);
             });
 
             $timestamp = now()->format('Y-m-d_H-i-s');
             $filename = "members_export_{$timestamp}.csv";
-            
+
             $export = new MembersExport($filters, 'csv');
-            
+
             return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::CSV);
-            
+
         } catch (\Exception $e) {
-            return back()->with('error', 'CSV Export failed: ' . $e->getMessage());
+            return back()->with('error', 'CSV Export failed: '.$e->getMessage());
         }
     }
 
@@ -277,61 +276,61 @@ class MemberExportController extends Controller
     public function preview(Request $request)
     {
         $filters = $request->only([
-            'membership_status', 'gender', 'department', 
-            'date_from', 'date_to', 'search'
+            'membership_status', 'gender', 'department',
+            'date_from', 'date_to', 'search',
         ]);
 
         // Remove empty filters
-        $filters = array_filter($filters, function($value) {
-            return !empty($value);
+        $filters = array_filter($filters, function ($value) {
+            return ! empty($value);
         });
 
         try {
             $query = Member::with(['departments']);
 
             // Apply same filters as export
-            if (!empty($filters['membership_status'])) {
+            if (! empty($filters['membership_status'])) {
                 $query->where('membership_status', $filters['membership_status']);
             }
 
-            if (!empty($filters['gender'])) {
+            if (! empty($filters['gender'])) {
                 $query->where('gender', $filters['gender']);
             }
 
-            if (!empty($filters['department'])) {
-                $query->whereHas('departments', function($q) use ($filters) {
+            if (! empty($filters['department'])) {
+                $query->whereHas('departments', function ($q) use ($filters) {
                     $q->where('department', $filters['department']);
                 });
             }
 
-            if (!empty($filters['date_from'])) {
+            if (! empty($filters['date_from'])) {
                 $query->where('created_at', '>=', $filters['date_from']);
             }
 
-            if (!empty($filters['date_to'])) {
+            if (! empty($filters['date_to'])) {
                 $query->where('created_at', '<=', $filters['date_to']);
             }
 
-            if (!empty($filters['search'])) {
+            if (! empty($filters['search'])) {
                 $search = $filters['search'];
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             }
 
             $totalCount = $query->count();
             $previewMembers = $query->orderBy('first_name')
-                                  ->orderBy('last_name')
-                                  ->limit(10)
-                                  ->get();
+                ->orderBy('last_name')
+                ->limit(10)
+                ->get();
 
             return response()->json([
                 'success' => true,
                 'total_count' => $totalCount,
-                'preview_members' => $previewMembers->map(function($member) {
+                'preview_members' => $previewMembers->map(function ($member) {
                     return [
                         'id' => $member->id,
                         'full_name' => $member->full_name,
@@ -340,15 +339,15 @@ class MemberExportController extends Controller
                         'membership_status' => $member->membership_status,
                         'gender' => $member->gender,
                         'departments' => $member->departments->pluck('department')->join(', '),
-                        'member_since' => $member->created_at->format('Y-m-d')
+                        'member_since' => $member->created_at->format('Y-m-d'),
                     ];
-                })
+                }),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 400);
         }
     }
@@ -360,24 +359,24 @@ class MemberExportController extends Controller
     {
         $parts = ['members'];
 
-        if (!empty($filters['membership_status'])) {
+        if (! empty($filters['membership_status'])) {
             $parts[] = $filters['membership_status'];
         }
 
-        if (!empty($filters['gender'])) {
+        if (! empty($filters['gender'])) {
             $parts[] = $filters['gender'];
         }
 
-        if (!empty($filters['department'])) {
+        if (! empty($filters['department'])) {
             $parts[] = str_replace(' ', '_', $filters['department']);
         }
 
-        if (!empty($filters['search'])) {
-            $parts[] = 'search_' . str_replace(' ', '_', substr($filters['search'], 0, 10));
+        if (! empty($filters['search'])) {
+            $parts[] = 'search_'.str_replace(' ', '_', substr($filters['search'], 0, 10));
         }
 
         $parts[] = $timestamp;
 
-        return implode('_', $parts) . '.' . $format;
+        return implode('_', $parts).'.'.$format;
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SmsMessage;
-use App\Models\SmsTemplate;
 use App\Models\Member;
 use App\Models\MessageGroup;
+use App\Models\SmsMessage;
+use App\Models\SmsTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +13,7 @@ class SmsMessageController extends Controller
 {
     public function __construct()
     {
-        if (!request()->is('api/*')) {
+        if (! request()->is('api/*')) {
             $this->middleware('auth');
             $this->middleware('permission:communication.view')->only(['index', 'show', 'report']);
             $this->middleware('permission:communication.create')->only(['create', 'store', 'send', 'schedule']);
@@ -35,7 +35,7 @@ class SmsMessageController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('content', 'like', "%{$search}%")
-                  ->orWhere('recipient_numbers', 'like', "%{$search}%");
+                    ->orWhere('recipient_numbers', 'like', "%{$search}%");
             });
         }
 
@@ -63,7 +63,7 @@ class SmsMessageController extends Controller
             'recipient_ids' => 'required_unless:recipient_type,all|array',
             'recipient_ids.*' => 'required_unless:recipient_type,all|integer',
             'scheduled_at' => 'nullable|date|after:now',
-            'status' => 'required|in:draft,scheduled,queued'
+            'status' => 'required|in:draft,scheduled,queued',
         ]);
 
         if ($request->filled('template_id')) {
@@ -88,7 +88,7 @@ class SmsMessageController extends Controller
             'recipient_numbers' => $recipientNumbers,
             'scheduled_at' => $validated['scheduled_at'],
             'status' => $validated['status'],
-            'template_id' => $validated['template_id'] ?? null
+            'template_id' => $validated['template_id'] ?? null,
         ]);
 
         if ($validated['status'] === 'queued') {
@@ -102,12 +102,13 @@ class SmsMessageController extends Controller
     public function show(SmsMessage $message)
     {
         $message->load('template');
+
         return view('sms.show', compact('message'));
     }
 
     public function edit(SmsMessage $message)
     {
-        if (!in_array($message->status, ['draft', 'scheduled'])) {
+        if (! in_array($message->status, ['draft', 'scheduled'])) {
             return redirect()->route('sms.index')
                 ->with('error', 'Only draft or scheduled messages can be edited.');
         }
@@ -121,7 +122,7 @@ class SmsMessageController extends Controller
 
     public function update(Request $request, SmsMessage $message)
     {
-        if (!in_array($message->status, ['draft', 'scheduled'])) {
+        if (! in_array($message->status, ['draft', 'scheduled'])) {
             return redirect()->route('sms.index')
                 ->with('error', 'Only draft or scheduled messages can be updated.');
         }
@@ -133,7 +134,7 @@ class SmsMessageController extends Controller
             'recipient_ids' => 'required_unless:recipient_type,all|array',
             'recipient_ids.*' => 'required_unless:recipient_type,all|integer',
             'scheduled_at' => 'nullable|date|after:now',
-            'status' => 'required|in:draft,scheduled,queued'
+            'status' => 'required|in:draft,scheduled,queued',
         ]);
 
         if ($request->filled('template_id')) {
@@ -158,7 +159,7 @@ class SmsMessageController extends Controller
             'recipient_numbers' => $recipientNumbers,
             'scheduled_at' => $validated['scheduled_at'],
             'status' => $validated['status'],
-            'template_id' => $validated['template_id'] ?? null
+            'template_id' => $validated['template_id'] ?? null,
         ]);
 
         if ($validated['status'] === 'queued') {
@@ -171,7 +172,7 @@ class SmsMessageController extends Controller
 
     public function destroy(SmsMessage $message)
     {
-        if (!in_array($message->status, ['draft', 'failed'])) {
+        if (! in_array($message->status, ['draft', 'failed'])) {
             return redirect()->route('sms.index')
                 ->with('error', 'Only draft or failed messages can be deleted.');
         }
@@ -203,7 +204,7 @@ class SmsMessageController extends Controller
         }
 
         $validated = request()->validate([
-            'scheduled_at' => 'required|date|after:now'
+            'scheduled_at' => 'required|date|after:now',
         ]);
 
         $message->schedule($validated['scheduled_at']);
@@ -305,10 +306,10 @@ class SmsMessageController extends Controller
             $member = \App\Models\Member::where('email', $user->email)->first();
         }
 
-        if (!$member) {
+        if (! $member) {
             return response()->json([
                 'success' => false,
-                'message' => 'No member profile found.'
+                'message' => 'No member profile found.',
             ], 404);
         }
 
@@ -325,14 +326,14 @@ class SmsMessageController extends Controller
         $smsQuery = SmsMessage::where('status', 'sent')
             ->where(function ($q) use ($member, $departments) {
                 $q->where('recipient_group', 'all')
-                  ->orWhere('recipient_group', 'members')
-                  ->orWhereIn(DB::raw('LOWER(recipient_group)'), $departments)
-                  ->orWhereJsonContains('recipient_ids', $member->id);
+                    ->orWhere('recipient_group', 'members')
+                    ->orWhereIn(DB::raw('LOWER(recipient_group)'), $departments)
+                    ->orWhereJsonContains('recipient_ids', $member->id);
             });
 
         $smsMessages = $smsQuery->get()->map(function ($msg) {
             return [
-                'id' => 'sms_' . $msg->id,
+                'id' => 'sms_'.$msg->id,
                 'source' => 'sms',
                 'type' => 'announcement',
                 'sender' => 'Church Administration',
@@ -348,10 +349,10 @@ class SmsMessageController extends Controller
                 // Direct notifications to the member
                 $q->where(function ($subQ) use ($member) {
                     $subQ->where('recipient_type', 'App\\Models\\Member')
-                         ->where('recipient_id', $member->id);
+                        ->where('recipient_id', $member->id);
                 })
                 // Global announcements (recipient_id is null)
-                ->orWhereNull('recipient_id');
+                    ->orWhereNull('recipient_id');
             })
             ->get()
             ->map(function ($notif) {
@@ -364,7 +365,7 @@ class SmsMessageController extends Controller
                 }
 
                 return [
-                    'id' => 'notif_' . $notif->id,
+                    'id' => 'notif_'.$notif->id,
                     'source' => 'notification',
                     'type' => $notif->type ?: 'general',
                     'sender' => $sender,
@@ -375,27 +376,27 @@ class SmsMessageController extends Controller
             });
 
         // --- 3. FETCH SERVICE ASSIGNMENTS (ORDER OF SERVICE) ---
-        $fullName = strtolower($member->first_name . ' ' . $member->last_name);
+        $fullName = strtolower($member->first_name.' '.$member->last_name);
         $firstName = strtolower($member->first_name);
         $lastName = strtolower($member->last_name);
 
         $assignments = \App\Models\OrderOfService::with('service')
             ->where(function ($q) use ($fullName, $firstName, $lastName) {
                 $q->whereRaw('LOWER(leader) = ?', [$fullName])
-                  ->orWhereRaw('LOWER(leader) = ?', [$firstName])
-                  ->orWhereRaw('LOWER(leader) = ?', [$lastName]);
+                    ->orWhereRaw('LOWER(leader) = ?', [$firstName])
+                    ->orWhereRaw('LOWER(leader) = ?', [$lastName]);
             })
             ->get()
             ->map(function ($item) {
                 $timeStr = $item->start_time ? \Carbon\Carbon::parse($item->start_time)->format('h:i A') : 'Time not set';
                 $serviceName = $item->service ? $item->service->name : 'Upcoming Service';
-                
+
                 return [
-                    'id' => 'assignment_' . $item->id,
+                    'id' => 'assignment_'.$item->id,
                     'source' => 'notification',
                     'type' => 'assignment',
                     'sender' => 'Pastoral Scheduler',
-                    'title' => 'Service Assignment: ' . $item->program,
+                    'title' => 'Service Assignment: '.$item->program,
                     'content' => "You have been scheduled to lead the \"{$item->program}\" during the \"{$serviceName}\".\nScheduled Time: {$timeStr}.",
                     'created_at' => $item->created_at->toIso8601String(),
                 ];
@@ -411,9 +412,10 @@ class SmsMessageController extends Controller
         // Strategy A: Return only a limited subset (e.g. latest 5 for dashboard)
         if ($request->has('limit')) {
             $limit = (int) $request->input('limit');
+
             return response()->json([
                 'success' => true,
-                'data' => $merged->take($limit)->toArray()
+                'data' => $merged->take($limit)->toArray(),
             ]);
         }
 
@@ -431,7 +433,7 @@ class SmsMessageController extends Controller
                 'per_page' => $perPage,
                 'current_page' => $page,
                 'last_page' => (int) ceil($total / $perPage),
-            ]
+            ],
         ]);
     }
 }

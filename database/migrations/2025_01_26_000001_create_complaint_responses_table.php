@@ -21,7 +21,7 @@ return new class extends Migration
                 'resolution',
                 'escalation',
                 'assignment',
-                'follow_up'
+                'follow_up',
             ])->default('comment');
             $table->text('message');
             $table->boolean('is_internal')->default(false);

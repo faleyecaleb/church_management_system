@@ -15,7 +15,7 @@ class ServiceController extends Controller
 
         // Search filter
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Status filter
@@ -35,11 +35,11 @@ class ServiceController extends Controller
         // Apply Month & Year filter
         $query->where(function ($q) use ($year, $month) {
             $q->where('is_recurring', 1)
-              ->orWhere(function ($subQ) use ($year, $month) {
-                  $subQ->where('is_recurring', 0)
-                       ->whereYear('date', $year)
-                       ->whereMonth('date', $month);
-              });
+                ->orWhere(function ($subQ) use ($year, $month) {
+                    $subQ->where('is_recurring', 0)
+                        ->whereYear('start_date', $year)
+                        ->whereMonth('start_date', $month);
+                });
         });
 
         // Sorting
@@ -47,7 +47,7 @@ class ServiceController extends Controller
         switch ($sort) {
             case 'schedule':
                 $query->orderBy('day_of_week')
-                      ->orderBy('start_time');
+                    ->orderBy('start_time');
                 break;
             case 'oldest':
                 $query->orderBy('created_at', 'asc');
@@ -71,31 +71,32 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'description'  => 'nullable|string|max:1000',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'day_of_week' => ['required', Rule::in([
-                'sunday','monday','tuesday','wednesday',
-                'thursday','friday','saturday'
+                'sunday', 'monday', 'tuesday', 'wednesday',
+                'thursday', 'friday', 'saturday',
             ])],
-            'start_time'   => 'required|date_format:H:i',
-            'end_time'     => 'required|date_format:H:i|after:start_time',
-            'location'     => 'nullable|string|max:255',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'location' => 'nullable|string|max:255',
             'is_recurring' => 'required|boolean',
-            'date'         => 'nullable|required_if:is_recurring,0|date|after_or_equal:today',
-            'capacity'     => 'nullable|integer|min:1',
-            'status'       => 'required|in:active,inactive',
-            'notes'        => 'nullable|string|max:1000',
+            'start_date' => 'nullable|required_if:is_recurring,0|date|after_or_equal:today',
+            'end_date' => 'nullable|required_if:is_recurring,0|date|after_or_equal:start_date',
+            'capacity' => 'nullable|integer|min:1',
+            'status' => 'required|in:active,inactive',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         // map name → integer
         $dayMap = [
-            'sunday'    => 0,
-            'monday'    => 1,
-            'tuesday'   => 2,
+            'sunday' => 0,
+            'monday' => 1,
+            'tuesday' => 2,
             'wednesday' => 3,
-            'thursday'  => 4,
-            'friday'    => 5,
-            'saturday'  => 6,
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6,
         ];
         $validated['day_of_week'] = $dayMap[$validated['day_of_week']];
 
@@ -121,31 +122,32 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service)
     {
         $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'description'  => 'nullable|string|max:1000',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'day_of_week' => ['required', Rule::in([
-                'sunday','monday','tuesday','wednesday',
-                'thursday','friday','saturday'
+                'sunday', 'monday', 'tuesday', 'wednesday',
+                'thursday', 'friday', 'saturday',
             ])],
-            'start_time'   => 'required|date_format:H:i',
-            'end_time'     => 'required|date_format:H:i|after:start_time',
-            'location'     => 'nullable|string|max:255',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'location' => 'nullable|string|max:255',
             'is_recurring' => 'required|boolean',
-            'date'         => 'nullable|required_if:is_recurring,0|date|after_or_equal:today',
-            'capacity'     => 'nullable|integer|min:1',
-            'status'       => 'required|in:active,inactive',
-            'notes'        => 'nullable|string|max:1000',
+            'start_date' => 'nullable|required_if:is_recurring,0|date|after_or_equal:today',
+            'end_date' => 'nullable|required_if:is_recurring,0|date|after_or_equal:start_date',
+            'capacity' => 'nullable|integer|min:1',
+            'status' => 'required|in:active,inactive',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         // map name → integer
         $dayMap = [
-            'sunday'    => 0,
-            'monday'    => 1,
-            'tuesday'   => 2,
+            'sunday' => 0,
+            'monday' => 1,
+            'tuesday' => 2,
             'wednesday' => 3,
-            'thursday'  => 4,
-            'friday'    => 5,
-            'saturday'  => 6,
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6,
         ];
         $validated['day_of_week'] = $dayMap[$validated['day_of_week']];
 
@@ -183,18 +185,20 @@ class ServiceController extends Controller
         $events = [];
 
         foreach ($services as $service) {
-            if ($service->status !== 'active') continue;
+            if ($service->status !== 'active') {
+                continue;
+            }
 
-            if (!$service->is_recurring) {
-                if ($service->date) {
-                    $serviceDate = \Illuminate\Support\Carbon::parse($service->date);
+            if (! $service->is_recurring) {
+                if ($service->start_date) {
+                    $serviceDate = \Illuminate\Support\Carbon::parse($service->start_date);
                     if ($serviceDate->between($start, $end)) {
-                         $startDateTime = $serviceDate->copy()->setTimeFromTimeString($service->start_time->format('H:i:s'));
-                         $endDateTime = $serviceDate->copy()->setTimeFromTimeString($service->end_time->format('H:i:s'));
-                         
-                         $events[] = [
-                            'id' => $service->id . '_single',
-                            'title' => $service->name . ' (One-time)',
+                        $startDateTime = $serviceDate->copy()->setTimeFromTimeString($service->start_time->format('H:i:s'));
+                        $endDateTime = \Illuminate\Support\Carbon::parse($service->end_date ?? $service->start_date)->setTimeFromTimeString($service->end_time->format('H:i:s'));
+
+                        $events[] = [
+                            'id' => $service->id.'_single',
+                            'title' => $service->name.' (One-time)',
                             'start' => $startDateTime->toIso8601String(),
                             'end' => $endDateTime->toIso8601String(),
                             'url' => route('services.show', $service),
@@ -203,22 +207,26 @@ class ServiceController extends Controller
                             'extendedProps' => [
                                 'location' => $service->location,
                                 'description' => $service->description,
-                            ]
+                            ],
                         ];
                     }
                 }
+
                 continue;
             }
 
             $currentDate = $start->copy();
-            
+
             while ($currentDate->lte($end)) {
                 if ($currentDate->dayOfWeek === $service->day_of_week) {
                     $startDateTime = $currentDate->copy()->setTimeFromTimeString($service->start_time->format('H:i:s'));
                     $endDateTime = $currentDate->copy()->setTimeFromTimeString($service->end_time->format('H:i:s'));
+                    if ($service->end_time < $service->start_time) {
+                        $endDateTime->addDay();
+                    }
 
                     $events[] = [
-                        'id' => $service->id . '_' . $currentDate->format('Y-m-d'),
+                        'id' => $service->id.'_'.$currentDate->format('Y-m-d'),
                         'title' => $service->name,
                         'start' => $startDateTime->toIso8601String(),
                         'end' => $endDateTime->toIso8601String(),
@@ -228,7 +236,7 @@ class ServiceController extends Controller
                         'extendedProps' => [
                             'location' => $service->location,
                             'description' => $service->description,
-                        ]
+                        ],
                     ];
                 }
                 $currentDate->addDay();
@@ -238,7 +246,7 @@ class ServiceController extends Controller
         return response()->json($events);
     }
 
-    public function ajaxFilter(Request $request) 
+    public function ajaxFilter(Request $request)
     {
         try {
             $year = $request->input('year');
@@ -251,57 +259,58 @@ class ServiceController extends Controller
                 $query->where('id', '!=', $excludeId);
             }
 
-            $query->where(function($q) use ($year, $month) {
+            $query->where(function ($q) use ($year, $month) {
                 // Recurring services are always available
                 $q->where('is_recurring', 1)
-                  ->where('status', 'active');
-                
+                    ->where('status', 'active');
+
                 // One-time services match the date
                 if ($year && $month) {
-                    $q->orWhere(function($subQ) use ($year, $month) {
+                    $q->orWhere(function ($subQ) use ($year, $month) {
                         $subQ->where('is_recurring', 0)
-                             ->whereYear('date', $year)
-                             ->whereMonth('date', $month);
+                            ->whereYear('start_date', $year)
+                            ->whereMonth('start_date', $month);
                     });
                 }
             });
 
             $services = $query->orderBy('is_recurring', 'desc') // Recurring first
-                              ->orderBy('date', 'asc')
-                              ->get()
-                              ->map(function($service) {
-                                  return [
-                                      'id' => $service->id,
-                                      'name' => $service->name,
-                                      'info' => $service->is_recurring 
-                                          ? "{$service->day_of_week_name}s (Recurring)" 
-                                          : (optional($service->date)->format('M j, Y') ?? 'Date Not Set') . " (One-time)"
-                                  ];
-                              });
+                ->orderBy('start_date', 'asc')
+                ->get()
+                ->map(function ($service) {
+                    return [
+                        'id' => $service->id,
+                        'name' => $service->name,
+                        'info' => $service->is_recurring
+                            ? "{$service->day_of_week_name}s (Recurring)"
+                            : (optional($service->start_date)->format('M j, Y') ?? 'Date Not Set').' (One-time)',
+                    ];
+                });
 
             return response()->json($services);
 
         } catch (\Illuminate\Database\QueryException $e) {
-            \Illuminate\Support\Facades\Log::error('Service Filter SQL Error: ' . $e->getMessage());
-            
+            \Illuminate\Support\Facades\Log::error('Service Filter SQL Error: '.$e->getMessage());
+
             // Check for "Unknown column" error (1054)
             if ($e->errorInfo[1] == 1054) {
-                 return response()->json([
+                return response()->json([
                     'error' => true,
-                    'message' => "System Update Required: The 'date' column is missing from the database. Please contact the administrator to run 'php artisan migrate'."
+                    'message' => "System Update Required: The 'start_date' column is missing from the database. Please contact the administrator to run 'php artisan migrate'.",
                 ], 500);
             }
 
             return response()->json([
                 'error' => true,
-                'message' => 'Database Error: ' . $e->getMessage()
+                'message' => 'Database Error: '.$e->getMessage(),
             ], 500);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Service Filter Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Service Filter Error: '.$e->getMessage());
+
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage()
-            ], 500); 
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -310,7 +319,7 @@ class ServiceController extends Controller
      */
     public function apiIndex(Request $request)
     {
-        $query = Service::active();
+        $query = Service::with(['orderOfServices' => function($q) { $q->orderBy('order', 'asc'); }])->active();
 
         // Apply month and year filtering if provided
         if ($request->has('month') && $request->has('year')) {
@@ -321,11 +330,11 @@ class ServiceController extends Controller
                 // One-time services falling in the selected month/year
                 $q->where(function ($subQ) use ($month, $year) {
                     $subQ->where('is_recurring', false)
-                         ->whereMonth('date', $month)
-                         ->whereYear('date', $year);
+                        ->whereMonth('start_date', $month)
+                        ->whereYear('start_date', $year);
                 })
                 // Recurring services (always active!)
-                ->orWhere('is_recurring', true);
+                    ->orWhere('is_recurring', true);
             });
         }
 
@@ -339,7 +348,7 @@ class ServiceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $services->values()->toArray()
+            'data' => $services->values()->toArray(),
         ]);
     }
 }

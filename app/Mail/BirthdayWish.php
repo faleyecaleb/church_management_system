@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Member;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -31,7 +30,6 @@ class BirthdayWish extends Mailable
     /**
      * Create a new message instance.
      *
-     * @param  \App\Models\Member  $member
      * @param  int  $age
      * @return void
      */

@@ -11,18 +11,17 @@ class AdminMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
+        if (! Auth::check() || ! Auth::user()->isAdmin()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['error' => 'Unauthorized. Admin access required.'], 403);
             }
-            
+
             Auth::logout();
+
             return redirect()->route('login')->with('error', 'Unauthorized. Admin access required.');
         }
 

@@ -3,16 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class Equipment extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -26,7 +24,7 @@ class Equipment extends Model
         'purchase_price',
         'last_maintenance_date',
         'next_maintenance_date',
-        'maintenance_history'
+        'maintenance_history',
     ];
 
     protected $casts = [
@@ -34,7 +32,7 @@ class Equipment extends Model
         'purchase_date' => 'date',
         'last_maintenance_date' => 'date',
         'next_maintenance_date' => 'date',
-        'maintenance_history' => 'array'
+        'maintenance_history' => 'array',
     ];
 
     // Relationships
@@ -76,13 +74,13 @@ class Equipment extends Model
             return false;
         }
 
-        return !$this->bookings()
+        return ! $this->bookings()
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->whereBetween('start_time', [$startTime, $endTime])
                     ->orWhereBetween('end_time', [$startTime, $endTime])
                     ->orWhere(function ($q) use ($startTime, $endTime) {
                         $q->where('start_time', '<=', $startTime)
-                          ->where('end_time', '>=', $endTime);
+                            ->where('end_time', '>=', $endTime);
                     });
             })
             ->where('status', 'approved')
@@ -95,7 +93,7 @@ class Equipment extends Model
             'date' => Carbon::now()->toDateString(),
             'description' => $description,
             'cost' => $cost,
-            'performed_by' => $performedBy
+            'performed_by' => $performedBy,
         ];
 
         $history = $this->maintenance_history ?? [];
@@ -105,7 +103,7 @@ class Equipment extends Model
             'last_maintenance_date' => Carbon::now(),
             'next_maintenance_date' => Carbon::now()->addMonths(3), // Default 3 months
             'maintenance_history' => $history,
-            'status' => 'available'
+            'status' => 'available',
         ]);
     }
 
@@ -130,10 +128,10 @@ class Equipment extends Model
             'by_category' => $equipment->groupBy('category')
                 ->map(fn ($items) => [
                     'count' => $items->count(),
-                    'value' => $items->sum('purchase_price')
+                    'value' => $items->sum('purchase_price'),
                 ]),
             'by_location' => $equipment->groupBy('location')
-                ->map(fn ($items) => $items->count())
+                ->map(fn ($items) => $items->count()),
         ];
     }
 

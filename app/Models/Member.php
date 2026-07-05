@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,7 +14,6 @@ use Laravel\Sanctum\HasApiTokens;
 class Member extends Authenticatable
 {
     use BelongsToChurch;
-
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
@@ -110,7 +108,8 @@ class Member extends Authenticatable
         if ($this->profile_photo && Storage::disk('public')->exists($this->profile_photo)) {
             return Storage::disk('public')->url($this->profile_photo);
         }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name);
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->full_name);
     }
 
     public function pledges()
@@ -195,11 +194,11 @@ class Member extends Authenticatable
     public function getAttendanceRate($startDate = null, $endDate = null)
     {
         $query = $this->attendances();
-        
+
         if ($startDate) {
             $query->where('check_in_time', '>=', $startDate);
         }
-        
+
         if ($endDate) {
             $query->where('check_in_time', '<=', $endDate);
         }

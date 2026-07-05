@@ -1,39 +1,38 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceMarkingController;
+use App\Http\Controllers\AttendanceSettingsController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\PledgeController;
-use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\BudgetController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\SmsMessageController;
-use App\Http\Controllers\SmsTemplateController;
+use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EmailMessageController;
 use App\Http\Controllers\EmailTemplateController;
-use App\Http\Controllers\InternalMessageController;
-use App\Http\Controllers\MessageGroupController;
-use App\Http\Controllers\PrayerRequestController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\MemberController;
 use App\Http\Controllers\EmergencyContactController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\InternalMessageController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MemberDocumentController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\AttendanceSettingsController;
-use App\Http\Controllers\QrCodeController;
-use App\Http\Controllers\ServiceAttendanceController;
-use App\Http\Controllers\AttendanceMarkingController;
-use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\MembershipStatusController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MessageGroupController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderOfServiceController;
-use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PledgeController;
+use App\Http\Controllers\PrayerRequestController;
 use App\Http\Controllers\PublicComplaintController;
-use App\Http\Controllers\DonationController;
-use App\Http\Controllers\MembershipStatusController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ServiceAttendanceController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SmsMessageController;
+use App\Http\Controllers\SmsTemplateController;
+use Illuminate\Support\Facades\Route;
 
 // Public Landing Page and Frontend Routes
 Route::get('/', function () {
@@ -66,7 +65,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('admin.dashboard');
-    
+
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -77,7 +76,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('pledges/report', [PledgeController::class, 'report'])->name('pledges.report');
     Route::get('expenses/report', [ExpenseController::class, 'report'])->name('expenses.report');
     Route::get('budgets/report', [BudgetController::class, 'report'])->name('budgets.report');
-    
+
     // Financial Management
     Route::resource('pledges', PledgeController::class);
     Route::resource('expenses', ExpenseController::class);
@@ -93,7 +92,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Prayer Requests
     Route::resource('prayer-requests', PrayerRequestController::class);
-    
+
     // Additional Prayer Request routes
     Route::post('prayer-requests/{prayerRequest}/pray', [PrayerRequestController::class, 'pray'])->name('prayer-requests.pray');
     Route::post('prayer-requests/{prayerRequest}/complete', [PrayerRequestController::class, 'markAsCompleted'])->name('prayer-requests.complete');
@@ -110,7 +109,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('audit-logs', AuditLogController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
-    
+
     // Notifications Management
     Route::resource('notifications', NotificationController::class);
     Route::post('notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
@@ -218,36 +217,36 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('prayer-requests/{request}/archive', [PrayerRequestController::class, 'archive'])->name('prayer-requests.archive');
     Route::post('prayer-requests/{request}/reactivate', [PrayerRequestController::class, 'reactivate'])->name('prayer-requests.reactivate');
 
-     // Member import/export routes (must be before resource routes) 
+    // Member import/export routes (must be before resource routes)
     Route::get('members/import/form', [App\Http\Controllers\MemberImportController::class,
-     'showImportForm'])->name('members.import.form');                                                              
-Route::post('members/import', [App\Http\Controllers\MemberImportController::class, 'import'])
-    ->name('members.import');
+        'showImportForm'])->name('members.import.form');
+    Route::post('members/import', [App\Http\Controllers\MemberImportController::class, 'import'])
+        ->name('members.import');
 
-Route::get('members/import/template', [App\Http\Controllers\MemberImportController::class, 'downloadTemplate'])
-    ->name('members.import.template');
+    Route::get('members/import/template', [App\Http\Controllers\MemberImportController::class, 'downloadTemplate'])
+        ->name('members.import.template');
 
-Route::get('members/import/template-excel', [App\Http\Controllers\MemberImportController::class, 'downloadExcelTemplate'])
-    ->name('members.import.template.excel');
+    Route::get('members/import/template-excel', [App\Http\Controllers\MemberImportController::class, 'downloadExcelTemplate'])
+        ->name('members.import.template.excel');
 
-Route::post('members/import/preview', [App\Http\Controllers\MemberImportController::class, 'preview'])
-    ->name('members.import.preview');
+    Route::post('members/import/preview', [App\Http\Controllers\MemberImportController::class, 'preview'])
+        ->name('members.import.preview');
 
-Route::get('members/export/form', [App\Http\Controllers\MemberExportController::class, 'showExportForm'])
-    ->name('members.export.form');
+    Route::get('members/export/form', [App\Http\Controllers\MemberExportController::class, 'showExportForm'])
+        ->name('members.export.form');
 
-Route::get('members/export/excel', [App\Http\Controllers\MemberExportController::class, 'exportExcel'])
-    ->name('members.export.excel');
+    Route::get('members/export/excel', [App\Http\Controllers\MemberExportController::class, 'exportExcel'])
+        ->name('members.export.excel');
 
-Route::get('members/export/csv', [App\Http\Controllers\MemberExportController::class, 'exportCsv'])
-    ->name('members.export.csv');
+    Route::get('members/export/csv', [App\Http\Controllers\MemberExportController::class, 'exportCsv'])
+        ->name('members.export.csv');
 
-Route::post('members/export/stats', [App\Http\Controllers\MemberExportController::class, 'getExportStats'])
-    ->name('members.export.stats');
+    Route::post('members/export/stats', [App\Http\Controllers\MemberExportController::class, 'getExportStats'])
+        ->name('members.export.stats');
 
-// Member Management Routes
-Route::post('members/bulk-delete', [MemberController::class, 'bulkDelete'])->name('members.bulk-delete');
-Route::resource('members', MemberController::class);
+    // Member Management Routes
+    Route::post('members/bulk-delete', [MemberController::class, 'bulkDelete'])->name('members.bulk-delete');
+    Route::resource('members', MemberController::class);
     // Member Management Routes
     Route::post('members/{member}/promote', [MemberController::class, 'promote'])->name('members.promote');
     Route::resource('members', MemberController::class);
@@ -261,10 +260,10 @@ Route::resource('members', MemberController::class);
     Route::get('services/ajax-filter', [ServiceController::class, 'ajaxFilter'])->name('services.ajax-filter');
     Route::resource('services', ServiceController::class);
     Route::resource('services.order-of-services', OrderOfServiceController::class)->shallow();
-    
+
     // Order of Service Management
     Route::get('order-of-services', [OrderOfServiceController::class, 'overview'])->name('order-of-services.overview');
-    
+
     // Additional Order of Service routes
     Route::post('services/{service}/order-of-services/import', [OrderOfServiceController::class, 'import'])->name('services.order-of-services.import');
     Route::get('services/order-of-services/template', [OrderOfServiceController::class, 'downloadTemplate'])->name('services.order-of-services.template');
@@ -312,12 +311,12 @@ Route::resource('members', MemberController::class);
         Route::get('/dashboard', [AttendanceController::class, 'dashboard'])->name('dashboard');
         Route::put('/{attendance}', [AttendanceController::class, 'update'])->name('update');
         Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
-        
+
         // Attendance Marking (Two-Step Process)
         Route::get('/marking', [AttendanceMarkingController::class, 'index'])->name('marking');
         Route::post('/marking/step1', [AttendanceMarkingController::class, 'processStep1'])->name('marking.step1.process');
         Route::post('/marking/step2', [AttendanceMarkingController::class, 'processStep2'])->name('marking.step2.process');
-        
+
         // Bulk attendance marking routes
         Route::get('/bulk-marking', [AttendanceMarkingController::class, 'bulkMarking'])->name('bulk-marking');
         Route::post('/bulk-marking/services', [AttendanceMarkingController::class, 'getServicesByMonth'])->name('bulk-marking.services');

@@ -3,16 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class Complaint extends Model
 {
     use BelongsToChurch;
-
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -188,12 +185,12 @@ class Complaint extends Model
     {
         return $query->where(function ($q) use ($search) {
             $q->where('subject', 'like', "%{$search}%")
-              ->orWhere('description', 'like', "%{$search}%")
-              ->orWhere('complainant_name', 'like', "%{$search}%")
-              ->orWhereHas('member', function ($memberQuery) use ($search) {
-                  $memberQuery->where('first_name', 'like', "%{$search}%")
-                             ->orWhere('last_name', 'like', "%{$search}%");
-              });
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('complainant_name', 'like', "%{$search}%")
+                ->orWhereHas('member', function ($memberQuery) use ($search) {
+                    $memberQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                });
         });
     }
 
@@ -205,7 +202,7 @@ class Complaint extends Model
 
     public function getTimeToResolutionAttribute()
     {
-        if (!$this->resolved_at) {
+        if (! $this->resolved_at) {
             return null;
         }
 
@@ -214,7 +211,7 @@ class Complaint extends Model
 
     public function getIsOverdueAttribute()
     {
-        if (!$this->follow_up_required || in_array($this->status, ['resolved', 'closed'])) {
+        if (! $this->follow_up_required || in_array($this->status, ['resolved', 'closed'])) {
             return false;
         }
 
@@ -236,7 +233,7 @@ class Complaint extends Model
 
     public function getPriorityColorAttribute()
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             'low' => 'green',
             'medium' => 'yellow',
             'high' => 'orange',
@@ -247,7 +244,7 @@ class Complaint extends Model
 
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'open' => 'blue',
             'in_progress' => 'yellow',
             'pending_review' => 'purple',
@@ -266,7 +263,7 @@ class Complaint extends Model
         $this->addResponse([
             'user_id' => $assignedBy ?? auth()->id(),
             'response_type' => 'assignment',
-            'message' => "Complaint assigned to " . $this->assignedTo->name,
+            'message' => 'Complaint assigned to '.$this->assignedTo->name,
             'is_internal' => true,
             'metadata' => ['assigned_to' => $userId],
         ]);
@@ -282,9 +279,9 @@ class Complaint extends Model
             'escalated_at' => now(),
         ]);
 
-        $message = "Complaint escalated to " . $this->escalatedTo->name;
+        $message = 'Complaint escalated to '.$this->escalatedTo->name;
         if ($reason) {
-            $message .= ". Reason: " . $reason;
+            $message .= '. Reason: '.$reason;
         }
 
         $this->addResponse([
@@ -325,9 +322,9 @@ class Complaint extends Model
         $oldStatus = $this->status;
         $this->update(['status' => $newStatus]);
 
-        $message = "Status changed from " . self::STATUSES[$oldStatus] . " to " . self::STATUSES[$newStatus];
+        $message = 'Status changed from '.self::STATUSES[$oldStatus].' to '.self::STATUSES[$newStatus];
         if ($reason) {
-            $message .= ". " . $reason;
+            $message .= '. '.$reason;
         }
 
         $this->addResponse([

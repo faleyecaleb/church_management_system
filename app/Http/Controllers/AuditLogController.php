@@ -49,7 +49,7 @@ class AuditLogController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', "%{$search}%")
-                  ->orWhereJsonContains('changes', $search);
+                    ->orWhereJsonContains('changes', $search);
             });
         }
 
@@ -64,6 +64,7 @@ class AuditLogController extends Controller
     public function show(AuditLog $log)
     {
         $log->load(['user', 'subject']);
+
         return view('audit-logs.show', compact('log'));
     }
 
@@ -78,7 +79,7 @@ class AuditLogController extends Controller
     public function clear(Request $request)
     {
         $request->validate([
-            'before_date' => 'required|date|before:today'
+            'before_date' => 'required|date|before:today',
         ]);
 
         $count = AuditLog::where('created_at', '<', $request->input('before_date'))->delete();
@@ -150,13 +151,13 @@ class AuditLogController extends Controller
     {
         $request->validate([
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date'
+            'end_date' => 'required|date|after:start_date',
         ]);
 
         $logs = AuditLog::with(['user:id,first_name,last_name', 'subject'])
             ->whereBetween('created_at', [
                 $request->input('start_date'),
-                $request->input('end_date')
+                $request->input('end_date'),
             ])
             ->get()
             ->map(function ($log) {
@@ -171,14 +172,14 @@ class AuditLogController extends Controller
                     'tags' => implode(', ', $log->tags ?? []),
                     'ip_address' => $log->ip_address,
                     'user_agent' => $log->user_agent,
-                    'created_at' => $log->created_at->format('Y-m-d H:i:s')
+                    'created_at' => $log->created_at->format('Y-m-d H:i:s'),
                 ];
             });
 
-        $filename = 'audit_logs_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'audit_logs_'.now()->format('Y-m-d_His').'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename={$filename}"
+            'Content-Disposition' => "attachment; filename={$filename}",
         ];
 
         $callback = function () use ($logs) {

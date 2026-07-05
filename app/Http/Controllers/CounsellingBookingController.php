@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\CounsellingBooking;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class CounsellingBookingController extends Controller
 {
     public function __construct()
     {
-        if (!request()->is('api/*')) {
+        if (! request()->is('api/*')) {
             // Both Super Admin and PA can view the dashboard
             $this->middleware('auth');
         }
@@ -23,7 +22,7 @@ class CounsellingBookingController extends Controller
     public function index(Request $request)
     {
         // Check if user is Super Admin or PA
-        if (!Auth::user()->isSuperAdmin() && !Auth::user()->hasPermission('counselling.manage')) {
+        if (! Auth::user()->isSuperAdmin() && ! Auth::user()->hasPermission('counselling.manage')) {
             abort(403, 'Unauthorized access to Counselling Bookings.');
         }
 
@@ -47,21 +46,21 @@ class CounsellingBookingController extends Controller
     {
         // ONLY the PA (who has counselling.manage permission) can do this.
         // Super Admins should ideally not interfere with PA's daily scheduling.
-        if (!Auth::user()->hasPermission('counselling.manage')) {
+        if (! Auth::user()->hasPermission('counselling.manage')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only the Personal Assistant is authorized to approve or reject bookings.'
+                'message' => 'Only the Personal Assistant is authorized to approve or reject bookings.',
             ], 403);
         }
 
         $request->validate([
             'status' => 'required|in:approved,rejected,completed,cancelled',
-            'admin_notes' => 'nullable|string'
+            'admin_notes' => 'nullable|string',
         ]);
 
         $booking->update([
             'status' => $request->status,
-            'admin_notes' => $request->admin_notes
+            'admin_notes' => $request->admin_notes,
         ]);
 
         // Dispatch Expo Push Notification if member has a device token registered
@@ -70,25 +69,25 @@ class CounsellingBookingController extends Controller
             if ($member) {
                 $statusLabel = ucfirst($booking->status);
                 $title = "Counselling Booking: {$statusLabel}";
-                $body = "Your counselling request has been marked as {$booking->status}. Reason: " . substr($booking->reason, 0, 40) . "...";
-                
-                $expoService = new \App\Services\ExpoNotificationService();
+                $body = "Your counselling request has been marked as {$booking->status}. Reason: ".substr($booking->reason, 0, 40).'...';
+
+                $expoService = new \App\Services\ExpoNotificationService;
                 $expoService->notifyMember($member, $title, $body, [
                     'booking_id' => $booking->id,
                     'status' => $booking->status,
-                    'type' => 'counselling_booking_update'
+                    'type' => 'counselling_booking_update',
                 ]);
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to dispatch push notification for counselling booking update: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to dispatch push notification for counselling booking update: '.$e->getMessage());
         }
 
         // TODO: Phase 5 - Send Email Notification to the Member here
 
         return response()->json([
             'success' => true,
-            'message' => 'Booking status updated successfully to ' . ucfirst($request->status) . '.',
-            'status' => $booking->status
+            'message' => 'Booking status updated successfully to '.ucfirst($request->status).'.',
+            'status' => $booking->status,
         ]);
     }
 
@@ -105,10 +104,10 @@ class CounsellingBookingController extends Controller
             $member = \App\Models\Member::where('email', $user->email)->first();
         }
 
-        if (!$member) {
+        if (! $member) {
             return response()->json([
                 'success' => false,
-                'message' => 'No member profile found.'
+                'message' => 'No member profile found.',
             ], 404);
         }
 
@@ -119,7 +118,7 @@ class CounsellingBookingController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $bookings
+            'data' => $bookings,
         ]);
     }
 
@@ -136,10 +135,10 @@ class CounsellingBookingController extends Controller
             $member = \App\Models\Member::where('email', $user->email)->first();
         }
 
-        if (!$member) {
+        if (! $member) {
             return response()->json([
                 'success' => false,
-                'message' => 'No member profile found.'
+                'message' => 'No member profile found.',
             ], 404);
         }
 
@@ -161,7 +160,36 @@ class CounsellingBookingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Counselling booking submitted successfully. Pending PA approval!',
-            'data' => $booking
+            'data' => $booking,
         ], 201);
+    }
+
+    /**
+     * Clear all counselling bookings history for the authenticated member.
+     */
+    public function apiClearHistory(Request $request)
+    {
+        $user = auth()->user();
+        $member = null;
+
+        if ($user instanceof \App\Models\Member) {
+            $member = $user;
+        } elseif ($user) {
+            $member = \App\Models\Member::where('email', $user->email)->first();
+        }
+
+        if (! $member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No member profile found.',
+            ], 404);
+        }
+
+        CounsellingBooking::where('member_id', $member->id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking history cleared successfully.',
+        ]);
     }
 }

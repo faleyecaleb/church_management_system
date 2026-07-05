@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PrayerRequest;
-use App\Models\Member;
 use App\Models\Prayer;
+use App\Models\PrayerRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PrayerRequestController extends Controller
 {
@@ -23,7 +22,7 @@ class PrayerRequestController extends Controller
     public function index(Request $request)
     {
         $query = PrayerRequest::with(['requestor', 'prayers'])
-            ->when(!Auth::user()->hasPermission('prayer.view_all'), function ($q) {
+            ->when(! Auth::user()->hasPermission('prayer.view_all'), function ($q) {
                 $q->where(function ($query) {
                     $query->where('requestor_id', Auth::id())
                         ->orWhere('is_public', true);
@@ -55,7 +54,7 @@ class PrayerRequestController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -81,7 +80,7 @@ class PrayerRequestController extends Controller
             'is_public' => 'boolean',
             'prayer_target' => 'nullable|integer|min:1',
             'prayer_frequency' => 'nullable|integer|min:1',
-            'end_date' => 'nullable|date|after:today'
+            'end_date' => 'nullable|date|after:today',
         ]);
 
         $prayerRequest = PrayerRequest::create([
@@ -92,7 +91,7 @@ class PrayerRequestController extends Controller
             'prayer_target' => $validated['prayer_target'],
             'prayer_frequency' => $validated['prayer_frequency'],
             'end_date' => $validated['end_date'],
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         return redirect()->route('prayer-requests.show', $prayerRequest)
@@ -101,7 +100,7 @@ class PrayerRequestController extends Controller
 
     public function show(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeViewedBy(Auth::user())) {
+        if (! $prayerRequest->canBeViewedBy(Auth::user())) {
             abort(403, 'You do not have permission to view this prayer request.');
         }
 
@@ -113,7 +112,7 @@ class PrayerRequestController extends Controller
 
     public function edit(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeEditedBy(Auth::user())) {
+        if (! $prayerRequest->canBeEditedBy(Auth::user())) {
             abort(403, 'You do not have permission to edit this prayer request.');
         }
 
@@ -122,7 +121,7 @@ class PrayerRequestController extends Controller
 
     public function update(Request $request, PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeEditedBy(Auth::user())) {
+        if (! $prayerRequest->canBeEditedBy(Auth::user())) {
             abort(403, 'You do not have permission to update this prayer request.');
         }
 
@@ -132,7 +131,7 @@ class PrayerRequestController extends Controller
             'is_public' => 'boolean',
             'prayer_target' => 'nullable|integer|min:1',
             'prayer_frequency' => 'nullable|integer|min:1',
-            'end_date' => 'nullable|date|after:today'
+            'end_date' => 'nullable|date|after:today',
         ]);
 
         $prayerRequest->update($validated);
@@ -143,7 +142,7 @@ class PrayerRequestController extends Controller
 
     public function destroy(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeEditedBy(Auth::user())) {
+        if (! $prayerRequest->canBeEditedBy(Auth::user())) {
             abort(403, 'You do not have permission to delete this prayer request.');
         }
 
@@ -155,12 +154,12 @@ class PrayerRequestController extends Controller
 
     public function pray(Request $request, PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeViewedBy(Auth::user())) {
+        if (! $prayerRequest->canBeViewedBy(Auth::user())) {
             abort(403, 'You do not have permission to record prayer for this request.');
         }
 
         $validated = $request->validate([
-            'notes' => 'nullable|string|max:1000'
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         // Record the prayer using the model method
@@ -172,7 +171,7 @@ class PrayerRequestController extends Controller
 
     public function recordPrayer(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeViewedBy(Auth::user())) {
+        if (! $prayerRequest->canBeViewedBy(Auth::user())) {
             abort(403, 'You do not have permission to record prayer for this request.');
         }
 
@@ -184,7 +183,7 @@ class PrayerRequestController extends Controller
 
     public function markAsCompleted(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeEditedBy(Auth::user())) {
+        if (! $prayerRequest->canBeEditedBy(Auth::user())) {
             abort(403, 'You do not have permission to mark this prayer request as completed.');
         }
 
@@ -196,7 +195,7 @@ class PrayerRequestController extends Controller
 
     public function archive(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeEditedBy(Auth::user())) {
+        if (! $prayerRequest->canBeEditedBy(Auth::user())) {
             abort(403, 'You do not have permission to archive this prayer request.');
         }
 
@@ -208,7 +207,7 @@ class PrayerRequestController extends Controller
 
     public function reactivate(PrayerRequest $prayerRequest)
     {
-        if (!$prayerRequest->canBeEditedBy(Auth::user())) {
+        if (! $prayerRequest->canBeEditedBy(Auth::user())) {
             abort(403, 'You do not have permission to reactivate this prayer request.');
         }
 
@@ -277,5 +276,66 @@ class PrayerRequestController extends Controller
             'startDate',
             'endDate'
         ));
+    }
+
+    /**
+     * API: Get prayer requests for the authenticated user
+     */
+    public function apiIndex(Request $request)
+    {
+        $user = Auth::user();
+        $member = $user->member;
+
+        $query = PrayerRequest::query();
+
+        if ($member) {
+            $query->where(function($q) use ($member, $user) {
+                $q->where('member_id', $member->id)
+                  ->orWhere('requestor_id', $user->id);
+            });
+        } else {
+            $query->where('requestor_id', $user->id);
+        }
+
+        $prayers = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $prayers
+        ]);
+    }
+
+    /**
+     * API: Store a new prayer request
+     */
+    public function apiStore(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'is_anonymous' => 'boolean',
+            'is_private' => 'boolean',
+        ]);
+
+        $user = Auth::user();
+        $member = $user->member;
+
+        $prayer = PrayerRequest::create([
+            'church_id' => $user->church_id ?? null,
+            'requestor_id' => $user->id,
+            'member_id' => $member ? $member->id : null,
+            'title' => $request->title,
+            'description' => $request->description,
+            'is_anonymous' => $request->input('is_anonymous', false),
+            'is_private' => $request->input('is_private', true),
+            'is_public' => !$request->input('is_private', true),
+            'status' => 'active',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Prayer request submitted successfully',
+            'data' => $prayer
+        ], 201);
     }
 }

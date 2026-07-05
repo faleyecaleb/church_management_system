@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
-use App\Models\Member;
 use App\Models\Attendance;
+use App\Models\Member;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -22,6 +22,7 @@ class ScannerAttendanceController extends Controller
     {
         // Get active services for today, or just list all recurring active ones
         $services = Service::active()->orderBy('day_of_week')->get();
+
         return view('attendance.scanner.index', compact('services'));
     }
 
@@ -43,10 +44,10 @@ class ScannerAttendanceController extends Controller
             ->orWhere('phone', $input)
             ->first();
 
-        if (!$member) {
+        if (! $member) {
             return response()->json([
                 'success' => false,
-                'message' => "No member found for ID/Phone: {$input}"
+                'message' => "No member found for ID/Phone: {$input}",
             ], 404);
         }
 
@@ -62,7 +63,7 @@ class ScannerAttendanceController extends Controller
                 'success' => true,
                 'message' => "{$member->first_name} {$member->last_name} is already checked in.",
                 'member' => $member,
-                'status' => 'already_checked_in'
+                'status' => 'already_checked_in',
             ]);
         }
 
@@ -74,7 +75,7 @@ class ScannerAttendanceController extends Controller
                 'status' => 'present',
                 'check_in_time' => now(),
                 'check_in_method' => 'scanner',
-                'checked_in_by' => auth()->id()
+                'checked_in_by' => auth()->id(),
             ]);
         } else {
             Attendance::create([
@@ -85,7 +86,7 @@ class ScannerAttendanceController extends Controller
                 'status' => 'present',
                 'check_in_time' => now(),
                 'check_in_method' => 'scanner',
-                'checked_in_by' => auth()->id()
+                'checked_in_by' => auth()->id(),
             ]);
         }
 
@@ -93,7 +94,7 @@ class ScannerAttendanceController extends Controller
             'success' => true,
             'message' => "Successfully checked in: {$member->first_name} {$member->last_name}",
             'member' => $member,
-            'status' => 'success'
+            'status' => 'success',
         ]);
     }
 }

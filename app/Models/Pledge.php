@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Pledge extends Model
 {
     use BelongsToChurch;
-
     use HasFactory;
 
     protected $fillable = [
@@ -22,14 +20,14 @@ class Pledge extends Model
         'start_date',
         'end_date',
         'status',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'start_date' => 'date',
-        'end_date' => 'date'
+        'end_date' => 'date',
     ];
 
     // Relationships
@@ -62,7 +60,7 @@ class Pledge extends Model
     public function scopeOverdue($query)
     {
         return $query->where('status', 'active')
-                     ->where('end_date', '<', Carbon::today());
+            ->where('end_date', '<', Carbon::today());
     }
 
     // Accessors
@@ -87,7 +85,7 @@ class Pledge extends Model
         $newAmountPaid = $this->amount_paid + $amount;
         $this->update([
             'amount_paid' => $newAmountPaid,
-            'status' => $this->determineStatus($newAmountPaid)
+            'status' => $this->determineStatus($newAmountPaid),
         ]);
     }
 
@@ -117,7 +115,7 @@ class Pledge extends Model
             'defaulted_pledges' => $pledges->where('status', 'defaulted')->count(),
             'completion_rate' => $pledges->count() > 0
                 ? ($pledges->where('status', 'completed')->count() / $pledges->count()) * 100
-                : 0
+                : 0,
         ];
     }
 

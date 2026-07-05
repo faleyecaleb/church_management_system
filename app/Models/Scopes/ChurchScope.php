@@ -20,11 +20,11 @@ class ChurchScope implements Scope
 
             // If the user has a specific church_id selected (either they are a regular admin or a super_admin who switched branch)
             if ($user->church_id) {
-                $builder->where($model->getTable() . '.church_id', $user->church_id);
+                $builder->where($model->getTable().'.church_id', $user->church_id);
             } else {
                 // If the user has NO church_id, they MUST be a super_admin to see everything.
                 // If they are not a super admin, they should see nothing (fail-safe).
-                if (!$user->isSuperAdmin()) {
+                if (! $user->isSuperAdmin()) {
                     $builder->whereRaw('1 = 0');
                 }
             }

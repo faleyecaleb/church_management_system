@@ -29,7 +29,7 @@ class SmsTemplateController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
@@ -51,7 +51,7 @@ class SmsTemplateController extends Controller
             'description' => 'nullable|string|max:1000',
             'variables' => 'nullable|array',
             'variables.*' => 'string|max:50',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $template = SmsTemplate::create($validated);
@@ -83,12 +83,12 @@ class SmsTemplateController extends Controller
     public function update(Request $request, SmsTemplate $template)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:sms_templates,name,' . $template->id,
+            'name' => 'required|string|max:255|unique:sms_templates,name,'.$template->id,
             'content' => 'required|string|max:1000',
             'description' => 'nullable|string|max:1000',
             'variables' => 'nullable|array',
             'variables.*' => 'string|max:50',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $template->update($validated);
@@ -113,9 +113,10 @@ class SmsTemplateController extends Controller
 
     public function toggle(SmsTemplate $template)
     {
-        $template->update(['is_active' => !$template->is_active]);
+        $template->update(['is_active' => ! $template->is_active]);
 
         $status = $template->is_active ? 'activated' : 'deactivated';
+
         return redirect()->route('sms.templates.show', $template)
             ->with('success', "SMS template {$status} successfully.");
     }
@@ -141,7 +142,7 @@ class SmsTemplateController extends Controller
     public function export()
     {
         $templates = SmsTemplate::all(['name', 'content', 'description', 'variables']);
-        $filename = 'sms_templates_' . now()->format('Y-m-d_His') . '.json';
+        $filename = 'sms_templates_'.now()->format('Y-m-d_His').'.json';
 
         return response()->json($templates)
             ->header('Content-Disposition', "attachment; filename={$filename}");
@@ -150,13 +151,13 @@ class SmsTemplateController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:json|max:2048'
+            'file' => 'required|file|mimes:json|max:2048',
         ]);
 
         try {
             $content = json_decode(file_get_contents($request->file('file')), true);
 
-            if (!is_array($content)) {
+            if (! is_array($content)) {
                 throw new \Exception('Invalid file format');
             }
 
@@ -170,12 +171,13 @@ class SmsTemplateController extends Controller
             DB::commit();
 
             return redirect()->route('sms.templates.index')
-                ->with('success', count($content) . ' templates imported successfully.');
+                ->with('success', count($content).' templates imported successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('sms.templates.index')
-                ->with('error', 'Failed to import templates: ' . $e->getMessage());
+                ->with('error', 'Failed to import templates: '.$e->getMessage());
         }
     }
 }

@@ -16,27 +16,27 @@ class ApiAuthentication
     {
         // Check for API token in header
         $token = $request->bearerToken() ?? $request->header('X-API-Token');
-        
-        if (!$token) {
+
+        if (! $token) {
             return response()->json([
                 'error' => 'API token required',
-                'message' => 'Please provide a valid API token in Authorization header'
+                'message' => 'Please provide a valid API token in Authorization header',
             ], 401);
         }
 
         // Validate token (you can implement your own token validation logic)
         $user = $this->validateApiToken($token);
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json([
                 'error' => 'Invalid API token',
-                'message' => 'The provided API token is invalid or expired'
+                'message' => 'The provided API token is invalid or expired',
             ], 401);
         }
 
         // Set the authenticated user
         Auth::setUser($user);
-        
+
         return $next($request);
     }
 
@@ -48,11 +48,11 @@ class ApiAuthentication
         // For now, use Laravel Sanctum tokens
         // You can implement custom token validation here
         $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        
-        if ($personalAccessToken && !$personalAccessToken->tokenable->trashed()) {
+
+        if ($personalAccessToken && ! $personalAccessToken->tokenable->trashed()) {
             return $personalAccessToken->tokenable;
         }
-        
+
         return null;
     }
 }

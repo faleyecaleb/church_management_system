@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToChurch;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Budget extends Model
 {
     use BelongsToChurch;
-
     use HasFactory;
 
     protected $fillable = [
@@ -24,7 +22,7 @@ class Budget extends Model
         'end_date',
         'notes',
         'fiscal_year',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
@@ -32,7 +30,7 @@ class Budget extends Model
         'used_amount' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -47,7 +45,7 @@ class Budget extends Model
     public function scopeActive($query)
     {
         return $query->where('start_date', '<=', Carbon::today())
-                     ->where('end_date', '>=', Carbon::today());
+            ->where('end_date', '>=', Carbon::today());
     }
 
     public function scopeByCategory($query, $category)
@@ -124,7 +122,7 @@ class Budget extends Model
                     'allocated' => $items->sum('amount'),
                     'used' => $items->sum('used_amount'),
                     'remaining' => $items->sum('remaining_amount'),
-                    'utilization' => $items->avg('utilization_percentage')
+                    'utilization' => $items->avg('utilization_percentage'),
                 ];
             }),
             'by_department' => $budgets->groupBy('department')->map(function ($items) {
@@ -132,9 +130,9 @@ class Budget extends Model
                     'allocated' => $items->sum('amount'),
                     'used' => $items->sum('used_amount'),
                     'remaining' => $items->sum('remaining_amount'),
-                    'utilization' => $items->avg('utilization_percentage')
+                    'utilization' => $items->avg('utilization_percentage'),
                 ];
-            })
+            }),
         ];
     }
 
@@ -151,7 +149,7 @@ class Budget extends Model
     public static function createAnnualBudget($category, $department, $amount, $year = null)
     {
         $year = $year ?? Carbon::now()->year;
-        
+
         return self::create([
             'category' => $category,
             'department' => $department,
@@ -161,7 +159,7 @@ class Budget extends Model
             'end_date' => Carbon::create($year, 12, 31)->endOfYear(),
             'notes' => "Annual budget for {$year}",
             'fiscal_year' => $year,
-            'is_active' => true
+            'is_active' => true,
         ]);
     }
 
@@ -187,7 +185,7 @@ class Budget extends Model
             'utilization' => $this->utilization_percentage,
             'is_overspent' => $this->is_overspent,
             'expense_breakdown' => $expenses->groupBy('payment_method')
-                ->map(fn ($items) => $items->sum('amount'))
+                ->map(fn ($items) => $items->sum('amount')),
         ];
     }
 }

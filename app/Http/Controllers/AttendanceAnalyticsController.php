@@ -27,12 +27,12 @@ class AttendanceAnalyticsController extends Controller
             $startYear = $request->get('start_year', Carbon::now()->year);
             $endMonth = $request->get('end_month', Carbon::now()->month);
             $endYear = $request->get('end_year', Carbon::now()->year);
-            
+
             $startDate = Carbon::createFromDate($startYear, $startMonth, 1)->startOfMonth();
             $endDate = Carbon::createFromDate($endYear, $endMonth, 1)->endOfMonth();
         } else {
             $timeframe = $request->get('timeframe', '30'); // Default to 30 days
-            $startDate = Carbon::now()->subDays((int)$timeframe)->startOfDay();
+            $startDate = Carbon::now()->subDays((int) $timeframe)->startOfDay();
             $endDate = Carbon::now()->endOfDay();
         }
 
@@ -42,16 +42,16 @@ class AttendanceAnalyticsController extends Controller
             ->where('attendances.is_present', true)
             ->whereBetween('attendances.attendance_date', [$startDate, $endDate])
             ->groupBy(
-                'members.id', 'members.first_name', 'members.last_name', 'members.other_names', 'members.email', 
-                'members.password', 'members.remember_token', 'members.phone', 'members.address', 
-                'members.date_of_birth', 'members.birth_day', 'members.birth_month', 
-                'members.baptism_date', 'members.membership_status', 'members.marital_status', 
-                'members.partner_name', 'members.state_of_origin', 'members.lga_of_origin', 
-                'members.state_of_residence', 'members.city_of_residence', 'members.profession', 
-                'members.church_group', 'members.is_baptized', 'members.baptism_year_and_place', 
+                'members.id', 'members.first_name', 'members.last_name', 'members.other_names', 'members.email',
+                'members.password', 'members.remember_token', 'members.phone', 'members.address',
+                'members.date_of_birth', 'members.birth_day', 'members.birth_month',
+                'members.baptism_date', 'members.membership_status', 'members.marital_status',
+                'members.partner_name', 'members.state_of_origin', 'members.lga_of_origin',
+                'members.state_of_residence', 'members.city_of_residence', 'members.profession',
+                'members.church_group', 'members.is_baptized', 'members.baptism_year_and_place',
                 'members.baptism_church_name', 'members.spiritual_gifts', 'members.emergency_contact_details',
-                'members.member_type', 'members.profile_photo', 'members.gender', 
-                'members.emergency_contacts', 'members.custom_fields', 'members.created_at', 
+                'members.member_type', 'members.profile_photo', 'members.gender',
+                'members.emergency_contacts', 'members.custom_fields', 'members.created_at',
                 'members.updated_at', 'members.deleted_at', 'members.church_id', 'members.unique_id'
             )
             ->orderBy('attendance_count', 'desc');
@@ -74,29 +74,29 @@ class AttendanceAnalyticsController extends Controller
 
         // 2. Most Punctual Members
         $mostPunctualQuery = Member::select(
-                'members.*', 
-                DB::raw('COUNT(attendances.id) as total_attendances'),
-                DB::raw('AVG(TIMESTAMPDIFF(MINUTE, 
+            'members.*',
+            DB::raw('COUNT(attendances.id) as total_attendances'),
+            DB::raw('AVG(TIMESTAMPDIFF(MINUTE, 
                     TIMESTAMP(attendances.attendance_date, services.start_time), 
                     attendances.check_in_time
                 )) as avg_minutes_late')
-            )
+        )
             ->join('attendances', 'members.id', '=', 'attendances.member_id')
             ->join('services', 'attendances.service_id', '=', 'services.id')
             ->where('attendances.is_present', true)
             ->whereNotNull('attendances.check_in_time')
             ->whereBetween('attendances.attendance_date', [$startDate, $endDate])
             ->groupBy(
-                'members.id', 'members.first_name', 'members.last_name', 'members.other_names', 'members.email', 
-                'members.password', 'members.remember_token', 'members.phone', 'members.address', 
-                'members.date_of_birth', 'members.birth_day', 'members.birth_month', 
-                'members.baptism_date', 'members.membership_status', 'members.marital_status', 
-                'members.partner_name', 'members.state_of_origin', 'members.lga_of_origin', 
-                'members.state_of_residence', 'members.city_of_residence', 'members.profession', 
-                'members.church_group', 'members.is_baptized', 'members.baptism_year_and_place', 
+                'members.id', 'members.first_name', 'members.last_name', 'members.other_names', 'members.email',
+                'members.password', 'members.remember_token', 'members.phone', 'members.address',
+                'members.date_of_birth', 'members.birth_day', 'members.birth_month',
+                'members.baptism_date', 'members.membership_status', 'members.marital_status',
+                'members.partner_name', 'members.state_of_origin', 'members.lga_of_origin',
+                'members.state_of_residence', 'members.city_of_residence', 'members.profession',
+                'members.church_group', 'members.is_baptized', 'members.baptism_year_and_place',
                 'members.baptism_church_name', 'members.spiritual_gifts', 'members.emergency_contact_details',
-                'members.member_type', 'members.profile_photo', 'members.gender', 
-                'members.emergency_contacts', 'members.custom_fields', 'members.created_at', 
+                'members.member_type', 'members.profile_photo', 'members.gender',
+                'members.emergency_contacts', 'members.custom_fields', 'members.created_at',
                 'members.updated_at', 'members.deleted_at', 'members.church_id', 'members.unique_id'
             )
             ->having('total_attendances', '>=', 2) // Must have attended at least twice to be considered
@@ -142,7 +142,9 @@ class AttendanceAnalyticsController extends Controller
             'regular_data' => $data['mostRegular']->pluck('attendance_count')->toArray(),
             'punctual_labels' => $data['mostPunctual']->pluck('first_name')->toArray(),
             // Ensure negative numbers are visually readable or handled gracefully
-            'punctual_data' => $data['mostPunctual']->map(function($m) { return round($m->avg_minutes_late); })->toArray(),
+            'punctual_data' => $data['mostPunctual']->map(function ($m) {
+                return round($m->avg_minutes_late);
+            })->toArray(),
         ];
 
         return view('attendance.analytics.index', array_merge($data, [
@@ -160,8 +162,8 @@ class AttendanceAnalyticsController extends Controller
         $data = $this->getAnalyticsData($request, 100); // Export top 100
 
         return Excel::download(
-            new AttendanceAnalyticsExport($data['mostRegular'], $data['mostPunctual'], $data['startDate'], $data['endDate']), 
-            'Attendance_Analytics_' . now()->format('Y-m-d') . '.xlsx'
+            new AttendanceAnalyticsExport($data['mostRegular'], $data['mostPunctual'], $data['startDate'], $data['endDate']),
+            'Attendance_Analytics_'.now()->format('Y-m-d').'.xlsx'
         );
     }
 }

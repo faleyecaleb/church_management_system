@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class EquipmentBooking extends Model
 {
@@ -17,12 +17,12 @@ class EquipmentBooking extends Model
         'end_time',
         'purpose',
         'status',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
-        'end_time' => 'datetime'
+        'end_time' => 'datetime',
     ];
 
     // Relationships
@@ -60,15 +60,15 @@ class EquipmentBooking extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('start_time', '>', Carbon::now())
-                     ->where('status', 'approved')
-                     ->orderBy('start_time');
+            ->where('status', 'approved')
+            ->orderBy('start_time');
     }
 
     public function scopeActive($query)
     {
         return $query->where('start_time', '<=', Carbon::now())
-                     ->where('end_time', '>=', Carbon::now())
-                     ->where('status', 'approved');
+            ->where('end_time', '>=', Carbon::now())
+            ->where('status', 'approved');
     }
 
     // Helper methods
@@ -76,7 +76,7 @@ class EquipmentBooking extends Model
     {
         if ($this->equipment->isAvailable($this->start_time, $this->end_time)) {
             $this->update(['status' => 'approved']);
-            
+
             // Update equipment status if booking starts now
             if ($this->start_time <= Carbon::now()) {
                 $this->equipment->markAsInUse();
@@ -85,6 +85,7 @@ class EquipmentBooking extends Model
             // TODO: Send notification to member
             return true;
         }
+
         return false;
     }
 
@@ -92,7 +93,7 @@ class EquipmentBooking extends Model
     {
         $this->update([
             'status' => 'rejected',
-            'notes' => $reason
+            'notes' => $reason,
         ]);
 
         // TODO: Send notification to member
@@ -110,8 +111,10 @@ class EquipmentBooking extends Model
     {
         if ($this->start_time > Carbon::now()) {
             $this->update(['status' => 'cancelled']);
+
             return true;
         }
+
         return false;
     }
 
@@ -122,7 +125,7 @@ class EquipmentBooking extends Model
 
     public function isOverdue()
     {
-        return $this->status === 'approved' && 
+        return $this->status === 'approved' &&
                $this->end_time < Carbon::now();
     }
 
@@ -147,10 +150,10 @@ class EquipmentBooking extends Model
                     'total' => $items->count(),
                     'hours' => $items->sum(function ($booking) {
                         return $booking->getDurationInHours();
-                    })
+                    }),
                 ]),
             'by_member' => $bookings->groupBy('member_id')
-                ->map(fn ($items) => $items->count())
+                ->map(fn ($items) => $items->count()),
         ];
     }
 
@@ -183,7 +186,7 @@ class EquipmentBooking extends Model
                     ->orWhereBetween('end_time', [$startTime, $endTime])
                     ->orWhere(function ($q) use ($startTime, $endTime) {
                         $q->where('start_time', '<=', $startTime)
-                          ->where('end_time', '>=', $endTime);
+                            ->where('end_time', '>=', $endTime);
                     });
             })
             ->get();

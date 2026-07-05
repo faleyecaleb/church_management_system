@@ -142,14 +142,16 @@
                 <!-- Action Buttons -->
                 <div class="flex justify-end space-x-4 mt-6">
                     @if(!$notification->sent_at)
-                        @can('edit-notifications')
+                        @can('communication.update')
                         <a href="{{ route('notifications.edit', $notification) }}" 
                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             Edit Notification
                         </a>
                         @endcan
 
-                        @can('delete-notifications')
+                        
+                    @endif
+                    @can('communication.delete')
                         <form action="{{ route('notifications.destroy', $notification) }}" method="POST" class="inline" 
                               onsubmit="return confirm('Are you sure you want to delete this notification?');">
                             @csrf
@@ -160,7 +162,6 @@
                             </button>
                         </form>
                         @endcan
-                    @endif
                 </div>
             </div>
         </div>

@@ -42,7 +42,7 @@ class MemberDocumentController extends Controller
         ]);
 
         // Store the file
-        $path = $request->file('document')->store('member-documents/' . $member->id, 'public');
+        $path = $request->file('document')->store('member-documents/'.$member->id, 'public');
         $size = $request->file('document')->getSize();
         $type = $request->file('document')->getClientMimeType();
 
@@ -99,7 +99,7 @@ class MemberDocumentController extends Controller
             }
 
             // Store new file
-            $path = $request->file('document')->store('member-documents/' . $member->id, 'public');
+            $path = $request->file('document')->store('member-documents/'.$member->id, 'public');
             $size = $request->file('document')->getSize();
             $type = $request->file('document')->getClientMimeType();
 
@@ -113,9 +113,9 @@ class MemberDocumentController extends Controller
             $wasVerified = $document->is_verified;
             $nowVerified = $validated['is_verified'] ?? false;
 
-            if (!$wasVerified && $nowVerified) {
+            if (! $wasVerified && $nowVerified) {
                 $validated['verified_by'] = $request->user()->id;
-            } elseif ($wasVerified && !$nowVerified) {
+            } elseif ($wasVerified && ! $nowVerified) {
                 $validated['verified_by'] = null;
             }
         } else {
@@ -151,13 +151,13 @@ class MemberDocumentController extends Controller
      */
     public function download(Member $member, MemberDocument $document)
     {
-        if (!Storage::disk('public')->exists($document->file_path)) {
+        if (! Storage::disk('public')->exists($document->file_path)) {
             return back()->with('error', 'Document file not found.');
         }
 
         return Storage::disk('public')->download(
             $document->file_path,
-            $document->title . '.' . pathinfo($document->file_path, PATHINFO_EXTENSION)
+            $document->title.'.'.pathinfo($document->file_path, PATHINFO_EXTENSION)
         );
     }
 
@@ -167,8 +167,8 @@ class MemberDocumentController extends Controller
     public function verify(Request $request, Member $member, MemberDocument $document)
     {
         $document->update([
-            'is_verified' => !$document->is_verified,
-            'verified_by' => !$document->is_verified ? $request->user()->id : null,
+            'is_verified' => ! $document->is_verified,
+            'verified_by' => ! $document->is_verified ? $request->user()->id : null,
         ]);
 
         return redirect()

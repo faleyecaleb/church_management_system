@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::table('attendances', function (Blueprint $table) {
             // Check if the column doesn't exist before adding it
-            if (!Schema::hasColumn('attendances', 'check_out_time')) {
+            if (! Schema::hasColumn('attendances', 'check_out_time')) {
                 $table->dateTime('check_out_time')->nullable()->after('check_in_time');
                 $table->foreignId('checked_out_by')->nullable()->after('checked_in_by')
-                      ->constrained('users')
-                      ->nullOnDelete();
+                    ->constrained('users')
+                    ->nullOnDelete();
             }
         });
     }

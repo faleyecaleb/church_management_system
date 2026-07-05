@@ -61,7 +61,8 @@ class GenerateScheduledReports extends Command
                     $this->processReport($report);
                     $count++;
                 } catch (\Exception $e) {
-                    Log::error("Failed to process report {$report->id}: " . $e->getMessage());
+                    Log::error("Failed to process report {$report->id}: ".$e->getMessage());
+
                     continue;
                 }
             }
@@ -71,8 +72,9 @@ class GenerateScheduledReports extends Command
 
             return 0;
         } catch (\Exception $e) {
-            $this->error('Error generating scheduled reports: ' . $e->getMessage());
-            Log::error('GenerateScheduledReports failed: ' . $e->getMessage());
+            $this->error('Error generating scheduled reports: '.$e->getMessage());
+            Log::error('GenerateScheduledReports failed: '.$e->getMessage());
+
             return 1;
         }
     }
@@ -92,7 +94,7 @@ class GenerateScheduledReports extends Command
         // Update the report schedule
         $report->update([
             'last_run_at' => now(),
-            'next_run_at' => $this->calculateNextRunDate($report)
+            'next_run_at' => $this->calculateNextRunDate($report),
         ]);
 
         // Send the report to recipients
@@ -103,7 +105,7 @@ class GenerateScheduledReports extends Command
                 // Notification::route('mail', $recipient)
                 //     ->notify(new ScheduledReportGenerated($export));
             } catch (\Exception $e) {
-                Log::error("Failed to send report {$report->id} to {$recipient}: " . $e->getMessage());
+                Log::error("Failed to send report {$report->id} to {$recipient}: ".$e->getMessage());
             }
         }
     }

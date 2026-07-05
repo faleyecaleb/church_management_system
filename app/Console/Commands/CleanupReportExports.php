@@ -50,7 +50,8 @@ class CleanupReportExports extends Command
 
                     $count++;
                 } catch (\Exception $e) {
-                    Log::error("Failed to cleanup export {$export->id}: " . $e->getMessage());
+                    Log::error("Failed to cleanup export {$export->id}: ".$e->getMessage());
+
                     continue;
                 }
             }
@@ -60,8 +61,9 @@ class CleanupReportExports extends Command
 
             return 0;
         } catch (\Exception $e) {
-            $this->error('Error cleaning up report exports: ' . $e->getMessage());
-            Log::error('CleanupReportExports failed: ' . $e->getMessage());
+            $this->error('Error cleaning up report exports: '.$e->getMessage());
+            Log::error('CleanupReportExports failed: '.$e->getMessage());
+
             return 1;
         }
     }

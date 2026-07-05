@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Ensure storage disk is properly configured
         // Skip symlink creation on shared hosting where exec() is disabled
-        if (!is_dir(public_path('storage')) && !$this->isSharedHosting()) {
+        if (! is_dir(public_path('storage')) && ! $this->isSharedHosting()) {
             try {
                 app('files')->link(
                     storage_path('app/public'),
@@ -30,12 +30,12 @@ class AppServiceProvider extends ServiceProvider
                 );
             } catch (\Exception $e) {
                 // Silently fail on shared hosting - manual symlink creation required
-                \Log::warning('Storage symlink creation failed: ' . $e->getMessage());
+                \Log::warning('Storage symlink creation failed: '.$e->getMessage());
             }
         }
 
         // Ensure profile-photos directory exists
-        if (!Storage::disk('public')->exists('profile-photos')) {
+        if (! Storage::disk('public')->exists('profile-photos')) {
             Storage::disk('public')->makeDirectory('profile-photos');
         }
     }
@@ -45,6 +45,6 @@ class AppServiceProvider extends ServiceProvider
      */
     private function isSharedHosting(): bool
     {
-        return !function_exists('exec') || !function_exists('symlink');
+        return ! function_exists('exec') || ! function_exists('symlink');
     }
 }

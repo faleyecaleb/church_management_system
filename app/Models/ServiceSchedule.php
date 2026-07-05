@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class ServiceSchedule extends Model
 {
@@ -16,13 +16,13 @@ class ServiceSchedule extends Model
         'start_time',
         'end_time',
         'description',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     // Scopes
@@ -46,8 +46,8 @@ class ServiceSchedule extends Model
         return self::active()
             ->where(function ($query) use ($dayOfWeek, $currentTime) {
                 $query->where('day_of_week', $dayOfWeek)
-                      ->where('start_time', '>', $currentTime)
-                      ->orWhere('day_of_week', '!=', $dayOfWeek);
+                    ->where('start_time', '>', $currentTime)
+                    ->orWhere('day_of_week', '!=', $dayOfWeek);
             })
             ->orderByRaw("CASE 
                 WHEN day_of_week = ? THEN 0

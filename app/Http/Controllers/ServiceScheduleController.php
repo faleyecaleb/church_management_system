@@ -37,7 +37,7 @@ class ServiceScheduleController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         ServiceSchedule::create($validated);
@@ -72,7 +72,7 @@ class ServiceScheduleController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $service->update($validated);
@@ -97,12 +97,12 @@ class ServiceScheduleController extends Controller
 
     public function toggle(ServiceSchedule $service)
     {
-        $service->update(['is_active' => !$service->is_active]);
+        $service->update(['is_active' => ! $service->is_active]);
 
         return response()->json([
             'success' => true,
             'message' => 'Service status updated successfully.',
-            'is_active' => $service->is_active
+            'is_active' => $service->is_active,
         ]);
     }
 
@@ -124,7 +124,7 @@ class ServiceScheduleController extends Controller
                     'start' => $occurrence['start']->format('Y-m-d\TH:i:s'),
                     'end' => $occurrence['end']->format('Y-m-d\TH:i:s'),
                     'description' => $occurrence['service']->description,
-                    'backgroundColor' => $occurrence['service']->is_active ? '#4CAF50' : '#9E9E9E'
+                    'backgroundColor' => $occurrence['service']->is_active ? '#4CAF50' : '#9E9E9E',
                 ];
             });
 

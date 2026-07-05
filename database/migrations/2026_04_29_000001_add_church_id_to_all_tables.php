@@ -33,7 +33,7 @@ return new class extends Migration
         foreach ($this->tables as $tableName) {
             if (Schema::hasTable($tableName)) {
                 Schema::table($tableName, function (Blueprint $table) use ($tableName) {
-                    if (!Schema::hasColumn($tableName, 'church_id')) {
+                    if (! Schema::hasColumn($tableName, 'church_id')) {
                         $table->foreignId('church_id')->nullable()->constrained('churches')->onDelete('cascade');
                     }
                 });

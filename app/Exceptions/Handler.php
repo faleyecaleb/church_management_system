@@ -2,8 +2,8 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
@@ -36,7 +36,7 @@ class Handler extends ExceptionHandler
         $this->renderable(function (AuthenticationException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Unauthenticated.'
+                    'message' => 'Unauthenticated.',
                 ], 401);
             }
 
@@ -47,7 +47,7 @@ class Handler extends ExceptionHandler
         $this->renderable(function (TokenMismatchException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => 'CSRF token mismatch.'
+                    'message' => 'CSRF token mismatch.',
                 ], 419);
             }
 
@@ -60,7 +60,7 @@ class Handler extends ExceptionHandler
         $this->renderable(function (HttpException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => $e->getMessage() ?: 'An error occurred.'
+                    'message' => $e->getMessage() ?: 'An error occurred.',
                 ], $e->getStatusCode());
             }
 
