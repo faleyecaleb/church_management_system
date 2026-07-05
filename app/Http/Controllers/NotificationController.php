@@ -16,7 +16,13 @@ class NotificationController extends Controller
         $this->middleware('permission:communication.view')->only(['index', 'show']);
         $this->middleware('permission:communication.create')->only(['create', 'store']);
         $this->middleware('permission:communication.update')->only(['edit', 'update']);
-        $this->middleware('permission:communication.delete')->only('destroy');
+        
+        $this->middleware(function ($request, $next) {
+            if ($request->user() && ($request->user()->isAdmin() || $request->user()->can('communication.delete'))) {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized action.');
+        })->only('destroy');
     }
 
     /**

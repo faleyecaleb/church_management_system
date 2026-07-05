@@ -148,7 +148,7 @@
 
                                 
                             @endif
-                                @if(auth()->user()->can('communication.delete') || auth()->user()->role === 'admin')
+                                @if(auth()->user()->isAdmin())
                                 <form action="{{ route('notifications.destroy', $notification) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this notification?');">
                                     @csrf
                                     @method('DELETE')
