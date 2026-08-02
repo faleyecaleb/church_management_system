@@ -478,47 +478,15 @@ class AttendanceController extends Controller
     public function showQrCode($serviceId)
     {
         if ($serviceId === 'current') {
-            // Get all of today's active services
-            $services = Service::where(function ($q) {
-                $q->where(function ($subQ) {
-                    $subQ->where('is_recurring', true)
-                        ->where('day_of_week', today()->dayOfWeek);
-                })
-                    ->orWhere(function ($subQ) {
-                        $subQ->where('is_recurring', false)
-                            ->whereDate('start_date', today()); // Fix: renamed 'date' to 'start_date'
-                    });
-            })
-                ->where('status', 'active')
-                ->get();
-
-            // 1. Find the service whose check-in window is active right now
-            $service = $services->first(function ($s) {
-                return $s->isCheckInAllowed();
-            });
-
-            // 2. If no service is running right now, get the next upcoming one today
-            if (!$service) {
-                $nowStr = now()->format('H:i:s');
-                $service = $services->where('start_time', '>=', $nowStr)
-                                    ->sortBy('start_time')
-                                    ->first();
-            }
-
-            // 3. Ultimate fallback: get the first service of today
-            if (!$service) {
-                $service = $services->sortBy('start_time')->first();
-            }
-
-            if (!$service) {
-                return redirect()->route('attendance.dashboard')->with('error', 'No active service found for today.');
-            }
+            // Load all active services so they can be selected per Month/Year in the UI
+            $services = Service::where('status', 'active')->get();
+            return view('attendance.qr-selector', compact('services'));
         } else {
             $service = Service::findOrFail($serviceId);
         }
 
-        if (! $service->isCheckInAllowed()) {
-            return back()->with('error', 'Check-in is not currently allowed for this service.');
+        if (! $service->isQrGenerationAllowed()) {
+            return back()->with('error', 'QR code generation is only allowed up to 24 hours before the service.');
         }
 
         $token = $this->generateQrToken($service);
@@ -945,12 +913,21 @@ class AttendanceController extends Controller
      */
     protected function getQrExpiryTime(Service $service)
     {
-        // Expire the QR code at the end time of the service, or default to 2 hours from start if end_time is not set
-        if ($service->end_time) {
-            return $service->end_time;
+        // 1. Resolve Target Service Time
+        if ($service->is_recurring) {
+            $serviceTime = $service->next_occurrence;
+        } else {
+            $dateStr = $service->start_date ? $service->start_date->format('Y-m-d') : today()->format('Y-m-d');
+            $timeStr = $service->start_time ? $service->start_time->format('H:i:s') : '00:00:00';
+            $serviceTime = \Carbon\Carbon::parse($dateStr . ' ' . $timeStr);
         }
 
-        return $service->start_time->addHours(2);
+        // 2. Bound expiry time to the target date of the occurrence
+        if ($service->end_time) {
+            return \Carbon\Carbon::parse($serviceTime->format('Y-m-d') . ' ' . $service->end_time->format('H:i:s'));
+        }
+
+        return $serviceTime->copy()->addHours(2);
     }
 
     /**
