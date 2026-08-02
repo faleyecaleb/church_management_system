@@ -95,7 +95,7 @@ class AttendanceController extends Controller
                     $sub->whereHas('department', function ($sub2) {
                         $sub2->where('name', '!=', 'NONE');
                     });
-                })->orWhereHas('roles');
+                });
             })
             ->latest('check_in_time');
 

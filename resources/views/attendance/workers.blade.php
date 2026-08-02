@@ -59,7 +59,7 @@
                 <thead class="bg-gray-50/50">
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Worker Details</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Departments & Roles</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Departments</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Check In Time</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -83,16 +83,9 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-wrap gap-1">
-                                @foreach($attendance->member->departments as $deptPivot)
-                                    @if($deptPivot->department)
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                            {{ $deptPivot->department->name }}
-                                        </span>
-                                    @endif
-                                @endforeach
-                                @foreach($attendance->member->roles as $role)
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                        {{ $role->name }}
+                                @foreach($attendance->member->department_names as $deptName)
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {{ $deptName }}
                                     </span>
                                 @endforeach
                             </div>
