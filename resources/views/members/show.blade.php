@@ -111,9 +111,9 @@
                     <div class="sm:col-span-1">
                         <dt class="text-sm font-medium text-gray-500">Department</dt>
                         <dd class="mt-1 text-sm text-gray-900">
-                            @forelse($member->departments as $dept)
+                            @forelse($member->department_names as $deptName)
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800 mr-1">
-                                {{ $dept->department->name ?? 'N/A' }}
+                                {{ $deptName }}
                             </span>
                         @empty
                             Not assigned

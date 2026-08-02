@@ -729,9 +729,9 @@
                             {{ $member->isNewComer() ? 'New Comer' : 'Main Member' }}
                         </span>
                         
-                        @forelse($member->departments as $dept)
+                        @forelse($member->department_names as $deptName)
                             <span class="badge-glass badge-department">
-                                {{ $dept->department->name ?? 'N/A' }}
+                                {{ $deptName }}
                             </span>
                         @empty
                         @endforelse

@@ -57,6 +57,15 @@ class MemberController extends Controller
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
+
+                // If search contains spaces (potential full name search)
+                if (str_contains($search, ' ')) {
+                    $parts = explode(' ', $search);
+                    $q->orWhere(function ($subQ) use ($parts) {
+                        $subQ->where('first_name', 'like', "%{$parts[0]}%")
+                            ->where('last_name', 'like', "%{$parts[1]}%");
+                    });
+                }
             });
         }
 
