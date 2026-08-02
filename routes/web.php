@@ -20,6 +20,7 @@ use App\Http\Controllers\MembershipStatusController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MessageGroupController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileUpdateRequestController;
 use App\Http\Controllers\OrderOfServiceController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PledgeController;
@@ -247,6 +248,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Member Management Routes
     Route::get('members/birthdays', [MemberController::class, 'birthdays'])->name('members.birthdays');
     Route::post('members/bulk-delete', [MemberController::class, 'bulkDelete'])->name('members.bulk-delete');
+    
+    // Profile Update Requests
+    Route::get('members/profile-requests', [ProfileUpdateRequestController::class, 'index'])->name('members.profile-requests.index');
+    Route::post('members/profile-requests/{id}/approve', [ProfileUpdateRequestController::class, 'approve'])->name('members.profile-requests.approve');
+    Route::post('members/profile-requests/{id}/reject', [ProfileUpdateRequestController::class, 'reject'])->name('members.profile-requests.reject');
+
     Route::resource('members', MemberController::class);
     // Member Management Routes
     Route::post('members/{member}/promote', [MemberController::class, 'promote'])->name('members.promote');

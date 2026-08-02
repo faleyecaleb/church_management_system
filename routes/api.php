@@ -8,6 +8,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SmsMessageController;
 use App\Http\Controllers\PrayerRequestController;
 use App\Http\Controllers\PledgeController;
+use App\Http\Controllers\ProfileUpdateRequestController;
 use App\Http\Middleware\RateLimitMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +66,9 @@ Route::prefix('v1')->group(function () {
 
         // Announcements (Communication Hub) routes
         Route::get('/announcements', [SmsMessageController::class, 'apiIndex']);
+
+        // Profile Update Requests
+        Route::post('/profile-update-requests', [ProfileUpdateRequestController::class, 'apiStore']);
     });
 });
 

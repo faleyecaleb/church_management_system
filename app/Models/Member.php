@@ -152,6 +152,11 @@ class Member extends Authenticatable
         return $this->hasMany(MemberDepartment::class);
     }
 
+    public function profileUpdateRequests()
+    {
+        return $this->hasMany(ProfileUpdateRequest::class);
+    }
+
     // Helper method to get department names as array
     public function getDepartmentNamesAttribute()
     {

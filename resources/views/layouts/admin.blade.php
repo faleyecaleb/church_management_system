@@ -89,7 +89,7 @@
                 @endif
                 
                 @if(Auth::user()->hasPermission('member.view'))
-                <div x-data="{ membersOpen: false }" class="relative" @click.away="membersOpen = false">
+                <div x-data="{ membersOpen: {{ request()->routeIs('members.*') ? 'true' : 'false' }} }" class="relative" @click.away="membersOpen = false">
                     <button @click="membersOpen = !membersOpen; attendanceOpen = false" class="nav-link w-full flex items-center px-4 py-3 text-white/90 rounded-xl group {{ request()->routeIs('members.*') ? 'active' : '' }}">
                         <div class="flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,6 +133,14 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a3.003 3.003 0 01-3 0 3.003 3.003 0 00-3 0 3.003 3.003 0 01-3 0 3.003 3.003 0 00-3 0 3.003 3.003 0 01-3 0 3.003 3.003 0 00-1.5-.454V12.5a.5.5 0 01.5-.5H20.5a.5.5 0 01.5.5v3.046zM12 2a3 3 0 013 3v3H9V5a3 3 0 013-3zM4 12V9a1 1 0 011-1h16a1 1 0 011 1v3H4z"></path>
                                 </svg>
                                 Birthday Board
+                            </div>
+                        </a>
+                        <a href="{{ route('members.profile-requests.index') }}" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10 {{ request()->routeIs('members.profile-requests.*') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                                Profile Requests
                             </div>
                         </a>
                     </div>
