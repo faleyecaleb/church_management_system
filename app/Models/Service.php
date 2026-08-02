@@ -175,38 +175,10 @@ class Service extends Model
     }
 
     /**
-     * Check if QR code generation is currently allowed for this service (up to 24 hours before).
+     * Check if QR code generation is currently allowed for this service (Lock completely removed per user request).
      */
     public function isQrGenerationAllowed()
     {
-        if ($this->status !== 'active') {
-            return false;
-        }
-
-        $now = now();
-
-        // 1. Resolve Target Service Time
-        if ($this->is_recurring) {
-            $serviceTime = $this->next_occurrence;
-        } else {
-            $dateStr = $this->start_date ? $this->start_date->format('Y-m-d') : today()->format('Y-m-d');
-            $timeStr = $this->start_time ? $this->start_time->format('H:i:s') : '00:00:00';
-            $serviceTime = \Carbon\Carbon::parse($dateStr . ' ' . $timeStr);
-        }
-
-        if (!$serviceTime) {
-            return false;
-        }
-
-        // 2. Resolve Target End Time
-        $endTime = $this->end_time
-            ? \Carbon\Carbon::parse($serviceTime->format('Y-m-d') . ' ' . $this->end_time->format('H:i:s'))
-            : $serviceTime->copy()->addHours(4);
-
-        // 3. Allow QR code generation starting 24 hours before the service, and up until it ends
-        return $now->between(
-            $serviceTime->copy()->subHours(24),
-            $endTime
-        );
+        return $this->status === 'active';
     }
 }

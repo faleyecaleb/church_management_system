@@ -43,17 +43,8 @@
     },
     onServiceSelected(serviceId) {
         if (!serviceId) return;
-        const selected = this.services.find(s => s.id == serviceId);
-        if (selected) {
-            if (selected.generation_allowed) {
-                // Instantly redirect to generate the QR Code!
-                window.location.href = '/attendance/services/' + serviceId + '/qr-code';
-            } else {
-                // Show an alert if outside the 24 hour liberty time
-                alert('🔒 QR Generation is locked. You can only generate and print QR codes up to 24 hours in advance of the service start time.');
-                this.selectedService = ''; // Reset selection
-            }
-        }
+        // Instantly redirect to generate the QR Code! (Lock completely removed per user request)
+        window.location.href = '/attendance/services/' + serviceId + '/qr-code';
     }
 }">
     <div class="max-w-2xl mx-auto">
@@ -131,7 +122,7 @@
                     <p class="font-bold mb-1">Instant Generation Rules:</p>
                     <ul class="list-disc pl-4 space-y-1">
                         <li>Selecting a service above will **instantly** compile and load your printable QR sheet.</li>
-                        <li>QR codes can be pre-printed and prepared up to **24 hours in advance** of the service.</li>
+                        <li>QR codes can be pre-printed and prepared **at any time in advance** of the service.</li>
                         <li>For recurring services, the secure token is dynamically calculated for the next upcoming week automatically.</li>
                     </ul>
                 </div>
