@@ -42,10 +42,11 @@ Route::prefix('v1')->group(function () {
         Route::put('/user/profile', [MemberController::class, 'apiUpdate']);
 
         // Attendance routes
-        Route::apiResource('attendance', AttendanceController::class);
         Route::post('/attendance/bulk', [AttendanceController::class, 'bulkStore']);
         Route::get('/attendance/stats', [AttendanceController::class, 'stats']);
         Route::post('/attendance/scan/{service}', [AttendanceController::class, 'processQrCode']);
+        Route::post('/attendance/one-tap', [AttendanceController::class, 'oneTapCheckIn']);
+        Route::apiResource('attendance', AttendanceController::class);
 
         // Service routes
         Route::get('/services', [ServiceController::class, 'apiIndex']);

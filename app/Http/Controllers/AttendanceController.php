@@ -610,6 +610,109 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Process direct One-Tap Geofence Check-in.
+     */
+    public function oneTapCheckIn(Request $request)
+    {
+        try {
+            // Get all of today's active services
+            $services = Service::where(function ($q) {
+                $q->where(function ($subQ) {
+                    $subQ->where('is_recurring', true)
+                        ->where('day_of_week', today()->dayOfWeek);
+                })
+                    ->orWhere(function ($subQ) {
+                        $subQ->where('is_recurring', false)
+                            ->whereDate('start_date', today());
+                    });
+            })
+                ->where('status', 'active')
+                ->get();
+
+            // 1. Find the service whose check-in window is active right now
+            $service = $services->first(function ($s) {
+                return $s->isCheckInAllowed();
+            });
+
+            // 2. If no service is running right now, get the next upcoming one today
+            if (!$service) {
+                $nowStr = now()->format('H:i:s');
+                $service = $services->where('start_time', '>=', $nowStr)
+                                    ->sortBy('start_time')
+                                    ->first();
+            }
+
+            // 3. Ultimate fallback: get the first service of today
+            if (!$service) {
+                $service = $services->sortBy('start_time')->first();
+            }
+
+            if (!$service) {
+                throw new \Exception('No active service found for today.');
+            }
+
+            if (! $service->isCheckInAllowed()) {
+                throw new \Exception('Check-in is not currently allowed for this service.');
+            }
+
+            // Get the authenticated member
+            $user = auth()->user();
+            $member = null;
+            if ($user instanceof \App\Models\Member) {
+                $member = $user;
+            } elseif ($user) {
+                $member = \App\Models\Member::where('email', $user->email)->first();
+            }
+
+            if (! $member) {
+                throw new \Exception('No member profile found.');
+            }
+
+            // Check for duplicate attendance
+            $existingAttendance = Attendance::where('member_id', $member->id)
+                ->where('service_id', $service->id)
+                ->where('attendance_date', now()->toDateString())
+                ->exists();
+
+            if ($existingAttendance) {
+                throw new \Exception('You have already checked in for this service.');
+            }
+
+            // Verify location if geofencing is enabled
+            if (config('attendance.require_geofencing')) {
+                $this->verifyLocation($request);
+            }
+
+            DB::transaction(function () use ($member, $service, $request) {
+                Attendance::create([
+                    'member_id' => $member->id,
+                    'service_id' => $service->id,
+                    'attendance_date' => now()->toDateString(),
+                    'check_in_time' => now(),
+                    'check_in_method' => 'one_tap',
+                    'check_in_location' => $request->ip(),
+                    'location_verified' => config('attendance.require_geofencing'),
+                    'checked_in_by' => auth()->user() instanceof \App\Models\User ? auth()->id() : null,
+                    'is_present' => true,
+                    'is_absent' => false,
+                    'status' => 'present',
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'One-Tap Check-in successful for ' . $service->name . '!',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
      * Check in a single member.
      */
     public function checkInMember(Service $service, Member $member)
