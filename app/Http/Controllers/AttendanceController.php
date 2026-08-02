@@ -575,10 +575,10 @@ class AttendanceController extends Controller
                 throw new \Exception('You have already checked in for this service.');
             }
 
-            // Verify location if geofencing is enabled
-            if (config('attendance.require_geofencing')) {
-                $this->verifyLocation($request);
-            }
+            // Verify location if geofencing is enabled (Disabled for QR scan)
+            // if (config('attendance.require_geofencing')) {
+            //     $this->verifyLocation($request);
+            // }
 
             DB::transaction(function () use ($member, $service, $request) {
                 Attendance::create([
@@ -588,7 +588,7 @@ class AttendanceController extends Controller
                     'check_in_time' => now(),
                     'check_in_method' => 'qr',
                     'check_in_location' => $request->ip(),
-                    'location_verified' => config('attendance.require_geofencing'),
+                    'location_verified' => false, // config('attendance.require_geofencing'), (Disabled for QR scan)
                     'checked_in_by' => auth()->user() instanceof \App\Models\User ? auth()->id() : null,
                     'is_present' => true,
                     'is_absent' => false,
