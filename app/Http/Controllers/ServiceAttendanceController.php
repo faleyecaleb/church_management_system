@@ -27,6 +27,8 @@ class ServiceAttendanceController extends Controller
         $selectedService = null;
         $attendances = collect();
         $selectedDate = now();
+        $totalPresent = 0;
+        $totalAbsent = 0;
 
         $year = $request->input('year');
         $month = $request->input('month');
@@ -45,13 +47,18 @@ class ServiceAttendanceController extends Controller
         if ($request->filled('service_id')) {
             $selectedService = Service::findOrFail($request->service_id);
 
-            $attendances = Attendance::with(['member.departments.department'])
+            $query = Attendance::with(['member.departments.department'])
                 ->where('service_id', $selectedService->id)
                 ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $month)
-                ->orderBy('attendance_date', 'desc')
+                ->whereMonth('attendance_date', $month);
+
+            $totalPresent = (clone $query)->where('is_present', true)->count();
+            $totalAbsent = (clone $query)->where('is_absent', true)->count();
+
+            $attendances = $query->orderBy('attendance_date', 'desc')
                 ->orderBy('check_in_time', 'desc')
-                ->get();
+                ->paginate(20)
+                ->withQueryString();
         }
 
         return view('attendance.service-attendance', compact(
@@ -61,7 +68,9 @@ class ServiceAttendanceController extends Controller
             'selectedDate',
             'attendances',
             'year',
-            'month'
+            'month',
+            'totalPresent',
+            'totalAbsent'
         ));
     }
 
