@@ -99,9 +99,24 @@ class AttendanceController extends Controller
             })
             ->latest('check_in_time');
 
-        // Apply filters (Default to today to see active workers for allocation)
-        $date = $request->filled('date') ? \Carbon\Carbon::parse($request->input('date')) : \Carbon\Carbon::today();
-        $query->where('attendance_date', $date->toDateString());
+        // Extract Year and Month (Default to current or derived from date)
+        $year = $request->input('year');
+        $month = $request->input('month');
+
+        if (!$year || !$month) {
+            if ($request->filled('date')) {
+                $tempDate = \Carbon\Carbon::parse($request->input('date'));
+                $year = $tempDate->year;
+                $month = $tempDate->month;
+            } else {
+                $year = date('Y');
+                $month = date('n');
+            }
+        }
+
+        // Apply filters based on Year and Month of attendance
+        $query->whereYear('attendance_date', $year)
+              ->whereMonth('attendance_date', $month);
 
         if ($request->filled('service_id')) {
             $query->where('service_id', $request->input('service_id'));
@@ -119,13 +134,30 @@ class AttendanceController extends Controller
             });
         }
 
-        $attendances = $query->paginate(20);
+        // Calculate total counts for the entire month's query
+        $totalPresent = (clone $query)->where('is_present', true)->count();
+        $totalAbsent = (clone $query)->where('is_absent', true)->count();
+
+        // Paginate by 20 and keep query parameters
+        $attendances = $query->paginate(20)->withQueryString();
         $services = Service::active()->get();
 
         $formDepartments = ['CHOIR', 'EVANGELISM', 'USHERING', 'DECORATION', 'INTERPRETATION', 'SUNDAY SCHOOL', 'DOCUMENTATION', 'DRAMA', 'SECURITY', 'MEDIA', 'PROTOCOL', 'SANCTUARY KEEPER', 'TECHNICAL', 'PRAYER', 'NONE'];
         $formGroups = ['The Levites', 'The Light bearers', 'The Root of Jesse', 'Ark of Covenant', 'God\'s Workmanship', 'Glorious star', 'Bread of Life', 'Wisdom of God', 'The Gospellers', 'Balm of Gilead', 'New creature', 'Heaven Ambassadors', 'Battle axe', 'PEACE FELLOWSHIP', 'REDEEMED', 'Light of the World', 'THE LORD CHOSEN', 'Salt of the World', 'Daughters of Zion'];
 
-        return view('attendance.workers', compact('attendances', 'services', 'date', 'formDepartments', 'formGroups'));
+        $date = \Carbon\Carbon::create($year, $month, 1);
+
+        return view('attendance.workers', compact(
+            'attendances',
+            'services',
+            'date',
+            'formDepartments',
+            'formGroups',
+            'year',
+            'month',
+            'totalPresent',
+            'totalAbsent'
+        ));
     }
 
     public function report(Request $request)

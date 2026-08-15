@@ -11,18 +11,18 @@
         <form action="{{ route('attendance.workers') }}" method="GET" class="flex flex-col sm:flex-row flex-wrap gap-4" id="workerFilterForm">
             <div class="w-full sm:w-auto">
                 <label for="filter_year" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <select id="filter_year" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <select id="filter_year" name="year" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                     @php $currentYear = date('Y'); @endphp
                     @for($y = $currentYear - 2; $y <= $currentYear + 1; $y++)
-                        <option value="{{ $y }}" {{ $y == request('year', $currentYear) ? 'selected' : '' }}>{{ $y }}</option>
+                        <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
                 </select>
             </div>
             <div class="w-full sm:w-auto">
                 <label for="filter_month" class="block text-sm font-medium text-gray-700 mb-1">Month</label>
-                <select id="filter_month" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <select id="filter_month" name="month" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                     @for($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ $m == request('month', date('n')) ? 'selected' : '' }}>
+                        <option value="{{ $m }}" {{ $m == $month ? 'selected' : '' }}>
                             {{ date('F', mktime(0, 0, 0, $m, 1)) }}
                         </option>
                     @endfor
@@ -39,11 +39,6 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex-1 min-w-[150px]">
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                <input type="date" name="date" id="date" value="{{ request('date', $date->format('Y-m-d')) }}" 
-                       class="w-full rounded-xl border-gray-300 focus:border-primary-500 focus:ring-primary-500 shadow-sm">
-            </div>
             <div class="flex items-end w-full sm:w-auto mt-2 sm:mt-0">
                 <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-colors">
                     Filter Workers
@@ -54,6 +49,22 @@
 
     <!-- Workers List -->
     <div class="glass-effect rounded-2xl overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-200/50 flex flex-wrap justify-between items-center gap-4 bg-white/30 backdrop-blur-sm">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Worker Attendance Records</h3>
+                <p class="text-sm text-gray-500">Attendance records for {{ date('F Y', mktime(0, 0, 0, $month, 1, $year)) }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="px-4 py-2 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                    <span class="text-xs font-semibold text-green-700">Total Present: <span class="text-sm font-bold text-green-800 ml-1">{{ $totalPresent }}</span></span>
+                </div>
+                <div class="px-4 py-2 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                    <span class="text-xs font-semibold text-red-700">Total Absent: <span class="text-sm font-bold text-red-800 ml-1">{{ $totalAbsent }}</span></span>
+                </div>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50/50">
@@ -61,7 +72,8 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Worker Details</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Departments</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Check In Time</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                 </thead>
@@ -94,7 +106,10 @@
                             {{ $attendance->service->name }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') }}
+                            {{ $attendance->attendance_date->format('M d, Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $attendance->check_in_time ? \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($attendance->is_present)
@@ -114,7 +129,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
+                        <td colspan="6" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
