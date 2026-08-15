@@ -45,57 +45,12 @@ class ServiceAttendanceController extends Controller
         if ($request->filled('service_id')) {
             $selectedService = Service::findOrFail($request->service_id);
 
-            if ($request->filled('date')) {
-                $selectedDate = Carbon::parse($request->input('date'));
-            } else {
-                if (! $selectedService->is_recurring) {
-                    $selectedDate = $selectedService->start_date ? Carbon::parse($selectedService->start_date) : now();
-                } else {
-                    // Find all occurrences of the service's day of week in this month
-                    $dayOfWeek = $selectedService->day_of_week;
-                    $occurrences = [];
-                    $date = Carbon::create($year, $month, 1);
-                    $daysInMonth = $date->daysInMonth;
-
-                    for ($day = 1; $day <= $daysInMonth; $day++) {
-                        $current = Carbon::create($year, $month, $day);
-                        if ($current->dayOfWeek === $dayOfWeek) {
-                            $occurrences[] = $current->clone();
-                        }
-                    }
-
-                    if (! empty($occurrences)) {
-                        $todayStr = now()->toDateString();
-                        $found = false;
-
-                        // If it's the current year and month, default to the most recent occurrence <= today
-                        if ($year == date('Y') && $month == date('n')) {
-                            foreach (array_reverse($occurrences) as $occ) {
-                                if ($occ->toDateString() <= $todayStr) {
-                                    $selectedDate = $occ;
-                                    $found = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (! $found) {
-                            if (Carbon::create($year, $month, 1)->isFuture()) {
-                                // Future month: default to first occurrence
-                                $selectedDate = $occurrences[0];
-                            } else {
-                                // Past month: default to last occurrence
-                                $selectedDate = end($occurrences);
-                            }
-                        }
-                    }
-                }
-            }
-
             $attendances = Attendance::with('member')
                 ->where('service_id', $selectedService->id)
-                ->where('attendance_date', $selectedDate->toDateString())
-                ->orderBy('check_in_time')
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->orderBy('attendance_date', 'desc')
+                ->orderBy('check_in_time', 'desc')
                 ->get();
         }
 

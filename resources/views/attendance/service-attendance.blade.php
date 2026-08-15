@@ -72,6 +72,8 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -94,6 +96,32 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $attendance->member->department ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $attendance->attendance_date->format('M d, Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            @if($attendance->check_in_method === 'qr')
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800" title="Scanned via Mobile App">
+                                    Mobile (QR)
+                                </span>
+                            @elseif($attendance->check_in_method === 'one_tap')
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800" title="One-tap check-in via Mobile App">
+                                    Mobile (One-Tap)
+                                </span>
+                            @elseif($attendance->check_in_method === 'bulk_manual')
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800" title="Bulk checked in on Web">
+                                    Web (Bulk)
+                                </span>
+                            @elseif($attendance->check_in_method === 'manual')
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800" title="Manually checked in on Web">
+                                    Web (Manual)
+                                </span>
+                            @else
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ ucfirst(str_replace('_', ' ', $attendance->check_in_method)) }}
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $attendance->is_present ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
@@ -122,7 +150,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                             No attendance records for this service.
                         </td>
                     </tr>
@@ -308,7 +336,7 @@ async function deleteAttendance(attendanceId) {
         if (tbody.children.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                         No attendance records for this service.
                     </td>
                 </tr>
