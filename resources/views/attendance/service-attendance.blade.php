@@ -10,18 +10,18 @@
         <form action="{{ route('attendance.service') }}" method="GET" class="flex flex-wrap items-end gap-4" id="attendanceForm">
             <div class="w-full md:w-auto">
                 <label for="filter_year" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <select id="filter_year" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <select id="filter_year" name="year" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                     @php $currentYear = date('Y'); @endphp
                     @for($y = $currentYear - 2; $y <= $currentYear + 1; $y++)
-                        <option value="{{ $y }}" {{ $y == request('year', $currentYear) ? 'selected' : '' }}>{{ $y }}</option>
+                        <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
                 </select>
             </div>
             <div class="w-full md:w-auto">
                 <label for="filter_month" class="block text-sm font-medium text-gray-700 mb-1">Month</label>
-                <select id="filter_month" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <select id="filter_month" name="month" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                     @for($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ $m == request('month', date('n')) ? 'selected' : '' }}>
+                        <option value="{{ $m }}" {{ $m == $month ? 'selected' : '' }}>
                             {{ date('F', mktime(0, 0, 0, $m, 1)) }}
                         </option>
                     @endfor
@@ -37,11 +37,6 @@
                         </option>
                     @endforeach
                 </select>
-            </div>
-            <div class="flex-1 min-w-[200px]">
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Attendance Date</label>
-                <input type="date" name="date" id="date" value="{{ request('date', now()->format('Y-m-d')) }}"
-                       class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
             </div>
             <button type="submit" class="px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors w-full md:w-auto">
                 Load Attendance

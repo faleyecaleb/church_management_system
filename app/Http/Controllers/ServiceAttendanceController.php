@@ -24,13 +24,73 @@ class ServiceAttendanceController extends Controller
         $services = Service::orderBy('day_of_week')->orderBy('start_time')->get();
         $members = Member::orderBy('first_name')->orderBy('last_name')->get();
 
-        $selectedDate = $request->start_date ? Carbon::parse($request->start_date) : now();
-
         $selectedService = null;
         $attendances = collect();
+        $selectedDate = now();
 
-        if ($request->service_id) {
+        $year = $request->input('year');
+        $month = $request->input('month');
+
+        if (!$year || !$month) {
+            if ($request->filled('date')) {
+                $tempDate = Carbon::parse($request->input('date'));
+                $year = $tempDate->year;
+                $month = $tempDate->month;
+            } else {
+                $year = date('Y');
+                $month = date('n');
+            }
+        }
+
+        if ($request->filled('service_id')) {
             $selectedService = Service::findOrFail($request->service_id);
+
+            if ($request->filled('date')) {
+                $selectedDate = Carbon::parse($request->input('date'));
+            } else {
+                if (! $selectedService->is_recurring) {
+                    $selectedDate = $selectedService->start_date ? Carbon::parse($selectedService->start_date) : now();
+                } else {
+                    // Find all occurrences of the service's day of week in this month
+                    $dayOfWeek = $selectedService->day_of_week;
+                    $occurrences = [];
+                    $date = Carbon::create($year, $month, 1);
+                    $daysInMonth = $date->daysInMonth;
+
+                    for ($day = 1; $day <= $daysInMonth; $day++) {
+                        $current = Carbon::create($year, $month, $day);
+                        if ($current->dayOfWeek === $dayOfWeek) {
+                            $occurrences[] = $current->clone();
+                        }
+                    }
+
+                    if (! empty($occurrences)) {
+                        $todayStr = now()->toDateString();
+                        $found = false;
+
+                        // If it's the current year and month, default to the most recent occurrence <= today
+                        if ($year == date('Y') && $month == date('n')) {
+                            foreach (array_reverse($occurrences) as $occ) {
+                                if ($occ->toDateString() <= $todayStr) {
+                                    $selectedDate = $occ;
+                                    $found = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (! $found) {
+                            if (Carbon::create($year, $month, 1)->isFuture()) {
+                                // Future month: default to first occurrence
+                                $selectedDate = $occurrences[0];
+                            } else {
+                                // Past month: default to last occurrence
+                                $selectedDate = end($occurrences);
+                            }
+                        }
+                    }
+                }
+            }
 
             $attendances = Attendance::with('member')
                 ->where('service_id', $selectedService->id)
@@ -38,14 +98,15 @@ class ServiceAttendanceController extends Controller
                 ->orderBy('check_in_time')
                 ->get();
         }
-        // dd($selectedService);
 
         return view('attendance.service-attendance', compact(
             'services',
             'members',
             'selectedService',
             'selectedDate',
-            'attendances'
+            'attendances',
+            'year',
+            'month'
         ));
     }
 
@@ -60,7 +121,7 @@ class ServiceAttendanceController extends Controller
             'date' => 'required|date',
         ]);
 
-        $date = Carbon::parse($request->start_date);
+        $date = Carbon::parse($request->date);
         $checkInTime = now();
 
         DB::beginTransaction();
@@ -130,7 +191,7 @@ class ServiceAttendanceController extends Controller
             'date' => 'required|date',
         ]);
 
-        $date = Carbon::parse($request->start_date);
+        $date = Carbon::parse($request->date);
 
         Attendance::where('service_id', $service->id)
             ->where('attendance_date', $date->toDateString())
