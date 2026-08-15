@@ -51,16 +51,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h2 class="text-xl font-semibold text-gray-900">{{ $selectedService->name }}</h2>
-                <p class="text-sm text-gray-500">{{ $selectedDate->format('l, F j, Y') }}</p>
-            </div>
-            <div class="flex gap-3 items-center">
-                <h3 class="text-sm text-gray-600 hidden sm:block">Select a member below to mark their attendance</h3>
-                <a href="{{ route('attendance.qr-code', $selectedService->id) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
-                    </svg>
-                    Generate QR
-                </a>
+                <p class="text-sm text-gray-500">Attendance records for {{ date('F Y', mktime(0, 0, 0, $month, 1, $year)) }}</p>
             </div>
         </div>
 
@@ -75,7 +66,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -95,7 +85,7 @@
                             {{ $attendance->member->email }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $attendance->member->department ?? '-' }}
+                            {{ $attendance->member->department_list ?: '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $attendance->attendance_date->format('M d, Y') }}
@@ -128,29 +118,10 @@
                                 {{ $attendance->is_present ? 'Present' : 'Absent' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <div class="flex justify-center space-x-2" id="action-buttons-{{ $attendance->id }}">
-                                <button onclick="markAttendance({{ $attendance->id }}, true)" class="px-3 py-1 bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors">
-                                    Present
-                                </button>
-                                <button onclick="markAttendance({{ $attendance->id }}, false)" class="px-3 py-1 bg-red-100 text-red-800 rounded-full hover:bg-red-200 transition-colors">
-                                    Absent
-                                </button>
-                                <button onclick="deleteAttendance({{ $attendance->id }})" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200 transition-colors">
-                                    Delete
-                                </button>
-                            </div>
-                            <div id="loading-{{ $attendance->id }}" class="hidden">
-                                <svg class="animate-spin h-5 w-5 mx-auto text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </div>
-                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                             No attendance records for this service.
                         </td>
                     </tr>

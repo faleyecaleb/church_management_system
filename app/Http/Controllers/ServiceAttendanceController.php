@@ -45,7 +45,7 @@ class ServiceAttendanceController extends Controller
         if ($request->filled('service_id')) {
             $selectedService = Service::findOrFail($request->service_id);
 
-            $attendances = Attendance::with('member')
+            $attendances = Attendance::with(['member.departments.department'])
                 ->where('service_id', $selectedService->id)
                 ->whereYear('attendance_date', $year)
                 ->whereMonth('attendance_date', $month)
